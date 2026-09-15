@@ -91,8 +91,9 @@ export function RelatoriosPage() {
         const data = await getRelatorioOcorrencias({
           turmaId: turmaId || undefined,
           dataInicio: dataInicio || undefined,
-          dataFim: dataFim || undefined
-        });
+          dataFim: dataFim || undefined,
+          bimestre: bimestre ? Number(bimestre) : undefined
+      });
         if (!active) return;
         setRelatorio(data);
         setError("");
@@ -104,7 +105,7 @@ export function RelatoriosPage() {
     }
     void loadRelatorio();
     return () => { active = false; };
-  }, [turmaId, dataInicio, dataFim]);
+  }, [turmaId, dataInicio, dataFim, bimestre]);
 
   const total = relatorio?.total ?? 0;
   const resolvidas = relatorio?.byStatus.RESOLVIDA ?? 0;

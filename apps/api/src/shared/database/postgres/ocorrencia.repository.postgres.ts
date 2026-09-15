@@ -67,7 +67,8 @@ function toHistorico(row: HistoricoRow): OcorrenciaHistorico {
   "id, aluno_id, categoria, bimestre, prioridade, descricao, local, testemunhas, status, criado_por_id, criado_em, atualizado_em";
 
 
-const COLUNAS_HISTORICO = "id, ocorrencia_id, status, acao, observacao, usuario_id, criado_em";
+const COLUNAS_HISTORICO =
+  "id, ocorrencia_id, status, acao, observacao, usuario_id, criado_em";
 
 async function insertHistorico(executor: Pool | PoolClient, historico: OcorrenciaHistorico): Promise<void> {
   await executor.query(
@@ -94,6 +95,13 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
     return rows.map(toOcorrencia);
   }
 
+  async listByCriadoPor(criadoPorId: string): Promise<Ocorrencia[]> {
+    const { rows } = await this.pool.query<OcorrenciaRow>(
+      `SELECT ${COLUNAS} FROM ocorrencias WHERE criado_por_id = $1 ORDER BY criado_em DESC`,
+      [criadoPorId]
+    );
+    return rows.map(toOcorrencia);
+  }
   async listByBimestre(bimestre: number): Promise<Ocorrencia[]> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
       `SELECT ${COLUNAS}
@@ -103,14 +111,6 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
       [bimestre]
     );
 
-    return rows.map(toOcorrencia);
-  }
-
-  async listByCriadoPor(criadoPorId: string): Promise<Ocorrencia[]> {
-    const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS} FROM ocorrencias WHERE criado_por_id = $1 ORDER BY criado_em DESC`,
-      [criadoPorId]
-    );
     return rows.map(toOcorrencia);
   }
 
