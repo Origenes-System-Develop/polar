@@ -74,15 +74,28 @@ export class OcorrenciasService {
     private readonly turmas: TurmaRepository,
     private readonly notificacoes: NotificacaoOcorrenciaRepository,
     private readonly audit: AuditRepository
-  ) {}
+  ) { }
 
-  async list(actor: AuthenticatedUser, bimestre?: Number): Promise<Ocorrencia[]> {
+  async list(actor: AuthenticatedUser, bimestre?: number): Promise<Ocorrencia[]> {
     const escopo = escopoDeOcorrencias(actor);
+
     switch (escopo.tipo) {
-      case "global":
-        return this.ocorrencias.list();
-      case "autor":
-        return this.ocorrencias.listByCriadoPor(escopo.usuarioId);
+      case "global": {
+        const ocorrencias = bimestre
+          ? await this.ocorrencias.listByBimestre(bimestre)
+          : await this.ocorrencias.list();
+
+        return ocorrencias;
+      }
+
+      case "autor": {
+        const ocorrencias = await this.ocorrencias.listByCriadoPor(escopo.usuarioId);
+
+        return bimestre
+          ? ocorrencias.filter((ocorrencia) => ocorrencia.bimestre === bimestre)
+          : ocorrencias;
+      }
+
       default:
         return [];
     }
