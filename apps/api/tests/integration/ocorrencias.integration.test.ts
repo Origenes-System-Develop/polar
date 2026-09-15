@@ -10,6 +10,7 @@ async function criarOcorrencia(app: Awaited<ReturnType<typeof buildTestContext>>
       alunoId,
       categoria: "Desrespeito",
       prioridade: "ALTA",
+      bimestre: 1,
       descricao: "Aluno desrespeitou orientacao institucional em sala."
     })
     .expect(201);
