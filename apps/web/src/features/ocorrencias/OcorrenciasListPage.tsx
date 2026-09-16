@@ -154,6 +154,11 @@ export function OcorrenciasListPage() {
                 { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                 { key: "prioridade", header: "Prioridade", render: (item) => <PrioridadeBadge prioridade={item.prioridade} /> },
                 {
+                  key: "bimestre",
+                  header: "Bimestre",
+                  render: (item) => `${item.bimestre}º Bimestre`
+                },
+                {
                   key: "aberta",
                   header: "Em aberto",
                   render: (item) => <DiasEmAberto desde={item.criadoEm} status={item.status} />

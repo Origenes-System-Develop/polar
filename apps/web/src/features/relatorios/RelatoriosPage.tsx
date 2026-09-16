@@ -128,6 +128,18 @@ export function RelatoriosPage() {
         <Card title="Filtros">
           <div className="form-grid">
             <Select
+            label="Bimestre"
+            value={bimestre}
+            onChange={(event) => setBimestre(event.target.value)}
+            options={[
+              { value: "", label: "Todos os bimestres" },
+              { value: "1", label: "1º Bimestre" },
+              { value: "2", label: "2º Bimestre" },
+              { value: "3", label: "3º Bimestre" },
+              { value: "4", label: "4º Bimestre" }
+          ]}
+        />
+            <Select
               label="Turma"
               value={turmaId}
               onChange={(event) => setTurmaId(event.target.value)}
