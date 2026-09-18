@@ -28,6 +28,7 @@ const initialState: FormState = {
   turmaId: "",
   categoria: "",
   prioridade: "MEDIA",
+  bimestre: 1,
   descricao: "",
   local: "",
   testemunhas: ""
@@ -97,6 +98,7 @@ export function NovaOcorrenciaPage() {
         alunoId: result.data.alunoId,
         categoria: result.data.categoria,
         prioridade: result.data.prioridade as PrioridadeOcorrencia,
+        bimestre: result.data.bimestre,
         descricao: result.data.descricao,
         local: result.data.local,
         testemunhas: result.data.testemunhas
@@ -122,6 +124,22 @@ export function NovaOcorrenciaPage() {
             error={errors.alunoId}
             disabled={loading}
             options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...alunos.map((aluno) => ({ label: aluno.nome, value: aluno.id }))]}
+          />
+          <Select
+            label="Bimestre"
+            value={String(form.bimestre)}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                bimestre: Number(event.target.value)
+              }))
+            }
+            options={[
+              { value: "1", label: "1º Bimestre" },
+              { value: "2", label: "2º Bimestre" },
+              { value: "3", label: "3º Bimestre" },
+              { value: "4", label: "4º Bimestre" }
+            ]}
           />
           <Select
             label="Turma"
