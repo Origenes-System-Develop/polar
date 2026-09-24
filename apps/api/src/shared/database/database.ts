@@ -1,5 +1,7 @@
+import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { DatabaseState } from "../domain.js";
 
 export interface DatabaseClient {
@@ -126,6 +128,33 @@ export function createMemoryDatabase(initialState?: DatabaseState): DatabaseClie
   return new MemoryDatabase(initialState);
 }
 
+// Raiz do monorepo: primeiro diretorio acima deste modulo com pnpm-workspace.yaml.
+// Vale tanto para o fonte (src/) quanto para o build (dist/). Sem o marcador
+// (imagem que nao copiou o workspace), cai no diretorio de trabalho.
+function encontrarRaizDoRepositorio(): string {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  while (true) {
+    if (existsSync(path.join(dir, "pnpm-workspace.yaml"))) {
+      return dir;
+    }
+    const pai = path.dirname(dir);
+    if (pai === dir) {
+      return process.cwd();
+    }
+    dir = pai;
+  }
+}
+
+/**
+ * Caminho relativo do banco JSON e sempre relativo a raiz do repositorio, como no
+ * seed. Resolver pelo diretorio de trabalho quebrava o `pnpm dev`: o pnpm roda a
+ * API dentro de apps/api, entao a API lia um arquivo vazio em
+ * apps/api/apps/api/data/ em vez do que o seed populou.
+ */
+export function resolverCaminhoJson(filePath: string): string {
+  return path.resolve(encontrarRaizDoRepositorio(), filePath);
+}
+
 export function createJsonDatabase(filePath: string): DatabaseClient {
-  return new JsonDatabase(path.resolve(process.cwd(), filePath));
+  return new JsonDatabase(resolverCaminhoJson(filePath));
 }

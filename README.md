@@ -14,7 +14,7 @@
 ![Express](https://img.shields.io/badge/Express_5-000000?logo=express&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL_15-4169E1?logo=postgresql&logoColor=white)
 
-[Documentação completa](docs/visao-geral.md) · [Como rodar localmente](#rodar-em-desenvolvimento) · [Sistema ao vivo](https://polar-kappa.vercel.app/login)
+[Documentação completa](docs/visao-geral.md) · [Como rodar localmente](#rodar-em-desenvolvimento) · [Sistema ao vivo](https://polarescolar.vercel.app/login)
 
 </div>
 
@@ -119,7 +119,7 @@ JWT_SECRET=um-segredo-forte-com-pelo-menos-32-caracteres
 DATABASE_PROVIDER=postgres
 DATABASE_URL=postgresql://polar:polar@localhost:5432/polar
 DATABASE_SSL=false
-SEED_SENHA_PADRAO=SenhaDemo1!
+SEED_SENHA_PADRAO=escolha-uma-senha-de-teste
 ```
 
 Popule os dados de demonstração e suba tudo:
