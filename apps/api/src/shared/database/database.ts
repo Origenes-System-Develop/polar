@@ -56,6 +56,9 @@ function normalizeState(input: Partial<DatabaseState> | null): DatabaseState {
 
 export class MemoryDatabase implements DatabaseClient {
   private state: DatabaseState;
+  // Mesma fila do JsonDatabase: sem ela, duas transacoes concorrentes partem da
+  // mesma copia e a ultima a terminar descarta a gravacao da outra.
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(initialState: DatabaseState = createInitialState()) {
     this.state = clone(normalizeState(initialState));
@@ -70,10 +73,21 @@ export class MemoryDatabase implements DatabaseClient {
   }
 
   async transaction<T>(mutator: (state: DatabaseState) => Promise<T> | T): Promise<T> {
-    const workingCopy = clone(this.state);
-    const result = await mutator(workingCopy);
-    this.state = clone(normalizeState(workingCopy));
-    return clone(result);
+    const previous = this.queue;
+    let release: () => void = () => undefined;
+    this.queue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    try {
+      const workingCopy = clone(this.state);
+      const result = await mutator(workingCopy);
+      this.state = clone(normalizeState(workingCopy));
+      return clone(result);
+    } finally {
+      release();
+    }
   }
 }
 

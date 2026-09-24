@@ -274,6 +274,31 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     expect(historico).toHaveLength(2);
     expect(historico[1]?.observacao).toBe("Assumido pela coordenação.");
 
+    // Updater que lanca (revalidacao de status) desfaz a transacao inteira.
+    await expect(
+      repos.ocorrencias.updateWithHistorico(ocorrencia.id, () => {
+        throw new Error("status mudou");
+      })
+    ).rejects.toThrow("status mudou");
+    expect(await repos.ocorrencias.listHistorico(ocorrencia.id)).toHaveLength(2);
+
+    // Historico em forma de funcao recebe o registro lido dentro da transacao.
+    await repos.ocorrencias.updateWithHistorico(
+      ocorrencia.id,
+      (atual) => ({ ...atual, status: StatusOcorrencia.RESOLVIDA, atualizadoEm: agoraIso() }),
+      (anterior) => ({
+        id: novoId(),
+        ocorrenciaId: ocorrencia.id,
+        status: StatusOcorrencia.RESOLVIDA,
+        acao: `Status alterado de ${anterior.status} para RESOLVIDA`,
+        observacao: null,
+        usuarioId: usuario.id,
+        criadoEm: agoraIso()
+      })
+    );
+    const comResolucao = await repos.ocorrencias.listHistorico(ocorrencia.id);
+    expect(comResolucao[2]?.acao).toBe("Status alterado de EM_ANALISE para RESOLVIDA");
+
     // updateWithHistorico de id inexistente nao grava nada.
     const inexistente = await repos.ocorrencias.updateWithHistorico(novoId(), (atual) => atual);
     expect(inexistente).toBeNull();
