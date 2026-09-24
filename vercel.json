@@ -4,6 +4,7 @@
   "installCommand": "pnpm install --frozen-lockfile --prod=false",
   "outputDirectory": "apps/web/dist",
   "framework": null,
+  "regions": ["gru1"],
   "functions": {
     "api/index.ts": {
       "maxDuration": 15
