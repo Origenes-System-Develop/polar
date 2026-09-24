@@ -5,7 +5,7 @@ import type { Express } from "express";
 import { createApp } from "../../src/app.js";
 import type { AppConfig } from "../../src/shared/config.js";
 import { createInitialState, createMemoryDatabase, type DatabaseClient } from "../../src/shared/database/database.js";
-import { PapelUsuario, TipoEnsino, type Usuario } from "../../src/shared/domain.js";
+import { PapelUsuario, TipoEnsino, type DatabaseState, type Usuario } from "../../src/shared/domain.js";
 import { agoraIso, novoId } from "../../src/shared/utils/ids.js";
 
 const valorAleatorioDeTeste = (): string => randomBytes(24).toString("base64url");
@@ -138,4 +138,64 @@ export async function tokens(app: Express) {
     diretor: await login(app, "diretor@pola.test", SENHAS_TESTE.diretor),
     estudante: await login(app, "estudante@pola.test", SENHAS_TESTE.estudante)
   };
+}
+
+// --- Controle de transacoes para testes de concorrencia ---
+// Sem I/O real, o banco em memoria resolve cada requisicao inteira de uma vez e a
+// janela entre a leitura e a gravacao nunca se abre. Estes utilitarios seguram as
+// transacoes antes de entrarem no banco para abrir essa janela de forma determinista.
+
+function segurarTransacoes(
+  db: DatabaseClient,
+  quantidade: number,
+  portao: (indice: number) => Promise<void>
+): void {
+  const original = db.transaction.bind(db);
+  let pedidas = 0;
+  db.transaction = async <T>(mutator: (state: DatabaseState) => Promise<T> | T): Promise<T> => {
+    const indice = pedidas++;
+    if (pedidas >= quantidade) {
+      db.transaction = original;
+    }
+    await portao(indice);
+    return original(mutator);
+  };
+}
+
+/**
+ * As proximas `quantidade` transacoes so entram no banco depois que todas foram
+ * pedidas: requisicoes simultaneas leem o mesmo estado antes de qualquer gravacao.
+ * Se alguma nao chegar a pedir transacao, o teste estoura o timeout.
+ */
+export function sincronizarTransacoes(db: DatabaseClient, quantidade: number): void {
+  let liberar: () => void = () => undefined;
+  const todasPedidas = new Promise<void>((resolve) => {
+    liberar = resolve;
+  });
+  segurarTransacoes(db, quantidade, (indice) => {
+    if (indice === quantidade - 1) {
+      liberar();
+    }
+    return todasPedidas;
+  });
+}
+
+/**
+ * Segura a proxima transacao ate `liberar()`. `alcancada` resolve quando ela e
+ * pedida, ou seja, quando a requisicao ja leu e validou o registro e vai gravar.
+ */
+export function pausarProximaTransacao(db: DatabaseClient): { alcancada: Promise<void>; liberar: () => void } {
+  let alcancou: () => void = () => undefined;
+  let liberar: () => void = () => undefined;
+  const alcancada = new Promise<void>((resolve) => {
+    alcancou = resolve;
+  });
+  const liberada = new Promise<void>((resolve) => {
+    liberar = resolve;
+  });
+  segurarTransacoes(db, 1, () => {
+    alcancou();
+    return liberada;
+  });
+  return { alcancada, liberar };
 }

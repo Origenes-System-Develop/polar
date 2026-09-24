@@ -6,6 +6,7 @@ import type {
   StatusOcorrencia
 } from "../../domain.js";
 import type {
+  HistoricoDaAtualizacao,
   OcorrenciaDuplicateParams,
   OcorrenciaRepository
 } from "../repositories/ocorrencia.repository.js";
@@ -188,7 +189,7 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
   async updateWithHistorico(
     id: string,
     updater: (ocorrencia: Ocorrencia) => Ocorrencia,
-    historico?: OcorrenciaHistorico
+    historico?: HistoricoDaAtualizacao
   ): Promise<Ocorrencia | null> {
     // Status novo e historico: gravados juntos ou nada e gravado.
     return withTransaction(this.pool, async (client) => {
@@ -201,7 +202,8 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
         return null;
       }
 
-      const updated = updater(toOcorrencia(row));
+      const atual = toOcorrencia(row);
+      const updated = updater(atual);
       await client.query(
         `UPDATE ocorrencias
            SET categoria = $1, prioridade = $2, descricao = $3, local = $4, testemunhas = $5, status = $6, atualizado_em = $7
@@ -218,7 +220,7 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
         ]
       );
       if (historico) {
-        await insertHistorico(client, historico);
+        await insertHistorico(client, typeof historico === "function" ? historico(atual) : historico);
       }
       return updated;
     });
