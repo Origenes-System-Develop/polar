@@ -260,16 +260,17 @@ Recomenda-se abrir uma tarefa de back-end para corrigir D1 e D2 conforme a suges
 
 ## Anexo — script utilizado
 
-Com a API rodando (`pnpm dev`) e o banco populado (`pnpm seed`), salve o script abaixo como `concorrencia.mjs` e execute `node concorrencia.mjs 5`. O argumento é o número de rodadas.
+Com a API rodando (`pnpm dev`) e o banco populado (`pnpm seed`), salve o script abaixo como `concorrencia.mjs` e execute `SEED_SENHA_PADRAO=<senha usada no seed> node concorrencia.mjs 5`. O argumento é o número de rodadas. A senha vem do ambiente e não fica no script.
 
 <details>
 <summary>concorrencia.mjs</summary>
 
 ```js
 // QA-03 — teste de concorrencia simples contra a API local.
-// Uso: node concorrencia.mjs [rodadas]   (API em http://localhost:3000)
+// Uso: SEED_SENHA_PADRAO=<senha do seed> node concorrencia.mjs [rodadas]   (API em http://localhost:3000)
 const API = process.env.API_URL ?? "http://localhost:3000/api";
-const SENHA = process.env.SEED_SENHA ?? "SenhaDemo1!";
+const SENHA = process.env.SEED_SENHA_PADRAO;
+if (!SENHA) throw new Error("Defina SEED_SENHA_PADRAO com a mesma senha usada no pnpm seed.");
 const RODADAS = Number(process.argv[2] ?? 5);
 const tag = Date.now().toString(36);
 
