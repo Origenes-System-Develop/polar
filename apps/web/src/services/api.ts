@@ -5,6 +5,7 @@ const API_URL = (
   import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "/api" : "http://localhost:3000/api")
 ).replace(/\/$/, "");
 const TOKEN_KEY = "polar_token";
+const LOGIN_PATH = "/auth/login";
 
 export class ApiError extends Error {
   constructor(
@@ -41,7 +42,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     headers
   });
 
-  if (response.status === 401) {
+  // 401 no login e credencial recusada, nao sessao expirada: segue para o erro
+  // comum abaixo, com a mensagem da API ("Usuario ou senha invalidos.").
+  if (response.status === 401 && path !== LOGIN_PATH) {
     clearToken();
     if (window.location.pathname !== "/login") {
       window.location.assign("/login");
