@@ -206,6 +206,7 @@ export interface RelatorioOcorrenciasFiltro {
   turmaId?: string;
   dataInicio?: string;
   dataFim?: string;
+  bimestre?: number;
 }
 
 export interface CreateUsuarioPayload {

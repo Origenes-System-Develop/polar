@@ -88,6 +88,7 @@ export interface Ocorrencia {
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
