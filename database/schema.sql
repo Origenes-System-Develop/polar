@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   id CHAR(36) NOT NULL,
   aluno_id CHAR(36) NOT NULL,
   categoria VARCHAR(120) NOT NULL,
-  bimestre INTEGER NOT NULL CHECK (bimestre IN (1, 2, 3, 4)),
+  bimestre INTEGER NOT NULL CONSTRAINT ck_ocorrencias_bimestre CHECK (bimestre IN (1, 2, 3, 4)),
   prioridade prioridade_ocorrencia NOT NULL,
   descricao TEXT NOT NULL,
   local VARCHAR(160) NOT NULL DEFAULT '',
@@ -129,6 +129,24 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   CONSTRAINT fk_ocorrencias_aluno FOREIGN KEY (aluno_id) REFERENCES alunos (id),
   CONSTRAINT fk_ocorrencias_criado_por FOREIGN KEY (criado_por_id) REFERENCES users (id)
 );
+
+-- Compatibilidade com bancos ja existentes: ocorrencias anteriores ao filtro por
+-- bimestre recebem o bimestre pelo mes de registro (jan-abr = 1, mai-jul = 2,
+-- ago-set = 3, out-dez = 4, em UTC como no seed). Idempotente.
+ALTER TABLE ocorrencias ADD COLUMN IF NOT EXISTS bimestre INTEGER;
+UPDATE ocorrencias
+SET bimestre = CASE
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 4 THEN 1
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 7 THEN 2
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 9 THEN 3
+  ELSE 4
+END
+WHERE bimestre IS NULL;
+ALTER TABLE ocorrencias ALTER COLUMN bimestre SET NOT NULL;
+
+DO $$ BEGIN
+  ALTER TABLE ocorrencias ADD CONSTRAINT ck_ocorrencias_bimestre CHECK (bimestre IN (1, 2, 3, 4));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_status ON ocorrencias (status);
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_aluno_id ON ocorrencias (aluno_id);

@@ -172,6 +172,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Não fez atividade",
+      bimestre: 3,
       prioridade: PrioridadeOcorrencia.MEDIA,
       descricao: "Dano ao patrimônio não confirmado; observação com acentuação: ãõçéíú.",
       local: "Pátio",
@@ -195,6 +196,9 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     const lida = await repos.ocorrencias.findById(ocorrencia.id);
     expect(lida?.categoria).toBe("Não fez atividade");
     expect(lida?.descricao).toContain("ãõçéíú");
+    expect(lida?.bimestre).toBe(3);
+    expect((await repos.ocorrencias.listByBimestre(3)).map((o) => o.id)).toContain(ocorrencia.id);
+    expect((await repos.ocorrencias.listByBimestre(1)).map((o) => o.id)).not.toContain(ocorrencia.id);
 
     const alunoLido = await repos.alunos.findById(aluno.id);
     expect(alunoLido?.nome).toBe("João Não-Silva Àcêntós");
@@ -234,6 +238,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Desrespeito",
+      bimestre: 1,
       prioridade: PrioridadeOcorrencia.ALTA,
       descricao: "Ocorrencia para teste de transicao.",
       local: "",
@@ -338,6 +343,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Atraso",
+      bimestre: 2,
       prioridade: PrioridadeOcorrencia.BAIXA,
       descricao: "Chegou atrasado após o intervalo.",
       local: "",
