@@ -35,6 +35,16 @@ function diasAtras(dias: number, hora = 10, minuto = 0): string {
   return data.toISOString();
 }
 
+// Mesma regra que database/schema.sql usa para ocorrencias antigas:
+// jan-abr = 1, mai-jul = 2, ago-set = 3, out-dez = 4.
+function bimestreDaData(iso: string): number {
+  const mes = new Date(iso).getUTCMonth() + 1;
+  if (mes <= 4) return 1;
+  if (mes <= 7) return 2;
+  if (mes <= 9) return 3;
+  return 4;
+}
+
 function dataOnly(dias: number): string {
   return diasAtras(dias).slice(0, 10);
 }
@@ -153,6 +163,7 @@ async function inserirOcorrencia(repos: Repositories, seed: OcorrenciaSeed): Pro
     id: novoId(),
     alunoId: seed.alunoId,
     categoria: seed.categoria,
+    bimestre: bimestreDaData(criadoEm),
     prioridade: seed.prioridade,
     descricao: seed.descricao,
     local: seed.local,
