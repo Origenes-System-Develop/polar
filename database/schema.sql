@@ -132,13 +132,13 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
 
 -- Compatibilidade com bancos ja existentes: ocorrencias anteriores ao filtro por
 -- bimestre recebem o bimestre pelo mes de registro (jan-abr = 1, mai-jul = 2,
--- ago-set = 3, out-dez = 4, mesma regra do seed). Idempotente.
+-- ago-set = 3, out-dez = 4, em UTC como no seed). Idempotente.
 ALTER TABLE ocorrencias ADD COLUMN IF NOT EXISTS bimestre INTEGER;
 UPDATE ocorrencias
 SET bimestre = CASE
-  WHEN EXTRACT(MONTH FROM criado_em) <= 4 THEN 1
-  WHEN EXTRACT(MONTH FROM criado_em) <= 7 THEN 2
-  WHEN EXTRACT(MONTH FROM criado_em) <= 9 THEN 3
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 4 THEN 1
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 7 THEN 2
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 9 THEN 3
   ELSE 4
 END
 WHERE bimestre IS NULL;
