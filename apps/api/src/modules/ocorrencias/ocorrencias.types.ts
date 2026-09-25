@@ -10,7 +10,9 @@ function normalizePrioridade(value: unknown): unknown {
     BAIXA: PrioridadeOcorrencia.BAIXA,
     MEDIA: PrioridadeOcorrencia.MEDIA,
     MÉDIA: PrioridadeOcorrencia.MEDIA,
-    ALTA: PrioridadeOcorrencia.ALTA
+    ALTA: PrioridadeOcorrencia.ALTA,
+    URGENTE: PrioridadeOcorrencia.URGENTE,
+    "URGÊNCIA": PrioridadeOcorrencia.URGENTE
   };
   return aliases[raw] ?? raw;
 }
@@ -42,7 +44,8 @@ export const createOcorrenciaSchema = z.object({
   prioridade: z.preprocess(normalizePrioridade, z.nativeEnum(PrioridadeOcorrencia)),
   descricao: textoLimpo(2000).pipe(z.string().min(10, "Descricao deve ter pelo menos 10 caracteres.")),
   local: textoLimpo(160).optional(),
-  testemunhas: textoLimpo(240).optional()
+  testemunhas: textoLimpo(240).optional(),
+  bimestre: z.coerce.number().int().min(1).max(4)
 });
 
 export const updateOcorrenciaSchema = z.object({

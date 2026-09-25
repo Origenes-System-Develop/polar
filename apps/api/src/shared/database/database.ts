@@ -1,5 +1,7 @@
+import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { DatabaseState } from "../domain.js";
 
 export interface DatabaseClient {
@@ -9,6 +11,9 @@ export interface DatabaseClient {
 }
 
 function clone<T>(value: T): T {
+  if (value === undefined) {
+    return value;
+  }
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
@@ -20,6 +25,7 @@ export function createInitialState(): DatabaseState {
     alunosTurmasHistorico: [],
     ocorrencias: [],
     ocorrenciaHistorico: [],
+    notificacoesOcorrencia: [],
     notas: [],
     faltas: [],
     auditLogs: []
@@ -41,6 +47,9 @@ function normalizeState(input: Partial<DatabaseState> | null): DatabaseState {
     ocorrenciaHistorico: Array.isArray(input.ocorrenciaHistorico)
       ? input.ocorrenciaHistorico
       : base.ocorrenciaHistorico,
+    notificacoesOcorrencia: Array.isArray(input.notificacoesOcorrencia)
+      ? input.notificacoesOcorrencia
+      : base.notificacoesOcorrencia,
     notas: Array.isArray(input.notas) ? input.notas : base.notas,
     faltas: Array.isArray(input.faltas) ? input.faltas : base.faltas,
     auditLogs: Array.isArray(input.auditLogs) ? input.auditLogs : base.auditLogs
@@ -49,9 +58,12 @@ function normalizeState(input: Partial<DatabaseState> | null): DatabaseState {
 
 export class MemoryDatabase implements DatabaseClient {
   private state: DatabaseState;
+  // Mesma fila do JsonDatabase: sem ela, duas transacoes concorrentes partem da
+  // mesma copia e a ultima a terminar descarta a gravacao da outra.
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(initialState: DatabaseState = createInitialState()) {
-    this.state = clone(initialState);
+    this.state = clone(normalizeState(initialState));
   }
 
   async read(): Promise<DatabaseState> {
@@ -63,10 +75,21 @@ export class MemoryDatabase implements DatabaseClient {
   }
 
   async transaction<T>(mutator: (state: DatabaseState) => Promise<T> | T): Promise<T> {
-    const workingCopy = clone(this.state);
-    const result = await mutator(workingCopy);
-    this.state = clone(normalizeState(workingCopy));
-    return clone(result);
+    const previous = this.queue;
+    let release: () => void = () => undefined;
+    this.queue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    try {
+      const workingCopy = clone(this.state);
+      const result = await mutator(workingCopy);
+      this.state = clone(normalizeState(workingCopy));
+      return clone(result);
+    } finally {
+      release();
+    }
   }
 }
 
@@ -128,6 +151,33 @@ export function createMemoryDatabase(initialState?: DatabaseState): DatabaseClie
   return new MemoryDatabase(initialState);
 }
 
+// Raiz do monorepo: primeiro diretorio acima deste modulo com pnpm-workspace.yaml.
+// Vale tanto para o fonte (src/) quanto para o build (dist/). Sem o marcador
+// (imagem que nao copiou o workspace), cai no diretorio de trabalho.
+function encontrarRaizDoRepositorio(): string {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  while (true) {
+    if (existsSync(path.join(dir, "pnpm-workspace.yaml"))) {
+      return dir;
+    }
+    const pai = path.dirname(dir);
+    if (pai === dir) {
+      return process.cwd();
+    }
+    dir = pai;
+  }
+}
+
+/**
+ * Caminho relativo do banco JSON e sempre relativo a raiz do repositorio, como no
+ * seed. Resolver pelo diretorio de trabalho quebrava o `pnpm dev`: o pnpm roda a
+ * API dentro de apps/api, entao a API lia um arquivo vazio em
+ * apps/api/apps/api/data/ em vez do que o seed populou.
+ */
+export function resolverCaminhoJson(filePath: string): string {
+  return path.resolve(encontrarRaizDoRepositorio(), filePath);
+}
+
 export function createJsonDatabase(filePath: string): DatabaseClient {
-  return new JsonDatabase(path.resolve(process.cwd(), filePath));
+  return new JsonDatabase(resolverCaminhoJson(filePath));
 }

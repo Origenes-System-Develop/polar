@@ -10,6 +10,7 @@ async function criarOcorrencia(app: Awaited<ReturnType<typeof buildTestContext>>
       alunoId,
       categoria: "Desrespeito",
       prioridade: "ALTA",
+      bimestre: 1,
       descricao: "Aluno desrespeitou orientacao institucional em sala."
     })
     .expect(201);
@@ -30,7 +31,7 @@ describe("Ocorrencias", () => {
       .expect(400);
   });
 
-  it("rejeita prioridade fora dos niveis permitidos", async () => {
+  it("aceita urgencia e rejeita prioridade fora dos niveis permitidos", async () => {
     const { app, ids } = await buildTestContext();
     const auth = await tokens(app);
 
@@ -41,6 +42,18 @@ describe("Ocorrencias", () => {
         alunoId: ids.aluno,
         categoria: "Atraso",
         prioridade: "URGENTE",
+        bimestre: 1,
+        descricao: "Aluno chegou depois do inicio da atividade escolar."
+      })
+      .expect(201);
+
+    await request(app)
+      .post("/api/ocorrencias")
+      .set("Authorization", `Bearer ${auth.professor}`)
+      .send({
+        alunoId: ids.aluno,
+        categoria: "Atraso diferente",
+        prioridade: "CRITICA",
         descricao: "Aluno chegou depois do inicio da atividade escolar."
       })
       .expect(400);
@@ -124,6 +137,7 @@ describe("Ocorrencias", () => {
         alunoId: ids.aluno,
         categoria: "Desrespeito",
         prioridade: "ALTA",
+        bimestre: 1,
         descricao: "Aluno desrespeitou orientacao institucional em sala."
       })
       .expect(409);

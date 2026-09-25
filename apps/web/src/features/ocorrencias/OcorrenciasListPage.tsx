@@ -22,6 +22,7 @@ export function OcorrenciasListPage() {
   const [aluno, setAluno] = useState("");
   const [status, setStatus] = useState("");
   const [prioridade, setPrioridade] = useState("");
+  const [bimestre, setBimestre] = useState("");
   const [ordemPrioridade, setOrdemPrioridade] = useState("");
   const [categoria, setCategoria] = useState("");
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDetalhada[]>([]);
@@ -60,16 +61,16 @@ export function OcorrenciasListPage() {
             item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
             (!status || item.status === status) &&
             (!prioridade || item.prioridade === prioridade) &&
-            (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase()))
+            (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase())) &&
+            (!bimestre || item.bimestre === Number(bimestre))
         )
         .sort((a, b) => {
           if (!ordemPrioridade) return 0;
           const diferenca = PRIORIDADE_PESO[b.prioridade] - PRIORIDADE_PESO[a.prioridade];
           return ordemPrioridade === "MAIOR" ? diferenca : -diferenca;
         }),
-    [aluno, categoria, ocorrencias, ordemPrioridade, prioridade, status]
+    [aluno, bimestre, categoria, ocorrencias, ordemPrioridade, prioridade, status]
   );
-
   return (
     <>
       <PageHeader
@@ -82,6 +83,18 @@ export function OcorrenciasListPage() {
         }
       />
       <div className="page-grid">
+        <Select
+          label="Bimestre"
+          value={bimestre}
+          onChange={(event) => setBimestre(event.target.value)}
+          options={[
+            { label: "Todos", value: "" },
+            { label: "1º Bimestre", value: "1" },
+            { label: "2º Bimestre", value: "2" },
+            { label: "3º Bimestre", value: "3" },
+            { label: "4º Bimestre", value: "4" }
+          ]}
+        />
         <Card title="Filtros">
           <div className="form-grid">
             <Input label="Aluno" value={aluno} onChange={(event) => setAluno(event.target.value)} />
@@ -140,6 +153,11 @@ export function OcorrenciasListPage() {
                 { key: "categoria", header: "Categoria", render: (item) => item.categoria },
                 { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                 { key: "prioridade", header: "Prioridade", render: (item) => <PrioridadeBadge prioridade={item.prioridade} /> },
+                {
+                  key: "bimestre",
+                  header: "Bimestre",
+                  render: (item) => `${item.bimestre}º Bimestre`
+                },
                 {
                   key: "aberta",
                   header: "Em aberto",

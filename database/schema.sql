@@ -11,11 +11,19 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-  CREATE TYPE prioridade_ocorrencia AS ENUM ('BAIXA', 'MEDIA', 'ALTA');
+  CREATE TYPE prioridade_ocorrencia AS ENUM ('BAIXA', 'MEDIA', 'ALTA', 'URGENTE');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Bancos criados antes da classificacao de urgencia recebem o novo nivel sem
+-- perder registros existentes. IF NOT EXISTS torna a atualizacao idempotente.
+ALTER TYPE prioridade_ocorrencia ADD VALUE IF NOT EXISTS 'URGENTE';
 
 DO $$ BEGIN
   CREATE TYPE status_ocorrencia AS ENUM ('REGISTRADA', 'EM_ANALISE', 'RESOLVIDA', 'ENCERRADA');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE tipo_ensino AS ENUM ('REGULAR', 'TECNICO');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -40,12 +48,16 @@ CREATE TABLE IF NOT EXISTS turmas (
   nome VARCHAR(120) NOT NULL,
   ano_letivo INTEGER NOT NULL,
   turno VARCHAR(40) NOT NULL,
+  tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR',
   ativa BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
   CONSTRAINT pk_turmas PRIMARY KEY (id),
   CONSTRAINT uq_turmas_nome UNIQUE (nome)
 );
+
+-- Compatibilidade com bancos ja existentes: toda turma anterior passa a ser REGULAR.
+ALTER TABLE turmas ADD COLUMN IF NOT EXISTS tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR';
 
 CREATE TABLE IF NOT EXISTS alunos (
   id CHAR(36) NOT NULL,
@@ -104,6 +116,7 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   id CHAR(36) NOT NULL,
   aluno_id CHAR(36) NOT NULL,
   categoria VARCHAR(120) NOT NULL,
+  bimestre INTEGER NOT NULL CONSTRAINT ck_ocorrencias_bimestre CHECK (bimestre IN (1, 2, 3, 4)),
   prioridade prioridade_ocorrencia NOT NULL,
   descricao TEXT NOT NULL,
   local VARCHAR(160) NOT NULL DEFAULT '',
@@ -116,6 +129,24 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   CONSTRAINT fk_ocorrencias_aluno FOREIGN KEY (aluno_id) REFERENCES alunos (id),
   CONSTRAINT fk_ocorrencias_criado_por FOREIGN KEY (criado_por_id) REFERENCES users (id)
 );
+
+-- Compatibilidade com bancos ja existentes: ocorrencias anteriores ao filtro por
+-- bimestre recebem o bimestre pelo mes de registro (jan-abr = 1, mai-jul = 2,
+-- ago-set = 3, out-dez = 4, em UTC como no seed). Idempotente.
+ALTER TABLE ocorrencias ADD COLUMN IF NOT EXISTS bimestre INTEGER;
+UPDATE ocorrencias
+SET bimestre = CASE
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 4 THEN 1
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 7 THEN 2
+  WHEN EXTRACT(MONTH FROM criado_em AT TIME ZONE 'UTC') <= 9 THEN 3
+  ELSE 4
+END
+WHERE bimestre IS NULL;
+ALTER TABLE ocorrencias ALTER COLUMN bimestre SET NOT NULL;
+
+DO $$ BEGIN
+  ALTER TABLE ocorrencias ADD CONSTRAINT ck_ocorrencias_bimestre CHECK (bimestre IN (1, 2, 3, 4));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_status ON ocorrencias (status);
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_aluno_id ON ocorrencias (aluno_id);
@@ -138,6 +169,20 @@ CREATE TABLE IF NOT EXISTS ocorrencia_historico (
 );
 
 CREATE INDEX IF NOT EXISTS idx_historico_ocorrencia_id ON ocorrencia_historico (ocorrencia_id);
+
+CREATE TABLE IF NOT EXISTS notificacoes_ocorrencia (
+  id CHAR(36) NOT NULL,
+  ocorrencia_id CHAR(36) NOT NULL,
+  destinatario VARCHAR(20) NOT NULL,
+  resultado VARCHAR(20) NOT NULL,
+  criado_em TIMESTAMPTZ(3) NOT NULL,
+  CONSTRAINT pk_notificacoes_ocorrencia PRIMARY KEY (id),
+  CONSTRAINT fk_notificacoes_ocorrencia FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias (id),
+  CONSTRAINT ck_notificacoes_destinatario CHECK (destinatario IN ('PAET', 'COORDENACAO', 'DIRECAO')),
+  CONSTRAINT ck_notificacoes_resultado CHECK (resultado = 'ENVIADO')
+);
+
+CREATE INDEX IF NOT EXISTS idx_notificacoes_ocorrencia_id ON notificacoes_ocorrencia (ocorrencia_id);
 
 CREATE TABLE IF NOT EXISTS notas (
   id CHAR(36) NOT NULL,

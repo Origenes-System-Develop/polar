@@ -8,16 +8,16 @@ describe("DashboardPage", () => {
     renderWithProviders(<DashboardPage />);
 
     expect(screen.getByRole("heading", { name: /^ola,/i })).toBeInTheDocument();
-    expect(screen.getByText("Alta prioridade")).toBeInTheDocument();
+    expect(screen.getByText("Graves ou urgentes")).toBeInTheDocument();
     expect(screen.getByText("Em analise")).toBeInTheDocument();
     expect(screen.getByText("Ultimas ocorrencias")).toBeInTheDocument();
-    expect(await screen.findByText("Maria Eduarda")).toBeInTheDocument();
+    expect(await screen.findByText("Estudante 01")).toBeInTheDocument();
   });
 
   it("mostra ha quanto tempo cada ocorrencia esta aberta", async () => {
     renderWithProviders(<DashboardPage />);
 
-    await screen.findByText("Maria Eduarda");
+    await screen.findByText("Estudante 01");
     expect(screen.getByText("Em aberto")).toBeInTheDocument();
   });
 });

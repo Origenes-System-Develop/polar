@@ -9,18 +9,27 @@ export interface OcorrenciaDuplicateParams {
   desde: Date;
 }
 
+export type HistoricoDaAtualizacao = OcorrenciaHistorico | ((atual: Ocorrencia) => OcorrenciaHistorico);
+
 export interface OcorrenciaRepository {
   list(): Promise<Ocorrencia[]>;
   listByCriadoPor(criadoPorId: string): Promise<Ocorrencia[]>;
+  listByBimestre(bimestre: number): Promise<Ocorrencia[]>;
   findById(id: string): Promise<Ocorrencia | null>;
   listHistorico(ocorrenciaId: string): Promise<OcorrenciaHistorico[]>;
   findDuplicate(params: OcorrenciaDuplicateParams): Promise<Ocorrencia | null>;
   create(ocorrencia: Ocorrencia, historico: OcorrenciaHistorico): Promise<Ocorrencia>;
   createHistorico(historico: OcorrenciaHistorico): Promise<OcorrenciaHistorico>;
+  /**
+   * Atualiza a ocorrencia e grava o historico na mesma transacao, com o registro
+   * travado (fila no json, SELECT ... FOR UPDATE no postgres). O updater recebe o
+   * registro lido dentro da transacao e pode lancar para abortar: nada e gravado.
+   * O historico pode ser montado a partir desse mesmo registro.
+   */
   updateWithHistorico(
     id: string,
     updater: (ocorrencia: Ocorrencia) => Ocorrencia,
-    historico?: OcorrenciaHistorico
+    historico?: HistoricoDaAtualizacao
   ): Promise<Ocorrencia | null>;
 }
 
@@ -36,6 +45,14 @@ export class JsonOcorrenciaRepository implements OcorrenciaRepository {
     const state = await this.db.read();
     return state.ocorrencias.filter((ocorrencia) => ocorrencia.criadoPorId === criadoPorId);
   }
+
+  async listByBimestre(bimestre: number): Promise<Ocorrencia[]> {
+  const state = await this.db.read();
+
+  return state.ocorrencias.filter(
+    (ocorrencia) => ocorrencia.bimestre === bimestre
+  );
+}
 
   async findById(id: string): Promise<Ocorrencia | null> {
     const state = await this.db.read();
@@ -84,7 +101,7 @@ export class JsonOcorrenciaRepository implements OcorrenciaRepository {
   async updateWithHistorico(
     id: string,
     updater: (ocorrencia: Ocorrencia) => Ocorrencia,
-    historico?: OcorrenciaHistorico
+    historico?: HistoricoDaAtualizacao
   ): Promise<Ocorrencia | null> {
     return this.db.transaction((state) => {
       const index = state.ocorrencias.findIndex((ocorrencia) => ocorrencia.id === id);
@@ -96,7 +113,7 @@ export class JsonOcorrenciaRepository implements OcorrenciaRepository {
       const updated = updater(current);
       state.ocorrencias[index] = updated;
       if (historico) {
-        state.ocorrenciaHistorico.push(historico);
+        state.ocorrenciaHistorico.push(typeof historico === "function" ? historico(current) : historico);
       }
       return updated;
     });

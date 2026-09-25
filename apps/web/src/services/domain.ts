@@ -2,12 +2,13 @@ export type PapelUsuario = "PROFESSOR" | "COORDENADOR" | "DIRETOR" | "ADM" | "AL
 
 export type StatusOcorrencia = "REGISTRADA" | "EM_ANALISE" | "RESOLVIDA" | "ENCERRADA";
 
-export type PrioridadeOcorrencia = "BAIXA" | "MEDIA" | "ALTA";
+export type PrioridadeOcorrencia = "BAIXA" | "MEDIA" | "ALTA" | "URGENTE";
 
 export const PRIORIDADES_OCORRENCIA = [
   { value: "BAIXA", label: "Baixa", peso: 1 },
   { value: "MEDIA", label: "Media", peso: 2 },
-  { value: "ALTA", label: "Alta", peso: 3 }
+  { value: "ALTA", label: "Alta", peso: 3 },
+  { value: "URGENTE", label: "Urgente", peso: 4 }
 ] as const satisfies ReadonlyArray<{ value: PrioridadeOcorrencia; label: string; peso: number }>;
 
 export const PRIORIDADE_LABEL: Record<PrioridadeOcorrencia, string> = Object.fromEntries(
@@ -37,6 +38,7 @@ export interface Turma {
   nome: string;
   anoLetivo: number;
   turno: string;
+  tipoEnsino: "REGULAR" | "TECNICO";
   ativa: boolean;
   criadoEm?: string;
   atualizadoEm?: string;
@@ -78,6 +80,7 @@ export interface Ocorrencia {
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
@@ -100,6 +103,14 @@ export interface OcorrenciaHistorico {
   observacao: string | null;
   usuarioId: string;
   usuarioNome: string;
+  criadoEm: string;
+}
+
+export interface NotificacaoOcorrencia {
+  id: string;
+  ocorrenciaId: string;
+  destinatario: "PAET" | "COORDENACAO" | "DIRECAO";
+  resultado: "ENVIADO";
   criadoEm: string;
 }
 
@@ -130,20 +141,30 @@ export interface DashboardResumo {
   ocorrenciasPorCategoria: Record<string, number>;
 }
 
+export interface MovimentacaoRecente {
+  id: string;
+  ocorrenciaId: string;
+  acao: string;
+  status: StatusOcorrencia;
+  usuarioNome: string;
+  criadoEm: string;
+}
+
 export interface RelatorioOcorrencias {
   total: number;
   byStatus: Partial<Record<StatusOcorrencia, number>>;
   byPriority: Partial<Record<PrioridadeOcorrencia, number>>;
   byCategory: Record<string, number>;
   recent: Ocorrencia[];
-  byTurma?: { nome: string; total: number }[];     // NOVO
-  byPeriodo?: { periodo: string; total: number }[]; // NOVO
+  byTurma: { nome: string; total: number }[];
+  byPeriodo: { periodo: string; total: number }[];
 }
 
 export interface CreateOcorrenciaPayload {
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
@@ -170,13 +191,22 @@ export interface CreateTurmaPayload {
   nome: string;
   anoLetivo: number;
   turno: string;
+  tipoEnsino?: "REGULAR" | "TECNICO";
 }
 
 export interface UpdateTurmaPayload {
   nome?: string;
   anoLetivo?: number;
   turno?: string;
+  tipoEnsino?: "REGULAR" | "TECNICO";
   ativa?: boolean;
+}
+
+export interface RelatorioOcorrenciasFiltro {
+  turmaId?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  bimestre?: number;
 }
 
 export interface CreateUsuarioPayload {

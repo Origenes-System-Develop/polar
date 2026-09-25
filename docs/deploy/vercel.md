@@ -21,6 +21,8 @@ Duas mudanças em relação ao Render:
 
 **Não há hibernação.** O plano gratuito do Render dormia após 15 minutos e voltava em ~50 s. Por isso existia um workflow de keepalive pingando `/health` — ele foi removido, não tem mais função.
 
+**A função roda em São Paulo.** O `vercel.json` fixa `"regions": ["gru1"]`, a mesma região do Supabase (`sa-east-1`). Sem isso a Vercel usa `iad1` (Washington), e cada consulta ao banco atravessa EUA↔Brasil. Para conferir, o header `x-vercel-id` de qualquer resposta de `/api` tem o formato `borda::função::id` e deve começar com `gru1::gru1::`.
+
 O `Dockerfile` continua no repositório e continua funcionando: `apps/api/src/server.ts` sobe um servidor único que serve a API e o SPA na mesma origem. É a rota de fuga caso a Vercel não sirva.
 
 ## 1. Importar o repositório
