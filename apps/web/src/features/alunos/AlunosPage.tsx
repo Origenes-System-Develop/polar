@@ -8,10 +8,12 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
-import type { AlunoDetalhado, Turma } from "../../services/domain";
-import { createAluno, listAlunosDetalhados, listTurmas } from "../../services/school.service";
+import type { AlunoDetalhadoComResumoOcorrencias, Turma } from "../../services/domain";
+import { createAluno, listAlunosDetalhados, listTurmas, updateAluno } from "../../services/school.service";
+import { calcularIndicadorAluno } from "../../services/domain";
 
 const initialAlunoForm = {
   nome: "",
@@ -25,7 +27,7 @@ export function AlunosPage() {
   const { user } = useAuth();
   const [busca, setBusca] = useState("");
   const [turma, setTurma] = useState("");
-  const [alunos, setAlunos] = useState<AlunoDetalhado[]>([]);
+  const [alunos, setAlunos] = useState<AlunoDetalhadoComResumoOcorrencias[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,6 +36,10 @@ export function AlunosPage() {
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(initialAlunoForm);
   const canManage = canAccess(user?.papel, "alunos:manage");
+
+  // Estado do modal de confirmação de inativação
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; nome: string } | null>(null);
+  const [inativando, setInativando] = useState(false);
 
   async function refreshData() {
     const [nextAlunos, nextTurmas] = await Promise.all([listAlunosDetalhados(), listTurmas()]);
@@ -101,6 +107,27 @@ export function AlunosPage() {
     }
   }
 
+  // Abre o modal de confirmação — não inativa nada ainda
+  function handleInativarClick(id: string, nome: string) {
+    setConfirmTarget({ id, nome });
+  }
+
+  // Só executa a inativação de fato após clique em "Confirmar" no modal
+  async function handleConfirmInativar() {
+    if (!confirmTarget) return;
+    setInativando(true);
+    setError("");
+    try {
+      await updateAluno(confirmTarget.id, { ativo: false });
+      await refreshData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel inativar o aluno.");
+    } finally {
+      setInativando(false);
+      setConfirmTarget(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -132,14 +159,33 @@ export function AlunosPage() {
                 { key: "matricula", header: "Matricula", render: (item) => item.matricula },
                 { key: "turma", header: "Turma", render: (item) => item.turma },
                 {
+                  key: "indicador",
+                  header: "Ocorrências",
+                  render: (item) => {
+                    const indicador = calcularIndicadorAluno(item.totalOcorrencias, item.temOcorrenciaGrave);
+                    return (
+                      <span className={`status-dot status-dot--${indicador.cor}`}>
+                        {indicador.texto}
+                      </span>
+                    );
+                  }
+                },
+                {
                   key: "acao",
                   header: "Acao",
                   render: (item) => (
-                    <Link to={`/alunos/${item.id}`}>
-                      <Button variant="ghost" icon={<Eye size={18} />}>
-                        Historico
-                      </Button>
-                    </Link>
+                    <div className="actions-row">
+                      <Link to={`/alunos/${item.id}`}>
+                        <Button variant="ghost" icon={<Eye size={18} />}>
+                          Historico
+                        </Button>
+                      </Link>
+                      {canManage ? (
+                        <Button variant="danger" onClick={() => handleInativarClick(item.id, item.nome)}>
+                          Inativar
+                        </Button>
+                      ) : null}
+                    </div>
                   )
                 }
               ]}
@@ -165,6 +211,14 @@ export function AlunosPage() {
           </div>
         </form>
       </Modal>
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title="Inativar aluno"
+        message={`Tem certeza que deseja inativar o aluno "${confirmTarget?.nome}"? Essa ação pode ser revertida depois.`}
+        onConfirm={handleConfirmInativar}
+        onCancel={() => setConfirmTarget(null)}
+        loading={inativando}
+      />
     </>
   );
 }

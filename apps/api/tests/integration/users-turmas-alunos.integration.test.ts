@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { buildTestContext, tokens } from "./helpers.js";
+import { buildTestContext, SENHAS_TESTE, tokens } from "./helpers.js";
 
 describe("Users, turmas e alunos", () => {
   it("permite ADM criar usuario e impede usuario comum", async () => {
@@ -10,13 +10,13 @@ describe("Users, turmas e alunos", () => {
     await request(app)
       .post("/api/usuarios")
       .set("Authorization", `Bearer ${auth.adm}`)
-      .send({ nome: "Novo Coord", email: "novo.coord@pola.test", papel: "COORDENADOR", senha: "Coord12345!" })
+      .send({ nome: "Novo Coord", email: "novo.coord@pola.test", papel: "COORDENADOR", senha: SENHAS_TESTE.coordenador })
       .expect(201);
 
     await request(app)
       .post("/api/usuarios")
       .set("Authorization", `Bearer ${auth.professor}`)
-      .send({ nome: "Sem Permissao", email: "sem@pola.test", papel: "PROFESSOR", senha: "Professor123!" })
+      .send({ nome: "Sem Permissao", email: "sem@pola.test", papel: "PROFESSOR", senha: SENHAS_TESTE.professor })
       .expect(403);
   });
 
@@ -70,6 +70,13 @@ describe("Users, turmas e alunos", () => {
       .send({ nome: "Sem Turma", matricula: "2026003", turmaId: "turma-inexistente" })
       .expect(400);
 
+    const updated = await request(app)
+      .patch(`/api/alunos/${ids.aluno}`)
+      .set("Authorization", `Bearer ${auth.adm}`)
+      .send({ responsavelContato: "(11) 98888-0000" })
+      .expect(200);
+    expect(updated.body.data.responsavelContato).toBe("(11) 98888-0000");
+
     const ocorrencia = await request(app)
       .post("/api/ocorrencias")
       .set("Authorization", `Bearer ${auth.professor}`)
@@ -77,6 +84,7 @@ describe("Users, turmas e alunos", () => {
         alunoId: ids.aluno,
         categoria: "Desrespeito",
         prioridade: "MEDIA",
+        bimestre: 1,
         descricao: "Aluno interrompeu a explicacao de forma recorrente."
       })
       .expect(201);
@@ -89,5 +97,30 @@ describe("Users, turmas e alunos", () => {
       .set("Authorization", `Bearer ${auth.professor}`)
       .expect(200);
     expect(historico.body.data).toHaveLength(1);
+  });
+
+  it("lista o resumo de ocorrencias de cada aluno", async () => {
+    const { app, ids } = await buildTestContext();
+    const auth = await tokens(app);
+
+    await request(app)
+      .post("/api/ocorrencias")
+      .set("Authorization", `Bearer ${auth.professor}`)
+      .send({
+        alunoId: ids.aluno,
+        categoria: "Desrespeito",
+        prioridade: "ALTA",
+        bimestre: 1,
+        descricao: "Aluno desrespeitou orientacao institucional em sala."
+      })
+      .expect(201);
+
+    const response = await request(app)
+      .get("/api/alunos")
+      .set("Authorization", `Bearer ${auth.coordenador}`)
+      .expect(200);
+    const aluno = response.body.data.find((item: { id: string }) => item.id === ids.aluno);
+
+    expect(aluno).toMatchObject({ totalOcorrencias: 1, temOcorrenciaGrave: true });
   });
 });

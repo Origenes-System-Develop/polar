@@ -7,7 +7,11 @@ import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
-import type { OcorrenciaDetalhada } from "../../services/domain";
+import {
+  PRIORIDADES_OCORRENCIA,
+  PRIORIDADE_PESO,
+  type OcorrenciaDetalhada
+} from "../../services/domain";
 import { useAuth } from "../../app/providers";
 import { listOcorrenciasDetalhadas } from "./ocorrencias.service";
 import { DiasEmAberto } from "./DiasEmAberto";
@@ -18,6 +22,8 @@ export function OcorrenciasListPage() {
   const [aluno, setAluno] = useState("");
   const [status, setStatus] = useState("");
   const [prioridade, setPrioridade] = useState("");
+  const [bimestre, setBimestre] = useState("");
+  const [ordemPrioridade, setOrdemPrioridade] = useState("");
   const [categoria, setCategoria] = useState("");
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDetalhada[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,16 +55,22 @@ export function OcorrenciasListPage() {
 
   const filtered = useMemo(
     () =>
-      ocorrencias.filter(
-        (item) =>
-          item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
-          (!status || item.status === status) &&
-          (!prioridade || item.prioridade === prioridade) &&
-          (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase()))
-      ),
-    [aluno, categoria, ocorrencias, prioridade, status]
+      ocorrencias
+        .filter(
+          (item) =>
+            item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
+            (!status || item.status === status) &&
+            (!prioridade || item.prioridade === prioridade) &&
+            (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase())) &&
+            (!bimestre || item.bimestre === Number(bimestre))
+        )
+        .sort((a, b) => {
+          if (!ordemPrioridade) return 0;
+          const diferenca = PRIORIDADE_PESO[b.prioridade] - PRIORIDADE_PESO[a.prioridade];
+          return ordemPrioridade === "MAIOR" ? diferenca : -diferenca;
+        }),
+    [aluno, bimestre, categoria, ocorrencias, ordemPrioridade, prioridade, status]
   );
-
   return (
     <>
       <PageHeader
@@ -71,6 +83,18 @@ export function OcorrenciasListPage() {
         }
       />
       <div className="page-grid">
+        <Select
+          label="Bimestre"
+          value={bimestre}
+          onChange={(event) => setBimestre(event.target.value)}
+          options={[
+            { label: "Todos", value: "" },
+            { label: "1º Bimestre", value: "1" },
+            { label: "2º Bimestre", value: "2" },
+            { label: "3º Bimestre", value: "3" },
+            { label: "4º Bimestre", value: "4" }
+          ]}
+        />
         <Card title="Filtros">
           <div className="form-grid">
             <Input label="Aluno" value={aluno} onChange={(event) => setAluno(event.target.value)} />
@@ -92,9 +116,17 @@ export function OcorrenciasListPage() {
               onChange={(event) => setPrioridade(event.target.value)}
               options={[
                 { label: "Todas", value: "" },
-                { label: "BAIXA", value: "BAIXA" },
-                { label: "MEDIA", value: "MEDIA" },
-                { label: "ALTA", value: "ALTA" }
+                ...PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))
+              ]}
+            />
+            <Select
+              label="Ordenar por prioridade"
+              value={ordemPrioridade}
+              onChange={(event) => setOrdemPrioridade(event.target.value)}
+              options={[
+                { label: "Mais recentes", value: "" },
+                { label: "Alta para baixa", value: "MAIOR" },
+                { label: "Baixa para alta", value: "MENOR" }
               ]}
             />
             <Input label="Categoria" value={categoria} onChange={(event) => setCategoria(event.target.value)} />
@@ -121,6 +153,11 @@ export function OcorrenciasListPage() {
                 { key: "categoria", header: "Categoria", render: (item) => item.categoria },
                 { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                 { key: "prioridade", header: "Prioridade", render: (item) => <PrioridadeBadge prioridade={item.prioridade} /> },
+                {
+                  key: "bimestre",
+                  header: "Bimestre",
+                  render: (item) => `${item.bimestre}º Bimestre`
+                },
                 {
                   key: "aberta",
                   header: "Em aberto",

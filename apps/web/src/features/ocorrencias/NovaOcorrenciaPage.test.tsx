@@ -14,4 +14,15 @@ describe("NovaOcorrenciaPage", () => {
     expect(screen.getByText("Informe a categoria.")).toBeInTheDocument();
     expect(screen.getByText("Descreva a ocorrencia com pelo menos 10 caracteres.")).toBeInTheDocument();
   });
+
+  it("oferece todos os niveis de prioridade validos com texto visivel", () => {
+    renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
+
+    const prioridade = screen.getByLabelText("Prioridade");
+    expect(prioridade).toHaveValue("MEDIA");
+    expect(screen.getByRole("option", { name: "Baixa" })).toHaveValue("BAIXA");
+    expect(screen.getByRole("option", { name: "Media" })).toHaveValue("MEDIA");
+    expect(screen.getByRole("option", { name: "Alta" })).toHaveValue("ALTA");
+    expect(screen.getByRole("option", { name: "Urgente" })).toHaveValue("URGENTE");
+  });
 });

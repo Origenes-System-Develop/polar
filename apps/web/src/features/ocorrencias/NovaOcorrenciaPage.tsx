@@ -8,14 +8,15 @@ import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
-import type { AlunoDetalhado, PrioridadeOcorrencia, Turma } from "../../services/domain";
+import { PRIORIDADES_OCORRENCIA, type AlunoDetalhado, type PrioridadeOcorrencia, type Turma } from "../../services/domain";
 import { createOcorrencia } from "./ocorrencias.service";
 
 const schema = z.object({
   alunoId: z.string().min(1, "Selecione um aluno."),
   turmaId: z.string().min(1, "Selecione uma turma."),
   categoria: z.string().min(1, "Informe a categoria."),
-  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA"], { required_error: "Informe a prioridade." }),
+  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], { required_error: "Informe a prioridade." }),
+  bimestre: z.coerce.number().int().min(1).max(4),
   descricao: z.string().min(10, "Descreva a ocorrencia com pelo menos 10 caracteres."),
   local: z.string().min(1, "Informe o local."),
   testemunhas: z.string().optional()
@@ -28,6 +29,7 @@ const initialState: FormState = {
   turmaId: "",
   categoria: "",
   prioridade: "MEDIA",
+  bimestre: 1,
   descricao: "",
   local: "",
   testemunhas: ""
@@ -97,6 +99,7 @@ export function NovaOcorrenciaPage() {
         alunoId: result.data.alunoId,
         categoria: result.data.categoria,
         prioridade: result.data.prioridade as PrioridadeOcorrencia,
+        bimestre: result.data.bimestre,
         descricao: result.data.descricao,
         local: result.data.local,
         testemunhas: result.data.testemunhas
@@ -124,6 +127,22 @@ export function NovaOcorrenciaPage() {
             options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...alunos.map((aluno) => ({ label: aluno.nome, value: aluno.id }))]}
           />
           <Select
+            label="Bimestre"
+            value={String(form.bimestre)}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                bimestre: Number(event.target.value)
+              }))
+            }
+            options={[
+              { value: "1", label: "1º Bimestre" },
+              { value: "2", label: "2º Bimestre" },
+              { value: "3", label: "3º Bimestre" },
+              { value: "4", label: "4º Bimestre" }
+            ]}
+          />
+          <Select
             label="Turma"
             value={form.turmaId}
             onChange={(event) => setField("turmaId", event.target.value)}
@@ -137,11 +156,7 @@ export function NovaOcorrenciaPage() {
             value={form.prioridade}
             onChange={(event) => setField("prioridade", event.target.value)}
             error={errors.prioridade}
-            options={[
-              { label: "BAIXA", value: "BAIXA" },
-              { label: "MEDIA", value: "MEDIA" },
-              { label: "ALTA", value: "ALTA" }
-            ]}
+            options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))}
           />
           <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
           <Input label="Testemunhas" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />

@@ -3,11 +3,16 @@ import {
   PapelUsuario,
   PrioridadeOcorrencia,
   StatusOcorrencia,
+  TipoEnsino,
+  type DestinatarioNotificacao,
+  type NotificacaoOcorrencia,
   type Ocorrencia,
   type OcorrenciaHistorico
 } from "../../shared/domain.js";
 import type { AlunoRepository } from "../../shared/database/repositories/aluno.repository.js";
+import type { TurmaRepository } from "../../shared/database/repositories/turma.repository.js";
 import type { OcorrenciaRepository } from "../../shared/database/repositories/ocorrencia.repository.js";
+import type { NotificacaoOcorrenciaRepository } from "../../shared/database/repositories/notificacao-ocorrencia.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
@@ -19,6 +24,24 @@ const proximoStatus: Record<StatusOcorrencia, StatusOcorrencia | null> = {
   [StatusOcorrencia.ENCERRADA]: null
 };
 
+// As regras que dependem do status rodam duas vezes: antes da gravacao, para falhar
+// cedo, e dentro do updater, sobre o registro lido na transacao. So a segunda e
+// decisiva: entre a leitura e a gravacao outra sessao pode ter mudado o status (QA-03).
+function garantirEditavel(ocorrencia: Ocorrencia): void {
+  if (ocorrencia.status !== StatusOcorrencia.REGISTRADA) {
+    throw conflict("Ocorrencia so pode ser editada enquanto estiver em REGISTRADA.");
+  }
+}
+
+function garantirTransicao(ocorrencia: Ocorrencia, status: StatusOcorrencia): void {
+  if (ocorrencia.status === StatusOcorrencia.ENCERRADA) {
+    throw conflict("Ocorrencia encerrada nao pode ser alterada.");
+  }
+  if (proximoStatus[ocorrencia.status] !== status) {
+    throw conflict("Status nao pode pular etapas.");
+  }
+}
+
 export interface OcorrenciaCreateInput {
   alunoId: string;
   categoria: string;
@@ -26,6 +49,7 @@ export interface OcorrenciaCreateInput {
   descricao: string;
   local?: string | undefined;
   testemunhas?: string | undefined;
+  bimestre: number;
 }
 
 export interface OcorrenciaUpdateInput {
@@ -65,16 +89,31 @@ export class OcorrenciasService {
   constructor(
     private readonly ocorrencias: OcorrenciaRepository,
     private readonly alunos: AlunoRepository,
+    private readonly turmas: TurmaRepository,
+    private readonly notificacoes: NotificacaoOcorrenciaRepository,
     private readonly audit: AuditRepository
-  ) {}
+  ) { }
 
-  async list(actor: AuthenticatedUser): Promise<Ocorrencia[]> {
+  async list(actor: AuthenticatedUser, bimestre?: number): Promise<Ocorrencia[]> {
     const escopo = escopoDeOcorrencias(actor);
+
     switch (escopo.tipo) {
-      case "global":
-        return this.ocorrencias.list();
-      case "autor":
-        return this.ocorrencias.listByCriadoPor(escopo.usuarioId);
+      case "global": {
+        const ocorrencias = bimestre
+          ? await this.ocorrencias.listByBimestre(bimestre)
+          : await this.ocorrencias.list();
+
+        return ocorrencias;
+      }
+
+      case "autor": {
+        const ocorrencias = await this.ocorrencias.listByCriadoPor(escopo.usuarioId);
+
+        return bimestre
+          ? ocorrencias.filter((ocorrencia) => ocorrencia.bimestre === bimestre)
+          : ocorrencias;
+      }
+
       default:
         return [];
     }
@@ -100,6 +139,11 @@ export class OcorrenciasService {
     return this.ocorrencias.listHistorico(id);
   }
 
+  async notificacoesDaOcorrencia(id: string, actor: AuthenticatedUser): Promise<NotificacaoOcorrencia[]> {
+    await this.get(id, actor);
+    return this.notificacoes.listByOcorrencia(id);
+  }
+
   async create(input: OcorrenciaCreateInput, actor: AuthenticatedUser): Promise<Ocorrencia> {
     const { alunoId, categoria, descricao, prioridade } = input;
 
@@ -110,6 +154,11 @@ export class OcorrenciasService {
     const aluno = await this.alunos.findById(alunoId);
     if (!aluno || !aluno.ativo) {
       throw badRequest("Ocorrencia deve estar vinculada a aluno valido.");
+    }
+
+    const turma = await this.turmas.findById(aluno.turmaId);
+    if (!turma) {
+      throw badRequest("Turma do aluno nao encontrada.");
     }
 
     const duplicate = await this.ocorrencias.findDuplicate({
@@ -132,6 +181,7 @@ export class OcorrenciasService {
       descricao,
       local: input.local ?? "",
       testemunhas: input.testemunhas ?? "",
+      bimestre: input.bimestre,
       status: StatusOcorrencia.REGISTRADA,
       criadoPorId: actor.id,
       criadoEm: now,
@@ -148,6 +198,21 @@ export class OcorrenciasService {
     };
 
     await this.ocorrencias.create(ocorrencia, historico);
+
+    const destinatarios: DestinatarioNotificacao[] =
+      turma.tipoEnsino === TipoEnsino.TECNICO
+        ? ["PAET", "COORDENACAO", "DIRECAO"]
+        : ["COORDENACAO", "DIRECAO"];
+
+    await this.notificacoes.createMany(
+      destinatarios.map((destinatario) => ({
+        id: novoId(),
+        ocorrenciaId: ocorrencia.id,
+        destinatario,
+        resultado: "ENVIADO" as const,
+        criadoEm: now
+      }))
+    );
     await this.audit.create({
       id: novoId(),
       usuarioId: actor.id,
@@ -169,9 +234,7 @@ export class OcorrenciasService {
     if (current.criadoPorId !== actor.id) {
       throw forbidden("Apenas o autor da ocorrencia pode edita-la.");
     }
-    if (current.status !== StatusOcorrencia.REGISTRADA) {
-      throw conflict("Ocorrencia so pode ser editada enquanto estiver em REGISTRADA.");
-    }
+    garantirEditavel(current);
 
     // Sem campo algum nao ha edicao: evita poluir o historico com registro vazio.
     const temAlteracao = Object.values(input).some((valor) => valor !== undefined);
@@ -180,28 +243,29 @@ export class OcorrenciasService {
     }
 
     const now = agoraIso();
-    const historico: OcorrenciaHistorico = {
-      id: novoId(),
-      ocorrenciaId: id,
-      status: current.status,
-      acao: "Ocorrencia editada pelo autor",
-      observacao: null,
-      usuarioId: actor.id,
-      criadoEm: now
-    };
-
     const updated = await this.ocorrencias.updateWithHistorico(
       id,
-      (ocorrencia) => ({
-        ...ocorrencia,
-        categoria: input.categoria ?? ocorrencia.categoria,
-        prioridade: input.prioridade ?? ocorrencia.prioridade,
-        descricao: input.descricao ?? ocorrencia.descricao,
-        local: input.local ?? ocorrencia.local ?? "",
-        testemunhas: input.testemunhas ?? ocorrencia.testemunhas ?? "",
-        atualizadoEm: now
-      }),
-      historico
+      (ocorrencia) => {
+        garantirEditavel(ocorrencia);
+        return {
+          ...ocorrencia,
+          categoria: input.categoria ?? ocorrencia.categoria,
+          prioridade: input.prioridade ?? ocorrencia.prioridade,
+          descricao: input.descricao ?? ocorrencia.descricao,
+          local: input.local ?? ocorrencia.local ?? "",
+          testemunhas: input.testemunhas ?? ocorrencia.testemunhas ?? "",
+          atualizadoEm: now
+        };
+      },
+      (anterior) => ({
+        id: novoId(),
+        ocorrenciaId: id,
+        status: anterior.status,
+        acao: "Ocorrencia editada pelo autor",
+        observacao: null,
+        usuarioId: actor.id,
+        criadoEm: now
+      })
     );
 
     if (!updated) {
@@ -228,13 +292,7 @@ export class OcorrenciasService {
     observacao?: string
   ): Promise<Ocorrencia> {
     const current = await this.get(id, actor);
-    if (current.status === StatusOcorrencia.ENCERRADA) {
-      throw conflict("Ocorrencia encerrada nao pode ser alterada.");
-    }
-
-    if (proximoStatus[current.status] !== status) {
-      throw conflict("Status nao pode pular etapas.");
-    }
+    garantirTransicao(current, status);
 
     if (status === StatusOcorrencia.EM_ANALISE && actor.papel !== PapelUsuario.COORDENADOR) {
       throw forbidden("Apenas coordenador pode colocar ocorrencia em analise.");
@@ -247,24 +305,27 @@ export class OcorrenciasService {
     }
 
     const now = agoraIso();
-    const historico: OcorrenciaHistorico = {
-      id: novoId(),
-      ocorrenciaId: id,
-      status,
-      acao: `Status alterado de ${current.status} para ${status}`,
-      observacao: observacao?.trim() ? observacao.trim() : null,
-      usuarioId: actor.id,
-      criadoEm: now
-    };
-
+    let statusAnterior = current.status;
     const updated = await this.ocorrencias.updateWithHistorico(
       id,
-      (ocorrencia) => ({
-        ...ocorrencia,
+      (ocorrencia) => {
+        garantirTransicao(ocorrencia, status);
+        statusAnterior = ocorrencia.status;
+        return {
+          ...ocorrencia,
+          status,
+          atualizadoEm: now
+        };
+      },
+      (anterior) => ({
+        id: novoId(),
+        ocorrenciaId: id,
         status,
-        atualizadoEm: now
-      }),
-      historico
+        acao: `Status alterado de ${anterior.status} para ${status}`,
+        observacao: observacao?.trim() ? observacao.trim() : null,
+        usuarioId: actor.id,
+        criadoEm: now
+      })
     );
 
     if (!updated) {
@@ -277,7 +338,7 @@ export class OcorrenciasService {
       acao: "OCORRENCIA_STATUS_ALTERADO",
       entidade: "ocorrencias",
       entidadeId: id,
-      metadata: { de: current.status, para: status },
+      metadata: { de: statusAnterior, para: status },
       criadoEm: now
     });
 

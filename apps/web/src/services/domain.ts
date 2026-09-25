@@ -2,7 +2,22 @@ export type PapelUsuario = "PROFESSOR" | "COORDENADOR" | "DIRETOR" | "ADM" | "AL
 
 export type StatusOcorrencia = "REGISTRADA" | "EM_ANALISE" | "RESOLVIDA" | "ENCERRADA";
 
-export type PrioridadeOcorrencia = "BAIXA" | "MEDIA" | "ALTA";
+export type PrioridadeOcorrencia = "BAIXA" | "MEDIA" | "ALTA" | "URGENTE";
+
+export const PRIORIDADES_OCORRENCIA = [
+  { value: "BAIXA", label: "Baixa", peso: 1 },
+  { value: "MEDIA", label: "Media", peso: 2 },
+  { value: "ALTA", label: "Alta", peso: 3 },
+  { value: "URGENTE", label: "Urgente", peso: 4 }
+] as const satisfies ReadonlyArray<{ value: PrioridadeOcorrencia; label: string; peso: number }>;
+
+export const PRIORIDADE_LABEL: Record<PrioridadeOcorrencia, string> = Object.fromEntries(
+  PRIORIDADES_OCORRENCIA.map(({ value, label }) => [value, label])
+) as Record<PrioridadeOcorrencia, string>;
+
+export const PRIORIDADE_PESO: Record<PrioridadeOcorrencia, number> = Object.fromEntries(
+  PRIORIDADES_OCORRENCIA.map(({ value, peso }) => [value, peso])
+) as Record<PrioridadeOcorrencia, number>;
 
 export interface ApiData<T> {
   data: T;
@@ -23,6 +38,7 @@ export interface Turma {
   nome: string;
   anoLetivo: number;
   turno: string;
+  tipoEnsino: "REGULAR" | "TECNICO";
   ativa: boolean;
   criadoEm?: string;
   atualizadoEm?: string;
@@ -40,15 +56,31 @@ export interface Aluno {
   atualizadoEm?: string;
 }
 
+export interface AlunoTurmaHistorico {
+  id: string;
+  alunoId: string;
+  turmaId: string;
+  anoLetivo: number;
+  criadoEm: string;
+}
+
 export interface AlunoDetalhado extends Aluno {
   turma: string;
 }
+
+export interface AlunoComResumoOcorrencias extends Aluno {
+  totalOcorrencias: number;
+  temOcorrenciaGrave: boolean;
+}
+
+export interface AlunoDetalhadoComResumoOcorrencias extends AlunoDetalhado, AlunoComResumoOcorrencias {}
 
 export interface Ocorrencia {
   id: string;
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
@@ -70,6 +102,15 @@ export interface OcorrenciaHistorico {
   acao: string;
   observacao: string | null;
   usuarioId: string;
+  usuarioNome: string;
+  criadoEm: string;
+}
+
+export interface NotificacaoOcorrencia {
+  id: string;
+  ocorrenciaId: string;
+  destinatario: "PAET" | "COORDENACAO" | "DIRECAO";
+  resultado: "ENVIADO";
   criadoEm: string;
 }
 
@@ -100,18 +141,30 @@ export interface DashboardResumo {
   ocorrenciasPorCategoria: Record<string, number>;
 }
 
+export interface MovimentacaoRecente {
+  id: string;
+  ocorrenciaId: string;
+  acao: string;
+  status: StatusOcorrencia;
+  usuarioNome: string;
+  criadoEm: string;
+}
+
 export interface RelatorioOcorrencias {
   total: number;
   byStatus: Partial<Record<StatusOcorrencia, number>>;
   byPriority: Partial<Record<PrioridadeOcorrencia, number>>;
   byCategory: Record<string, number>;
   recent: Ocorrencia[];
+  byTurma: { nome: string; total: number }[];
+  byPeriodo: { periodo: string; total: number }[];
 }
 
 export interface CreateOcorrenciaPayload {
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
@@ -125,17 +178,35 @@ export interface CreateAlunoPayload {
   responsavelContato?: string;
 }
 
+export interface UpdateAlunoPayload {
+  nome?: string;
+  matricula?: string;
+  turmaId?: string;
+  responsavelNome?: string;
+  responsavelContato?: string;
+  ativo?: boolean;
+}
+
 export interface CreateTurmaPayload {
   nome: string;
   anoLetivo: number;
   turno: string;
+  tipoEnsino?: "REGULAR" | "TECNICO";
 }
 
 export interface UpdateTurmaPayload {
   nome?: string;
   anoLetivo?: number;
   turno?: string;
+  tipoEnsino?: "REGULAR" | "TECNICO";
   ativa?: boolean;
+}
+
+export interface RelatorioOcorrenciasFiltro {
+  turmaId?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  bimestre?: number;
 }
 
 export interface CreateUsuarioPayload {
@@ -150,4 +221,23 @@ export interface UpdateUsuarioPayload {
   email?: string;
   papel?: PapelUsuario;
   ativo?: boolean;
+}
+
+
+export interface IndicadorAluno {
+  cor: "verde" | "amarelo" | "vermelho";
+  texto: string;
+}
+
+export function calcularIndicadorAluno(
+  totalOcorrencias: number,
+  temOcorrenciaGrave: boolean
+): IndicadorAluno {
+  if (totalOcorrencias === 0) {
+    return { cor: "verde", texto: "Sem ocorrências" };
+  }
+  if (temOcorrenciaGrave || totalOcorrencias >= 4) {
+    return { cor: "vermelho", texto: "Atenção" };
+  }
+  return { cor: "amarelo", texto: "Poucas ocorrências" };
 }

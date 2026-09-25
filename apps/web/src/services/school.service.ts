@@ -1,21 +1,28 @@
 import { apiRequest } from "./api";
 import type {
   Aluno,
+  AlunoComResumoOcorrencias,
   AlunoDetalhado,
+  AlunoTurmaHistorico,
+  AlunoDetalhadoComResumoOcorrencias,
   ApiData,
   CreateAlunoPayload,
   CreateOcorrenciaPayload,
   CreateTurmaPayload,
   CreateUsuarioPayload,
   DashboardResumo,
+  MovimentacaoRecente,
   Falta,
   Nota,
+  NotificacaoOcorrencia,
   Ocorrencia,
   OcorrenciaDetalhada,
   OcorrenciaHistorico,
   RelatorioOcorrencias,
+  RelatorioOcorrenciasFiltro,
   StatusOcorrencia,
   Turma,
+  UpdateAlunoPayload,
   UpdateTurmaPayload,
   UpdateUsuarioPayload,
   Usuario
@@ -25,12 +32,14 @@ function turmaName(turmas: Turma[], turmaId: string): string {
   return turmas.find((turma) => turma.id === turmaId)?.nome ?? "Turma nao encontrada";
 }
 
-function alunoDetalhado(aluno: Aluno, turmas: Turma[]): AlunoDetalhado {
+function alunoDetalhado<T extends Aluno>(aluno: T, turmas: Turma[]): T & { turma: string } {
   return {
     ...aluno,
     turma: turmaName(turmas, aluno.turmaId)
   };
 }
+
+
 
 function ocorrenciaDetalhada(ocorrencia: Ocorrencia, alunos: Aluno[], turmas: Turma[]): OcorrenciaDetalhada {
   const aluno = alunos.find((item) => item.id === ocorrencia.alunoId);
@@ -39,6 +48,41 @@ function ocorrenciaDetalhada(ocorrencia: Ocorrencia, alunos: Aluno[], turmas: Tu
     aluno: aluno?.nome ?? "Aluno nao encontrado",
     turma: aluno ? turmaName(turmas, aluno.turmaId) : "Turma nao encontrada"
   };
+}
+
+export interface CopiarAnoTurmaPayload {
+  origemId: string;
+  nome: string;
+  turno: string;
+  tipoEnsino?: "REGULAR" | "TECNICO";
+  alunos: string[];
+}
+
+export interface CopiarAnoLetivoPayload {
+  anoOrigem: number;
+  anoDestino: number;
+  turmas: CopiarAnoTurmaPayload[];
+}
+
+export async function copiarAnoLetivo(
+  payload: CopiarAnoLetivoPayload
+): Promise<Turma[]> {
+  const response = await apiRequest<ApiData<Turma[]>>("/turmas/copiar-ano", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  return response.data;
+}
+
+export async function listHistoricoTurmas(
+  alunoId: string
+): Promise<AlunoTurmaHistorico[]> {
+  const response = await apiRequest<ApiData<AlunoTurmaHistorico[]>>(
+    `/alunos/${alunoId}/historico-turmas`
+  );
+
+  return response.data;
 }
 
 export async function listTurmas(): Promise<Turma[]> {
@@ -62,8 +106,8 @@ export async function updateTurma(id: string, payload: UpdateTurmaPayload): Prom
   return response.data;
 }
 
-export async function listAlunos(): Promise<Aluno[]> {
-  const response = await apiRequest<ApiData<Aluno[]>>("/alunos");
+export async function listAlunos(): Promise<AlunoComResumoOcorrencias[]> {
+  const response = await apiRequest<ApiData<AlunoComResumoOcorrencias[]>>("/alunos");
   return response.data;
 }
 
@@ -75,12 +119,20 @@ export async function createAluno(payload: CreateAlunoPayload): Promise<Aluno> {
   return response.data;
 }
 
+export async function updateAluno(id: string, payload: UpdateAlunoPayload): Promise<Aluno> {
+  const response = await apiRequest<ApiData<Aluno>>(`/alunos/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+  return response.data;
+}
+
 export async function getAluno(id: string): Promise<Aluno> {
   const response = await apiRequest<ApiData<Aluno>>(`/alunos/${id}`);
   return response.data;
 }
 
-export async function listAlunosDetalhados(): Promise<AlunoDetalhado[]> {
+export async function listAlunosDetalhados(): Promise<AlunoDetalhadoComResumoOcorrencias[]> {
   const [alunos, turmas] = await Promise.all([listAlunos(), listTurmas()]);
   return alunos.map((aluno) => alunoDetalhado(aluno, turmas));
 }
@@ -112,6 +164,11 @@ export async function getOcorrenciaDetalhada(id: string): Promise<OcorrenciaDeta
 
 export async function listHistoricoOcorrencia(id: string): Promise<OcorrenciaHistorico[]> {
   const response = await apiRequest<ApiData<OcorrenciaHistorico[]>>(`/ocorrencias/${id}/historico`);
+  return response.data;
+}
+
+export async function listNotificacoesOcorrencia(id: string): Promise<NotificacaoOcorrencia[]> {
+  const response = await apiRequest<ApiData<NotificacaoOcorrencia[]>>(`/ocorrencias/${id}/notificacoes`);
   return response.data;
 }
 
@@ -150,8 +207,19 @@ export async function getDashboardResumo(): Promise<DashboardResumo> {
   return response.data;
 }
 
-export async function getRelatorioOcorrencias(): Promise<RelatorioOcorrencias> {
-  const response = await apiRequest<ApiData<RelatorioOcorrencias>>("/relatorios/ocorrencias");
+export async function listMovimentacoesRecentes(): Promise<MovimentacaoRecente[]> {
+  const response = await apiRequest<ApiData<MovimentacaoRecente[]>>("/dashboard/movimentacoes-recentes");
+  return response.data;
+}
+
+export async function getRelatorioOcorrencias(filtro: RelatorioOcorrenciasFiltro = {}): Promise<RelatorioOcorrencias> {
+  const query = new URLSearchParams();
+  if (filtro.turmaId) query.set("turmaId", filtro.turmaId);
+  if (filtro.dataInicio) query.set("dataInicio", filtro.dataInicio);
+  if (filtro.dataFim) query.set("dataFim", filtro.dataFim);
+  if (filtro.bimestre) query.set("bimestre", String(filtro.bimestre));
+  const suffix = query.size > 0 ? `?${query.toString()}` : "";
+  const response = await apiRequest<ApiData<RelatorioOcorrencias>>(`/relatorios/ocorrencias${suffix}`);
   return response.data;
 }
 

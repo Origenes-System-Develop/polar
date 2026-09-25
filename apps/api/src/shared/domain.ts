@@ -16,7 +16,13 @@ export enum StatusOcorrencia {
 export enum PrioridadeOcorrencia {
   BAIXA = "BAIXA",
   MEDIA = "MEDIA",
-  ALTA = "ALTA"
+  ALTA = "ALTA",
+  URGENTE = "URGENTE"
+}
+
+export enum TipoEnsino {
+  REGULAR = "REGULAR",
+  TECNICO = "TECNICO"
 }
 
 export interface Usuario {
@@ -51,6 +57,7 @@ export interface Turma {
   nome: string;
   anoLetivo: number;
   turno: string;
+  tipoEnsino: TipoEnsino;
   ativa: boolean;
   criadoEm: string;
   atualizadoEm: string;
@@ -68,11 +75,20 @@ export interface Aluno {
   atualizadoEm: string;
 }
 
+export interface AlunoTurmaHistorico {
+  id: string;
+  alunoId: string;
+  turmaId: string;
+  anoLetivo: number;
+  criadoEm: string;
+}
+
 export interface Ocorrencia {
   id: string;
   alunoId: string;
   categoria: string;
   prioridade: PrioridadeOcorrencia;
+  bimestre: number;
   descricao: string;
   local?: string;
   testemunhas?: string;
@@ -122,12 +138,24 @@ export interface AuditLog {
   criadoEm: string;
 }
 
+export type DestinatarioNotificacao = "PAET" | "COORDENACAO" | "DIRECAO";
+
+export interface NotificacaoOcorrencia {
+  id: string;
+  ocorrenciaId: string;
+  destinatario: DestinatarioNotificacao;
+  resultado: "ENVIADO";
+  criadoEm: string;
+}
+
 export interface DatabaseState {
   usuarios: Usuario[];
   turmas: Turma[];
   alunos: Aluno[];
+  alunosTurmasHistorico: AlunoTurmaHistorico[];
   ocorrencias: Ocorrencia[];
   ocorrenciaHistorico: OcorrenciaHistorico[];
+  notificacoesOcorrencia: NotificacaoOcorrencia[];
   notas: Nota[];
   faltas: Falta[];
   auditLogs: AuditLog[];

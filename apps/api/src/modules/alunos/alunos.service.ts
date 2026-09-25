@@ -1,6 +1,7 @@
 import { badRequest, conflict, notFound } from "../../shared/errors/app-error.js";
-import type { Aluno } from "../../shared/domain.js";
+import { PrioridadeOcorrencia, type Aluno } from "../../shared/domain.js";
 import type { AlunoRepository } from "../../shared/database/repositories/aluno.repository.js";
+import type { AlunoTurmaHistoricoRepository } from "../../shared/database/repositories/aluno-turma-historico.repository.js";
 import type { TurmaRepository } from "../../shared/database/repositories/turma.repository.js";
 import type { OcorrenciaRepository } from "../../shared/database/repositories/ocorrencia.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
@@ -16,16 +17,43 @@ export interface AlunoInput {
   ativo?: boolean | undefined;
 }
 
+export interface AlunoComResumoOcorrencias extends Aluno {
+  totalOcorrencias: number;
+  temOcorrenciaGrave: boolean;
+}
+
 export class AlunosService {
   constructor(
     private readonly alunos: AlunoRepository,
+    private readonly alunosTurmasHistorico: AlunoTurmaHistoricoRepository,
     private readonly turmas: TurmaRepository,
     private readonly ocorrencias: OcorrenciaRepository,
     private readonly audit: AuditRepository
   ) {}
 
-  async list(): Promise<Aluno[]> {
-    return this.alunos.list();
+  async list(): Promise<AlunoComResumoOcorrencias[]> {
+    const [alunos, ocorrencias] = await Promise.all([this.alunos.list(), this.ocorrencias.list()]);
+    const resumoPorAluno = new Map<string, { totalOcorrencias: number; temOcorrenciaGrave: boolean }>();
+
+    for (const ocorrencia of ocorrencias) {
+      const resumo = resumoPorAluno.get(ocorrencia.alunoId) ?? {
+        totalOcorrencias: 0,
+        temOcorrenciaGrave: false
+      };
+
+      resumo.totalOcorrencias += 1;
+      resumo.temOcorrenciaGrave ||= (
+        ocorrencia.prioridade === PrioridadeOcorrencia.ALTA ||
+        ocorrencia.prioridade === PrioridadeOcorrencia.URGENTE
+      );
+      resumoPorAluno.set(ocorrencia.alunoId, resumo);
+    }
+
+    return alunos.map((aluno) => ({
+      ...aluno,
+      totalOcorrencias: resumoPorAluno.get(aluno.id)?.totalOcorrencias ?? 0,
+      temOcorrenciaGrave: resumoPorAluno.get(aluno.id)?.temOcorrenciaGrave ?? false
+    }));
   }
 
   async get(id: string): Promise<Aluno> {
@@ -34,6 +62,18 @@ export class AlunosService {
       throw notFound("Aluno nao encontrado.");
     }
     return aluno;
+  }
+
+  async historicoTurmas(alunoId: string) {
+    const aluno = await this.alunos.findById(alunoId);
+
+    if (!aluno) {
+      throw notFound("Aluno nao encontrado.");
+    }
+
+    const historico = await this.alunosTurmasHistorico.listByAluno(alunoId);
+
+    return historico;
   }
 
   async create(input: AlunoInput, actorId: string): Promise<Aluno> {

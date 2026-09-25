@@ -14,6 +14,7 @@ import {
   PapelUsuario,
   PrioridadeOcorrencia,
   StatusOcorrencia,
+  TipoEnsino,
   type Aluno,
   type Ocorrencia,
   type OcorrenciaHistorico,
@@ -42,7 +43,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     // TRUNCATE unico com CASCADE: o Postgres resolve a ordem das FKs sozinho,
     // sem precisar desligar a checagem de chave estrangeira como no MySQL.
     await pool.query(
-      "TRUNCATE TABLE audit_logs, faltas, notas, ocorrencia_historico, ocorrencias, alunos, turmas, users RESTART IDENTITY CASCADE"
+      "TRUNCATE TABLE audit_logs, notificacoes_ocorrencia, faltas, notas, ocorrencia_historico, ocorrencias, alunos_turmas_historico, alunos, turmas, users RESTART IDENTITY CASCADE"
     );
   });
 
@@ -97,6 +98,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       nome: `Turma Nota ${novoId().slice(0, 6)}`,
       anoLetivo: 2026,
       turno: "Manhã",
+      tipoEnsino: TipoEnsino.REGULAR,
       ativa: true,
       criadoEm: now,
       atualizadoEm: now
@@ -146,6 +148,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       nome: `3ºB - Programação ${novoId().slice(0, 6)}`,
       anoLetivo: 2026,
       turno: "Manhã",
+      tipoEnsino: TipoEnsino.TECNICO,
       ativa: true,
       criadoEm: now,
       atualizadoEm: now
@@ -169,6 +172,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Não fez atividade",
+      bimestre: 3,
       prioridade: PrioridadeOcorrencia.MEDIA,
       descricao: "Dano ao patrimônio não confirmado; observação com acentuação: ãõçéíú.",
       local: "Pátio",
@@ -192,6 +196,9 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     const lida = await repos.ocorrencias.findById(ocorrencia.id);
     expect(lida?.categoria).toBe("Não fez atividade");
     expect(lida?.descricao).toContain("ãõçéíú");
+    expect(lida?.bimestre).toBe(3);
+    expect((await repos.ocorrencias.listByBimestre(3)).map((o) => o.id)).toContain(ocorrencia.id);
+    expect((await repos.ocorrencias.listByBimestre(1)).map((o) => o.id)).not.toContain(ocorrencia.id);
 
     const alunoLido = await repos.alunos.findById(aluno.id);
     expect(alunoLido?.nome).toBe("João Não-Silva Àcêntós");
@@ -207,6 +214,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       nome: `Turma Contrato ${novoId().slice(0, 6)}`,
       anoLetivo: 2026,
       turno: "Tarde",
+      tipoEnsino: TipoEnsino.REGULAR,
       ativa: true,
       criadoEm: now,
       atualizadoEm: now
@@ -230,6 +238,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Desrespeito",
+      bimestre: 1,
       prioridade: PrioridadeOcorrencia.ALTA,
       descricao: "Ocorrencia para teste de transicao.",
       local: "",
@@ -270,6 +279,31 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     expect(historico).toHaveLength(2);
     expect(historico[1]?.observacao).toBe("Assumido pela coordenação.");
 
+    // Updater que lanca (revalidacao de status) desfaz a transacao inteira.
+    await expect(
+      repos.ocorrencias.updateWithHistorico(ocorrencia.id, () => {
+        throw new Error("status mudou");
+      })
+    ).rejects.toThrow("status mudou");
+    expect(await repos.ocorrencias.listHistorico(ocorrencia.id)).toHaveLength(2);
+
+    // Historico em forma de funcao recebe o registro lido dentro da transacao.
+    await repos.ocorrencias.updateWithHistorico(
+      ocorrencia.id,
+      (atual) => ({ ...atual, status: StatusOcorrencia.RESOLVIDA, atualizadoEm: agoraIso() }),
+      (anterior) => ({
+        id: novoId(),
+        ocorrenciaId: ocorrencia.id,
+        status: StatusOcorrencia.RESOLVIDA,
+        acao: `Status alterado de ${anterior.status} para RESOLVIDA`,
+        observacao: null,
+        usuarioId: usuario.id,
+        criadoEm: agoraIso()
+      })
+    );
+    const comResolucao = await repos.ocorrencias.listHistorico(ocorrencia.id);
+    expect(comResolucao[2]?.acao).toBe("Status alterado de EM_ANALISE para RESOLVIDA");
+
     // updateWithHistorico de id inexistente nao grava nada.
     const inexistente = await repos.ocorrencias.updateWithHistorico(novoId(), (atual) => atual);
     expect(inexistente).toBeNull();
@@ -285,6 +319,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       nome: `Turma Dup ${novoId().slice(0, 6)}`,
       anoLetivo: 2026,
       turno: "Manhã",
+      tipoEnsino: TipoEnsino.REGULAR,
       ativa: true,
       criadoEm: now,
       atualizadoEm: now
@@ -308,6 +343,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       id: novoId(),
       alunoId: aluno.id,
       categoria: "Atraso",
+      bimestre: 2,
       prioridade: PrioridadeOcorrencia.BAIXA,
       descricao: "Chegou atrasado após o intervalo.",
       local: "",
