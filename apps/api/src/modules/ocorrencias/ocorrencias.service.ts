@@ -1,4 +1,4 @@
-import { badRequest, conflict, forbidden, notFound } from "../../shared/errors/app-error.js";
+import { badRequest, conflict, conteudoInadequado, forbidden, notFound } from "../../shared/errors/app-error.js";
 import {
   PapelUsuario,
   PrioridadeOcorrencia,
@@ -16,6 +16,7 @@ import type { NotificacaoOcorrenciaRepository } from "../../shared/database/repo
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
+import { descricaoContemConteudoInadequado } from "./moderacao/moderacao-descricao.js";
 
 const proximoStatus: Record<StatusOcorrencia, StatusOcorrencia | null> = {
   [StatusOcorrencia.REGISTRADA]: StatusOcorrencia.EM_ANALISE,
@@ -39,6 +40,12 @@ function garantirTransicao(ocorrencia: Ocorrencia, status: StatusOcorrencia): vo
   }
   if (proximoStatus[ocorrencia.status] !== status) {
     throw conflict("Status nao pode pular etapas.");
+  }
+}
+
+function garantirDescricaoAdequada(descricao: string): void {
+  if (descricaoContemConteudoInadequado(descricao)) {
+    throw conteudoInadequado();
   }
 }
 
@@ -150,6 +157,7 @@ export class OcorrenciasService {
     if (!alunoId || !categoria || !descricao) {
       throw badRequest("Ocorrencia exige aluno, categoria, prioridade e descricao.");
     }
+    garantirDescricaoAdequada(descricao);
 
     const aluno = await this.alunos.findById(alunoId);
     if (!aluno || !aluno.ativo) {
@@ -242,6 +250,9 @@ export class OcorrenciasService {
       throw badRequest("Informe pelo menos um campo para editar.");
     }
 
+    if (input.descricao !== undefined) {
+      garantirDescricaoAdequada(input.descricao);
+    }
     const now = agoraIso();
     const updated = await this.ocorrencias.updateWithHistorico(
       id,

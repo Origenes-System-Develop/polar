@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
 import { PRIORIDADES_OCORRENCIA, type AlunoDetalhado, type PrioridadeOcorrencia, type Turma } from "../../services/domain";
+import { ApiError } from "../../services/api";
 import { createOcorrencia } from "./ocorrencias.service";
 
 const schema = z.object({
@@ -72,6 +73,7 @@ export function NovaOcorrenciaPage() {
 
   function setField(field: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   }
 
   function setAluno(alunoId: string) {
@@ -106,7 +108,11 @@ export function NovaOcorrenciaPage() {
       });
       navigate(`/ocorrencias/${ocorrencia.id}`);
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : "Nao foi possivel registrar a ocorrencia.");
+      if (err instanceof ApiError && err.code === "CONTEUDO_INADEQUADO") {
+        setErrors((current) => ({ ...current, descricao: err.message }));
+      } else {
+        setApiError(err instanceof Error ? err.message : "Nao foi possivel registrar a ocorrencia.");
+      }
     } finally {
       setSubmitting(false);
     }
