@@ -1,6 +1,6 @@
 # Changelog
 
-O formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/). Este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/). Este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [v3.1.0] - 2026-07-28
 
