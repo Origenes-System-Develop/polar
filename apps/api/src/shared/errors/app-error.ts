@@ -15,6 +15,12 @@ export function badRequest(message: string, details: unknown = null): AppError {
   return new AppError(message, 400, "BAD_REQUEST", details);
 }
 
+export function conteudoInadequado(
+  message = "A descricao contem conteudo inadequado. Revise o texto e tente novamente."
+): AppError {
+  return new AppError(message, 400, "CONTEUDO_INADEQUADO");
+}
+
 export function unauthorized(message = "Autenticacao obrigatoria."): AppError {
   return new AppError(message, 401, "UNAUTHORIZED");
 }
