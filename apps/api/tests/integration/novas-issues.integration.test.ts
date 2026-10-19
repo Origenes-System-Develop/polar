@@ -30,9 +30,10 @@ describe("FE-09, FE-10, BE-03, BD-05 e BE-01", () => {
       .expect(200);
 
     expect(notificacoes.body.data.map((item: { destinatario: string }) => item.destinatario).sort()).toEqual([
-      "COORDENACAO", "DIRECAO", "PAET"
+      "COORDENACAO", "DIRECAO", "PAET", "RESPONSAVEL"
     ]);
-    expect(notificacoes.body.data.every((item: { resultado: string }) => item.resultado === "ENVIADO")).toBe(true);
+    // Sem SMTP configurado nada sai do sistema, e o registro diz isso.
+    expect(notificacoes.body.data.every((item: { resultado: string }) => item.resultado === "NAO_ENVIADO")).toBe(true);
   });
 
   it("preserva os vínculos de origem e destino ao virar o ano letivo", async () => {
@@ -81,5 +82,8 @@ describe("FE-09, FE-10, BE-03, BD-05 e BE-01", () => {
     expect(relatorio.body.data.total).toBe(1);
     expect(relatorio.body.data.byTurma).toEqual([{ nome: "8A", total: 1 }]);
     expect(relatorio.body.data.byPeriodo).toHaveLength(1);
+    expect(relatorio.body.data.ocorrencias).toEqual([
+      expect.objectContaining({ aluno: "Estudante de teste", turma: "8A", categoria: "Desrespeito" })
+    ]);
   });
 });

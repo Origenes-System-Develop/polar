@@ -45,6 +45,7 @@ const ocorrencias = [
     alunoId: "a1",
     categoria: "Convivencia",
     prioridade: "ALTA",
+    bimestre: 1,
     descricao: "Discussao recorrente no intervalo.",
     local: "Patio",
     testemunhas: "Pessoa testemunha",
@@ -58,6 +59,7 @@ const ocorrencias = [
     alunoId: "a2",
     categoria: "Atraso",
     prioridade: "MEDIA",
+    bimestre: 1,
     descricao: "Atrasos consecutivos na primeira aula.",
     local: "Sala 9B",
     testemunhas: "",
@@ -201,6 +203,7 @@ beforeEach(() => {
             byPriority: { MEDIA: 1, ALTA: 1 },
             byCategory: { Convivencia: 1, Atraso: 1 },
             recent: ocorrencias,
+            ocorrencias: ocorrencias.map((item) => ({ ...item, aluno: "Estudante 01", turma: "8A" })),
             byTurma: [{ nome: "8A", total: 1 }, { nome: "9B", total: 1 }],
             byPeriodo: [{ periodo: "2026-05", total: 2 }]
           }

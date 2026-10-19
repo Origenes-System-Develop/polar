@@ -1,6 +1,6 @@
 import { Save } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
@@ -8,9 +8,19 @@ import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
-import { PRIORIDADES_OCORRENCIA, type AlunoDetalhado, type PrioridadeOcorrencia, type Turma } from "../../services/domain";
+import {
+  CATEGORIAS_OCORRENCIA,
+  PRIORIDADES_OCORRENCIA,
+  type AlunoDetalhado,
+  type Ocorrencia,
+  type PrioridadeOcorrencia,
+  type Turma,
+  type UpdateOcorrenciaPayload
+} from "../../services/domain";
 import { ApiError } from "../../services/api";
-import { createOcorrencia } from "./ocorrencias.service";
+import { createOcorrencia, getOcorrencia, updateOcorrencia } from "./ocorrencias.service";
+
+const camposEditaveis = ["categoria", "prioridade", "descricao", "local", "testemunhas"] as const;
 
 const schema = z.object({
   alunoId: z.string().min(1, "Selecione um aluno."),
@@ -36,8 +46,11 @@ const initialState: FormState = {
   testemunhas: ""
 };
 
+// Mesma tela para registrar e para o autor editar (rota /ocorrencias/:id/editar).
 export function NovaOcorrenciaPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [original, setOriginal] = useState<Ocorrencia | null>(null);
   const [form, setForm] = useState<FormState>(initialState);
   const [alunos, setAlunos] = useState<AlunoDetalhado[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
@@ -52,10 +65,27 @@ export function NovaOcorrenciaPage() {
 
     async function load() {
       try {
-        const [nextAlunos, nextTurmas] = await Promise.all([listAlunosDetalhados(), listTurmas()]);
+        const [nextAlunos, nextTurmas, atual] = await Promise.all([
+          listAlunosDetalhados(),
+          listTurmas(),
+          id ? getOcorrencia(id) : Promise.resolve(null)
+        ]);
         if (!active) return;
         setAlunos(nextAlunos);
         setTurmas(nextTurmas);
+        if (atual) {
+          setOriginal(atual);
+          setForm({
+            alunoId: atual.alunoId,
+            turmaId: nextAlunos.find((aluno) => aluno.id === atual.alunoId)?.turmaId ?? "",
+            categoria: atual.categoria,
+            prioridade: atual.prioridade,
+            bimestre: atual.bimestre,
+            descricao: atual.descricao,
+            local: atual.local ?? "",
+            testemunhas: atual.testemunhas ?? ""
+          });
+        }
         setApiError("");
       } catch (err) {
         if (!active) return;
@@ -70,7 +100,7 @@ export function NovaOcorrenciaPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [id]);
 
   function setField(field: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -87,6 +117,13 @@ export function NovaOcorrenciaPage() {
     }));
   }
 
+  const editando = Boolean(id);
+  // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir do select.
+  const categorias: string[] =
+    original && !(CATEGORIAS_OCORRENCIA as readonly string[]).includes(original.categoria)
+      ? [...CATEGORIAS_OCORRENCIA, original.categoria]
+      : [...CATEGORIAS_OCORRENCIA];
+
   async function registrar(confirmarModeracao = false) {
     const result = schema.safeParse(form);
     if (!result.success) {
@@ -99,6 +136,19 @@ export function NovaOcorrenciaPage() {
     setApiError("");
     setModeracao(null);
     try {
+      if (editando) {
+        // Sem a ocorrencia carregada nao ha o que editar -- e nunca cai no registro.
+        if (!original) return;
+        const alteracoes: UpdateOcorrenciaPayload = Object.fromEntries(
+          camposEditaveis.filter((campo) => result.data[campo] !== (original[campo] ?? "")).map((campo) => [campo, result.data[campo]])
+        );
+        // A API recusa corpo vazio; sem mudanca, so volta para o detalhe.
+        if (Object.keys(alteracoes).length > 0) {
+          await updateOcorrencia(original.id, { ...alteracoes, ...(confirmarModeracao && { confirmarModeracao }) });
+        }
+        navigate(`/ocorrencias/${original.id}`);
+        return;
+      }
       const ocorrencia = await createOcorrencia({
         alunoId: result.data.alunoId,
         categoria: result.data.categoria,
@@ -115,7 +165,7 @@ export function NovaOcorrenciaPage() {
         const sugestao = (err.details as { sugestao?: string | null } | null)?.sugestao ?? null;
         setModeracao({ mensagem: err.message, sugestao });
       } else {
-        setApiError(err instanceof Error ? err.message : "Nao foi possivel registrar a ocorrencia.");
+        setApiError(err instanceof Error ? err.message : editando ? "Nao foi possivel salvar a ocorrencia." : "Nao foi possivel registrar a ocorrencia.");
       }
     } finally {
       setSubmitting(false);
@@ -129,7 +179,10 @@ export function NovaOcorrenciaPage() {
 
   return (
     <>
-      <PageHeader title="Nova ocorrencia" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: "Nova" }]} />
+      <PageHeader
+        title={editando ? "Editar ocorrencia" : "Nova ocorrencia"}
+        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: editando ? "Editar" : "Nova" }]}
+      />
       <Card>
         {apiError ? <p className="text-danger">{apiError}</p> : null}
         <form className="form-grid" onSubmit={handleSubmit} noValidate>
@@ -138,12 +191,13 @@ export function NovaOcorrenciaPage() {
             value={form.alunoId}
             onChange={(event) => setAluno(event.target.value)}
             error={errors.alunoId}
-            disabled={loading}
+            disabled={loading || editando}
             options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...alunos.map((aluno) => ({ label: aluno.nome, value: aluno.id }))]}
           />
           <Select
             label="Bimestre"
             value={String(form.bimestre)}
+            disabled={editando}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -162,10 +216,16 @@ export function NovaOcorrenciaPage() {
             value={form.turmaId}
             onChange={(event) => setField("turmaId", event.target.value)}
             error={errors.turmaId}
-            disabled={loading}
+            disabled={loading || editando}
             options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...turmas.map((turma) => ({ label: turma.nome, value: turma.id }))]}
           />
-          <Input label="Categoria" value={form.categoria} onChange={(event) => setField("categoria", event.target.value)} error={errors.categoria} />
+          <Select
+            label="Categoria"
+            value={form.categoria}
+            onChange={(event) => setField("categoria", event.target.value)}
+            error={errors.categoria}
+            options={[{ label: "Selecione", value: "" }, ...categorias.map((categoria) => ({ label: categoria, value: categoria }))]}
+          />
           <Select
             label="Prioridade"
             value={form.prioridade}
@@ -198,14 +258,14 @@ export function NovaOcorrenciaPage() {
                   </Button>
                 ) : null}
                 <Button variant="ghost" disabled={submitting} onClick={() => void registrar(true)}>
-                  Manter meu texto e registrar
+                  {editando ? "Manter meu texto e salvar" : "Manter meu texto e registrar"}
                 </Button>
               </div>
             </div>
           ) : null}
           <div className="actions-row span-2">
             <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
-              {submitting ? "Registrando..." : "Registrar"}
+              {submitting ? "Salvando..." : editando ? "Salvar alteracoes" : "Registrar"}
             </Button>
           </div>
         </form>

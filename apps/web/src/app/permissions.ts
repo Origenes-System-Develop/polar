@@ -38,10 +38,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "usuarios:manage",
     "relatorios:view",
     "configuracoes:manage"
-  ],
-  // Conta de aluno: somente leitura. O que ele efetivamente ve e decidido pelo
-  // escopo no backend, que hoje devolve lista vazia por falta de vinculo com Aluno.
-  ALUNO: ["dashboard:view", "ocorrencias:view"]
+  ]
 };
 
 export function canAccess(userRole: UserRole | undefined, permission: Permission): boolean {

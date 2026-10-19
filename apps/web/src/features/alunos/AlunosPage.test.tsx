@@ -33,4 +33,22 @@ describe("AlunosPage", () => {
       );
     });
   });
+
+  it("edita o aluno e salva o e-mail do responsavel", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<AlunosPage />);
+    await screen.findByText("Estudante 01");
+
+    await user.click(screen.getAllByRole("button", { name: /^editar$/i })[0]);
+    expect(screen.getByRole("dialog", { name: /editar aluno/i })).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome")).toHaveValue("Estudante 01");
+    await user.type(screen.getByLabelText("E-mail do responsavel"), "familia@exemplo.com");
+    await user.click(screen.getByRole("button", { name: /salvar aluno/i }));
+
+    await waitFor(() => {
+      const chamada = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === "PATCH");
+      expect(chamada?.[0]).toBe("http://localhost:3000/api/alunos/a1");
+      expect(JSON.parse(String(chamada?.[1]?.body))).toMatchObject({ nome: "Estudante 01", responsavelEmail: "familia@exemplo.com" });
+    });
+  });
 });

@@ -20,7 +20,8 @@ const initialAlunoForm = {
   matricula: "",
   turmaId: "",
   responsavelNome: "",
-  responsavelContato: ""
+  responsavelContato: "",
+  responsavelEmail: ""
 };
 
 export function AlunosPage() {
@@ -35,6 +36,8 @@ export function AlunosPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(initialAlunoForm);
+  // null = modal de cadastro; id = edicao do aluno.
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const canManage = canAccess(user?.papel, "alunos:manage");
 
   // Estado do modal de confirmação de inativação
@@ -86,6 +89,24 @@ export function AlunosPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function abrirModal(aluno?: AlunoDetalhadoComResumoOcorrencias) {
+    setEditandoId(aluno?.id ?? null);
+    setForm(
+      aluno
+        ? {
+            nome: aluno.nome,
+            matricula: aluno.matricula,
+            turmaId: aluno.turmaId,
+            responsavelNome: aluno.responsavelNome ?? "",
+            responsavelContato: aluno.responsavelContato ?? "",
+            responsavelEmail: aluno.responsavelEmail ?? ""
+          }
+        : initialAlunoForm
+    );
+    setFormError("");
+    setModalOpen(true);
+  }
+
   async function handleCreateAluno(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.nome.trim() || !form.matricula.trim() || !form.turmaId) {
@@ -96,12 +117,16 @@ export function AlunosPage() {
     setSaving(true);
     setFormError("");
     try {
-      await createAluno(form);
+      if (editandoId) {
+        await updateAluno(editandoId, form);
+      } else {
+        await createAluno(form);
+      }
       setModalOpen(false);
       setForm(initialAlunoForm);
       await refreshData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Nao foi possivel criar o aluno.");
+      setFormError(err instanceof Error ? err.message : editandoId ? "Nao foi possivel salvar o aluno." : "Nao foi possivel criar o aluno.");
     } finally {
       setSaving(false);
     }
@@ -148,7 +173,7 @@ export function AlunosPage() {
           </div>
         </Card>
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
-        <Card title="Lista de alunos" action={canManage ? <Button variant="secondary" onClick={() => setModalOpen(true)}>Novo aluno</Button> : null}>
+        <Card title="Lista de alunos" action={canManage ? <Button variant="secondary" onClick={() => abrirModal()}>Novo aluno</Button> : null}>
           {loading ? (
             <p className="muted">Carregando alunos...</p>
           ) : (
@@ -181,6 +206,11 @@ export function AlunosPage() {
                         </Button>
                       </Link>
                       {canManage ? (
+                        <Button variant="secondary" onClick={() => abrirModal(item)}>
+                          Editar
+                        </Button>
+                      ) : null}
+                      {canManage ? (
                         <Button variant="danger" onClick={() => handleInativarClick(item.id, item.nome)}>
                           Inativar
                         </Button>
@@ -193,7 +223,7 @@ export function AlunosPage() {
           )}
         </Card>
       </div>
-      <Modal title="Novo aluno" open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal title={editandoId ? "Editar aluno" : "Novo aluno"} open={modalOpen} onClose={() => setModalOpen(false)}>
         {formError ? <p className="text-danger">{formError}</p> : null}
         <form className="form-grid" onSubmit={handleCreateAluno}>
           <Input label="Nome" value={form.nome} onChange={(event) => setAlunoField("nome", event.target.value)} />
@@ -206,6 +236,12 @@ export function AlunosPage() {
           />
           <Input label="Responsavel" value={form.responsavelNome} onChange={(event) => setAlunoField("responsavelNome", event.target.value)} />
           <Input label="Contato do responsavel" value={form.responsavelContato} onChange={(event) => setAlunoField("responsavelContato", event.target.value)} />
+          <Input
+            label="E-mail do responsavel"
+            type="email"
+            value={form.responsavelEmail}
+            onChange={(event) => setAlunoField("responsavelEmail", event.target.value)}
+          />
           <div className="actions-row span-2">
             <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar aluno"}</Button>
           </div>

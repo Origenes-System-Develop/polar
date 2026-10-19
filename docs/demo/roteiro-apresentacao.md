@@ -17,7 +17,6 @@
 | Coordenação | `coordenacao@escola.polar` | idem |
 | Direção | `direcao@escola.polar` | idem |
 | ADM | `adm@escola.polar` | idem |
-| Aluno | `aluno@escola.polar` | idem |
 
 ## Ato 1 — O problema e a visão (1 min, sem sistema)
 
@@ -41,7 +40,6 @@
 - Tentar editar ocorrência encerrada → **409**; editar histórico → **405**.
 - Professor não enxerga ocorrência registrada pelo ADM → **403** no acesso direto, e ausente da lista.
 - **O dashboard obedece ao mesmo escopo**: professor vê total 6, coordenação vê 12. É o ponto que mais costuma ser furado em sistemas assim — a listagem filtra e o agregado vaza.
-- Login do aluno (`aluno@escola.polar`): lista vazia e dashboard zerado. Nega por padrão, porque ainda não existe vínculo entre a conta e o registro do estudante.
 - Logout e acesso direto à URL interna → redirecionado ao login (**401**).
 
 ## Ato 4 — Persistência e reincidência (2 min)

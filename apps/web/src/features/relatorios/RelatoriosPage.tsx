@@ -8,6 +8,7 @@ import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { RelatorioOcorrencias, Turma } from "../../services/domain";
 import { getRelatorioOcorrencias, listTurmas } from "../../services/school.service";
+import { baixarCsv, ocorrenciasParaCsv } from "./csv";
 
 interface DadoGrafico {
   nome: string;
@@ -122,7 +123,16 @@ export function RelatoriosPage() {
       <PageHeader
         title="Relatorios"
         breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Relatorios" }]}
-        actions={<Button variant="secondary" icon={<Download size={18} />} disabled>Exportacao futura</Button>}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Download size={18} />}
+            disabled={loading || total === 0}
+            onClick={() => relatorio && baixarCsv(ocorrenciasParaCsv(relatorio.ocorrencias), "ocorrencias.csv")}
+          >
+            Exportar CSV
+          </Button>
+        }
       />
       <div className="page-grid">
         <Card title="Filtros">

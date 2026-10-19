@@ -1,8 +1,33 @@
-export type PapelUsuario = "PROFESSOR" | "COORDENADOR" | "DIRETOR" | "ADM" | "ALUNO";
+export type PapelUsuario = "PROFESSOR" | "COORDENADOR" | "DIRETOR" | "ADM";
 
 export type StatusOcorrencia = "REGISTRADA" | "EM_ANALISE" | "RESOLVIDA" | "ENCERRADA";
 
 export type PrioridadeOcorrencia = "BAIXA" | "MEDIA" | "ALTA" | "URGENTE";
+
+// Copia da lista da API (apps/api/src/shared/domain.ts); manter as duas iguais.
+export const CATEGORIAS_OCORRENCIA = [
+  "Desrespeito",
+  "Agressão verbal",
+  "Agressão física",
+  "Bullying ou intimidação",
+  "Discriminação (racismo, homofobia etc.)",
+  "Briga",
+  "Atraso",
+  "Saída sem autorização",
+  "Ausência da sala de aula",
+  "Não fez atividade",
+  "Falta de material",
+  "Uso indevido de celular",
+  "Uniforme inadequado",
+  "Indisciplina em sala",
+  "Cola ou fraude em avaliação",
+  "Dano ao patrimônio",
+  "Furto",
+  "Porte de objeto proibido",
+  "Uso de cigarro, vape, álcool ou drogas",
+  "Má conduta",
+  "Outros"
+] as const;
 
 export const PRIORIDADES_OCORRENCIA = [
   { value: "BAIXA", label: "Baixa", peso: 1 },
@@ -51,6 +76,7 @@ export interface Aluno {
   turmaId: string;
   responsavelNome?: string;
   responsavelContato?: string;
+  responsavelEmail?: string;
   ativo: boolean;
   criadoEm?: string;
   atualizadoEm?: string;
@@ -109,8 +135,8 @@ export interface OcorrenciaHistorico {
 export interface NotificacaoOcorrencia {
   id: string;
   ocorrenciaId: string;
-  destinatario: "PAET" | "COORDENACAO" | "DIRECAO";
-  resultado: "ENVIADO";
+  destinatario: "PAET" | "COORDENACAO" | "DIRECAO" | "RESPONSAVEL";
+  resultado: "ENVIADO" | "FALHOU" | "NAO_ENVIADO";
   criadoEm: string;
 }
 
@@ -158,6 +184,7 @@ export interface RelatorioOcorrencias {
   recent: Ocorrencia[];
   byTurma: { nome: string; total: number }[];
   byPeriodo: { periodo: string; total: number }[];
+  ocorrencias: OcorrenciaDetalhada[];
 }
 
 export interface CreateOcorrenciaPayload {
@@ -171,12 +198,18 @@ export interface CreateOcorrenciaPayload {
   confirmarModeracao?: boolean;
 }
 
+// Campos que o autor pode alterar enquanto a ocorrencia esta REGISTRADA.
+export type UpdateOcorrenciaPayload = Partial<
+  Pick<CreateOcorrenciaPayload, "categoria" | "prioridade" | "descricao" | "local" | "testemunhas" | "confirmarModeracao">
+>;
+
 export interface CreateAlunoPayload {
   nome: string;
   matricula: string;
   turmaId: string;
   responsavelNome?: string;
   responsavelContato?: string;
+  responsavelEmail?: string;
 }
 
 export interface UpdateAlunoPayload {
@@ -185,6 +218,7 @@ export interface UpdateAlunoPayload {
   turmaId?: string;
   responsavelNome?: string;
   responsavelContato?: string;
+  responsavelEmail?: string;
   ativo?: boolean;
 }
 

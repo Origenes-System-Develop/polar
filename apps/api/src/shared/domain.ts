@@ -2,8 +2,7 @@ export enum PapelUsuario {
   PROFESSOR = "PROFESSOR",
   COORDENADOR = "COORDENADOR",
   DIRETOR = "DIRETOR",
-  ADM = "ADM",
-  ALUNO = "ALUNO"
+  ADM = "ADM"
 }
 
 export enum StatusOcorrencia {
@@ -19,6 +18,32 @@ export enum PrioridadeOcorrencia {
   ALTA = "ALTA",
   URGENTE = "URGENTE"
 }
+
+// Lista fechada de categorias (a web tem uma copia em services/domain.ts).
+// Ocorrencias antigas mantem o texto livre que ja tinham.
+export const CATEGORIAS_OCORRENCIA = [
+  "Desrespeito",
+  "Agressão verbal",
+  "Agressão física",
+  "Bullying ou intimidação",
+  "Discriminação (racismo, homofobia etc.)",
+  "Briga",
+  "Atraso",
+  "Saída sem autorização",
+  "Ausência da sala de aula",
+  "Não fez atividade",
+  "Falta de material",
+  "Uso indevido de celular",
+  "Uniforme inadequado",
+  "Indisciplina em sala",
+  "Cola ou fraude em avaliação",
+  "Dano ao patrimônio",
+  "Furto",
+  "Porte de objeto proibido",
+  "Uso de cigarro, vape, álcool ou drogas",
+  "Má conduta",
+  "Outros"
+] as const;
 
 export enum TipoEnsino {
   REGULAR = "REGULAR",
@@ -70,6 +95,7 @@ export interface Aluno {
   turmaId: string;
   responsavelNome: string;
   responsavelContato: string;
+  responsavelEmail: string;
   ativo: boolean;
   criadoEm: string;
   atualizadoEm: string;
@@ -138,13 +164,15 @@ export interface AuditLog {
   criadoEm: string;
 }
 
-export type DestinatarioNotificacao = "PAET" | "COORDENACAO" | "DIRECAO";
+export type DestinatarioNotificacao = "PAET" | "COORDENACAO" | "DIRECAO" | "RESPONSAVEL";
+// NAO_ENVIADO: e-mail desligado (sem SMTP) ou destinatario sem e-mail cadastrado.
+export type ResultadoNotificacao = "ENVIADO" | "FALHOU" | "NAO_ENVIADO";
 
 export interface NotificacaoOcorrencia {
   id: string;
   ocorrenciaId: string;
   destinatario: DestinatarioNotificacao;
-  resultado: "ENVIADO";
+  resultado: ResultadoNotificacao;
   criadoEm: string;
 }
 
