@@ -11,7 +11,8 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly code = "API_ERROR"
+    public readonly code = "API_ERROR",
+    public readonly details: unknown = null
   ) {
     super(message);
   }
@@ -63,7 +64,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (!response.ok) {
     const message = body?.error?.message ?? body?.message ?? "Nao foi possivel concluir a operacao.";
     const code = body?.error?.code ?? "API_ERROR";
-    throw new ApiError(message, response.status, code);
+    throw new ApiError(message, response.status, code, body?.error?.details ?? null);
   }
 
   return body as T;

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   analisarDescricao,
   descricaoContemConteudoInadequado,
-  normalizarDescricaoParaModeracao
+  normalizarDescricaoParaModeracao,
+  sugerirRedacao
 } from "../../src/modules/ocorrencias/moderacao/moderacao-descricao.js";
 
 describe("moderacao de descricao", () => {
@@ -30,10 +31,43 @@ describe("moderacao de descricao", () => {
     `O estudante escreveu me\u200Brda no quadro.`,
     "O estudante mandou o colega vai tomar no cu.",
     "Houve mais de um xingamento: idiota e babaca."
-  ])("bloqueia termo ou evasao previsivel: %s", (descricao) => {
-    expect(analisarDescricao(descricao)).toEqual({
-      permitido: false,
-      motivo: "CONTEUDO_INADEQUADO"
+  ])("sinaliza termo ou evasao previsivel: %s", (descricao) => {
+    const analise = analisarDescricao(descricao);
+    expect(analise.permitido).toBe(false);
+    expect(analise.motivo).toBe("CONTEUDO_INADEQUADO");
+    expect(analise.termos.length).toBeGreaterThan(0);
+  });
+
+  it("devolve os termos encontrados ja normalizados", () => {
+    expect(analisarDescricao("Houve mais de um xingamento: IDIOTA e b4b4c4.").termos).toEqual(["idiota", "babaca"]);
+    expect(analisarDescricao("Texto respeitoso.").termos).toEqual([]);
+  });
+
+  describe("sugerirRedacao", () => {
+    it("troca so a palavra sinalizada e preserva o resto e a pontuacao", () => {
+      expect(sugerirRedacao("O colega foi chamado de IDIOTA, na aula.")).toBe(
+        "O colega foi chamado de [termo ofensivo], na aula."
+      );
+    });
+
+    it("limpa leetspeak e expressao com palavra sinalizada", () => {
+      expect(sugerirRedacao("Escreveu m3rd4 e disse vai se foder.")).toBe(
+        "Escreveu [termo ofensivo] e disse vai se [termo ofensivo]."
+      );
+    });
+
+    it("nao altera o texto original recebido", () => {
+      const original = "O colega foi chamado de idiota.";
+      sugerirRedacao(original);
+      expect(original).toBe("O colega foi chamado de idiota.");
+    });
+
+    it("devolve null quando a sugestao passaria do limite de 2000 caracteres", () => {
+      expect(sugerirRedacao(`${"a".repeat(1980)} fdp fdp fdp fdp fdp`)).toBeNull();
+    });
+
+    it("devolve null quando a troca por palavra nao resolve (termo fragmentado)", () => {
+      expect(sugerirRedacao("O estudante escreveu p u t a no caderno.")).toBeNull();
     });
   });
 

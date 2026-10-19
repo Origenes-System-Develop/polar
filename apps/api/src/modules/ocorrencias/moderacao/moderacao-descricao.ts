@@ -61,15 +61,13 @@ const termosNormalizados = new Set(TERMOS_BLOQUEADOS.map(normalizarDescricaoPara
 const termosCompactados = new Set(Array.from(termosNormalizados, compactarRepeticoes));
 const expressoesNormalizadas = EXPRESSOES_BLOQUEADAS.map(normalizarDescricaoParaModeracao);
 
-function contemExpressao(normalizado: string): boolean {
-  const textoComLimites = ` ${normalizado} `;
-  return expressoesNormalizadas.some((expressao) => textoComLimites.includes(` ${expressao} `));
+function ehTermo(valor: string): boolean {
+  return termosNormalizados.has(valor) || termosCompactados.has(compactarRepeticoes(valor));
 }
 
-function contemTermo(tokens: string[]): boolean {
-  return tokens.some(
-    (token) => termosNormalizados.has(token) || termosCompactados.has(compactarRepeticoes(token))
-  );
+function expressoesEncontradas(normalizado: string): string[] {
+  const textoComLimites = ` ${normalizado} `;
+  return expressoesNormalizadas.filter((expressao) => textoComLimites.includes(` ${expressao} `));
 }
 
 /**
@@ -77,7 +75,9 @@ function contemTermo(tokens: string[]): boolean {
  * Somente combina blocos de ate duas letras e exige pelo menos dois blocos,
  * reduzindo o risco de juntar palavras comuns de uma frase.
  */
-function contemTermoFragmentado(tokens: string[]): boolean {
+function termosFragmentados(tokens: string[]): string[] {
+  const encontrados: string[] = [];
+
   for (let inicio = 0; inicio < tokens.length; inicio += 1) {
     let combinado = "";
     let blocos = 0;
@@ -93,38 +93,59 @@ function contemTermoFragmentado(tokens: string[]): boolean {
       if (combinado.length > 24) {
         break;
       }
-      if (
-        blocos >= 2 &&
-        combinado.length >= 3 &&
-        (termosNormalizados.has(combinado) || termosCompactados.has(compactarRepeticoes(combinado)))
-      ) {
-        return true;
+      if (blocos >= 2 && combinado.length >= 3 && ehTermo(combinado)) {
+        encontrados.push(combinado);
+        break;
       }
     }
   }
 
-  return false;
+  return encontrados;
 }
 
 export interface ResultadoModeracao {
   permitido: boolean;
   motivo?: "CONTEUDO_INADEQUADO";
+  /** Termos encontrados, ja normalizados (caixa, acentos e leetspeak). */
+  termos: string[];
 }
 
 export function analisarDescricao(value: string): ResultadoModeracao {
   const normalizado = normalizarDescricaoParaModeracao(value);
   if (!normalizado) {
-    return { permitido: true };
+    return { permitido: true, termos: [] };
   }
 
   const tokens = normalizado.split(" ");
-  if (contemExpressao(normalizado) || contemTermo(tokens) || contemTermoFragmentado(tokens)) {
-    return { permitido: false, motivo: "CONTEUDO_INADEQUADO" };
-  }
+  const termos = [
+    ...new Set([
+      ...expressoesEncontradas(normalizado),
+      ...tokens.filter(ehTermo),
+      ...termosFragmentados(tokens)
+    ])
+  ];
 
-  return { permitido: true };
+  return termos.length > 0
+    ? { permitido: false, motivo: "CONTEUDO_INADEQUADO", termos }
+    : { permitido: true, termos: [] };
 }
 
 export function descricaoContemConteudoInadequado(value: string): boolean {
   return !analisarDescricao(value).permitido;
+}
+
+const SUBSTITUTO = "[termo ofensivo]";
+
+/**
+ * Redacao alternativa: troca so as palavras sinalizadas, mantendo o resto do
+ * texto. E apenas uma sugestao; quem decide aplicar e quem esta escrevendo.
+ * shortcut: compara palavra a palavra, entao expressoes e termos fragmentados
+ * (p u t a) nao tem sugestao de texto; devolve null e o aviso fica so com a orientacao.
+ */
+export function sugerirRedacao(texto: string): string | null {
+  const sugestao = texto.replace(/[\p{L}\p{N}@$]+/gu, (palavra) =>
+    descricaoContemConteudoInadequado(palavra) ? SUBSTITUTO : palavra
+  );
+  // 2000 e o limite da descricao: uma sugestao maior seria recusada ao ser aplicada.
+  return sugestao.length > 2000 || descricaoContemConteudoInadequado(sugestao) ? null : sugestao;
 }
