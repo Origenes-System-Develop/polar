@@ -2,88 +2,122 @@
 
 Todas as mudanças relevantes deste projeto serão documentadas neste arquivo.
 
-O formato deste arquivo é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e este projeto segue o Versionamento Semântico.
+O formato deste arquivo é baseado no
+[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas e conteúdo
+das versões foram conferidos no histórico do Git. O projeto ainda não possui
+tags nem releases no GitHub; por isso os links apontam para commits.
 
-## [3.16.17] - 2026-09-25
+## [Não lançado]
 
-### Added
+### Adicionado
 
-* Adicionada prioridade às ocorrências, com filtros, ordenação, rótulos e validações.
-* Adicionada tabela de ocorrências responsiva para telas menores.
-* Adicionado indicador do histórico de ocorrências na lista de alunos.
-* Adicionado painel de movimentações recentes ao dashboard.
-* Adicionados gráficos de distribuição e evolução aos relatórios.
-* Adicionado novo favicon ao sistema.
-* Adicionada lista de tipos de ocorrência ao formulário.
-* Adicionada classificação visual das ocorrências por gravidade.
-* Adicionado suporte a bimestre nas ocorrências e filtro por bimestre.
-* Adicionada atualização anual de turmas.
-* Adicionados estados vazios para alunos e turmas.
-* Adicionado modal de confirmação.
-* Adicionada conclusão do fluxo de pendências de ocorrências e turmas.
-* Adicionada reconstrução da versão 3 do POLAR com MySQL, regras fechadas e deploy.
-* Adicionada migração do banco para PostgreSQL/Supabase.
-* Adicionada migração do deploy para Vercel.
+- Prioridade nas ocorrências (BE-04), com filtros, ordenação, rótulos e
+  validações, incluindo o nível Urgente.
+- Classificação visual das ocorrências por gravidade, sempre acompanhada de
+  texto e marcador (FE-12).
+- Bimestre nas ocorrências, com filtro por bimestre (BE-02 e BE-03).
+- Lista de tipos de ocorrência no formulário (FE-11).
+- Atualização anual de turmas (BE-01).
+- Tabela de ocorrências responsiva em telas pequenas (FE-07).
+- Indicador do histórico de ocorrências na lista de alunos (FE-13).
+- Painel de movimentações recentes no dashboard (FE-09).
+- Gráficos de distribuição e evolução nos relatórios (FE-10).
+- Estados vazios para alunos e turmas, e modal de confirmação.
+- Conclusão do fluxo de pendências de ocorrências e turmas.
+- Moderação de linguagem na descrição das ocorrências: o sistema avisa, sugere
+  uma redação alternativa e preserva a decisão de quem registra (IA-01).
+- Novo favicon.
+- Documentação: guias práticos das tarefas, plano de testes, evidências de QA
+  (acentuação, aluno e concorrência), manual do usuário, plano de manutenção,
+  `CODEOWNERS` e modelos de issue e Pull Request.
 
-### Changed
+### Alterado
 
-* Atualizada a interface do sistema para seguir a referência visual da Sala do Futuro.
-* Atualizada a arquitetura do projeto para a nova estrutura de banco e deploy.
-* Ajustadas as regras de negócio relacionadas às ocorrências, prioridades, gravidade e bimestres.
+- Função da API executada na região de São Paulo (`gru1`) na Vercel.
+- Produção migrada para novas contas da Vercel e do Supabase.
 
-### Fixed
+### Corrigido
 
-* Corrigido conflito entre o bootstrap e o seed durante a inicialização do banco.
-* Corrigada configuração do `rootDir` do TypeScript.
-* Corrigado registro de stack trace em erros 500.
-* Corrigido erro `ERR_REQUIRE_ESM` na função serverless da Vercel.
-* Corrigada configuração do ESM da função serverless.
-* Corrigado runtime da função serverless da Vercel.
-* Corrigida conexão TLS com o Supabase.
-* Corrigido problema relacionado ao funcionamento do servidor.
-* Corrigida exibição do nome do usuário no histórico.
-* Corrigada formatação das datas do histórico para `pt-BR`.
-* Corrigida exibição e filtragem de ocorrências por bimestre.
-* Corrigido campo `bimestre` durante a sincronização das branches.
-* Corrigido caminho de leitura do banco JSON.
-* Corrigado tratamento do erro `401` durante o login.
-* Corrigida condição de concorrência na atualização do status das ocorrências.
-* Corrigada migração do campo `bimestre` em bancos existentes.
-* Corrigado cálculo do bimestre de registros legados.
+- Data do histórico exibida em `pt-BR` e nome do usuário no histórico.
+- Exibição e filtro de ocorrências por bimestre.
+- Migração do campo `bimestre` em bancos existentes e cálculo do bimestre de
+  registros legados.
+- Condição de corrida na alteração de status e na edição das ocorrências: o
+  status passa a ser revalidado dentro da transação.
+- Leitura do banco JSON a partir da raiz do repositório e mensagem real de erro
+  `401` no login.
+- Senha de demonstração removida do `README.md` e do script de concorrência.
+- Falhas do servidor e de servidor inativo.
 
-## [2.1.0] - 2026-05-24
+## [v3.1] - 2026-07-31
 
-### Added
+### Adicionado
 
-* Adicionada nova estrutura do sistema em TypeScript.
-* Adicionada organização do projeto como monorepo.
+- Link de acesso ao sistema em produção.
 
-### Changed
+### Alterado
 
-* Refatorada a estrutura do projeto para a arquitetura baseada em TypeScript.
+- Banco de dados migrado de MySQL para PostgreSQL/Supabase e deploy migrado
+  para a Vercel, com a API como função serverless.
+- Interface alinhada à referência visual da Sala do Futuro, com guia visual
+  atualizado.
+- Limpeza da arquitetura do projeto.
 
-## [1.4.6] - 2026-05-15
+### Corrigido
 
-### Added
+- Erro `ERR_REQUIRE_ESM` e escopo ESM da função serverless da Vercel.
+- Escolha do runtime Node pela Vercel.
+- Conexão TLS com o Supabase, confiando na autoridade certificadora raiz.
+- Erro `500` no servidor.
 
-* Adicionada nova estrutura de HTML com JavaScript.
-* Adicionada estrutura para testes do backend.
-* Adicionada nova aba de notificações.
-* Adicionados recursos de perfil e relatório.
+## [v3.0] - 2026-07-28
 
-### Changed
+### Adicionado
 
-* Atualizada a estrutura da API para integração com o sistema.
+- Reconstrução do POLAR como versão 3, com MySQL, regras de negócio fechadas e
+  deploy.
 
-### Fixed
+### Alterado
 
-* Corrigidos problemas na API.
-* Corrigido problema na execução do `runPython`.
-* Corrigidos problemas de execução e funcionamento da API.
-* Corrigida versão da API utilizando o engine Python.
-* Corrigados ajustes necessários para funcionamento da API.
-* Corrigido problema relacionado ao funcionamento da API.
+- Reset geral do repositório para a reta final da apresentação.
 
-[3.16.17]: https://github.com/Origenes-System-Develop/polar/releases/tag/v3.16.17
-[2.1.0]: https://github.com/Origenes-System-Develop/polar/releases/tag/v2.1.0
-[1.4.6]: https://github.com/Origenes-System-Develop/polar/releases/tag/v1.4.6
+### Corrigido
+
+- Registro do stack trace em erros `500` não tratados.
+- Configuração do `rootDir` do TypeScript para gerar o `server.js` no `dist`.
+
+## [v2.0] - 2026-05-24
+
+### Adicionado
+
+- Novo sistema em TypeScript, organizado como monorepo com `apps/api` e
+  `apps/web`.
+
+### Alterado
+
+- Código legado arquivado na pasta `legado`.
+
+### Removido
+
+- Artefatos de build da branch de refatoração.
+
+## [v1.0] - 2026-04-29
+
+### Adicionado
+
+- Primeira versão funcional do POLAR: backend em Python e Node.js com
+  cadastro de alunos, salas, notas, faltas e ocorrências, e autenticação.
+- Hash de senhas, identificadores e normalização dos dados.
+- Interface em HTML com JavaScript, aba de notificações, perfil e relatório.
+- Estrutura de testes do backend.
+- Migração do backend para o Supabase (PostgreSQL), registrada em 01/05/2026.
+
+### Corrigido
+
+- Diversos ajustes na API e na execução dos serviços Python (`runPython`).
+
+[Não lançado]: https://github.com/Origenes-System-Develop/polar/compare/8d5face...develop
+[v3.1]: https://github.com/Origenes-System-Develop/polar/commit/8d5face
+[v3.0]: https://github.com/Origenes-System-Develop/polar/commit/0e18563
+[v2.0]: https://github.com/Origenes-System-Develop/polar/commit/4ca3d4d
+[v1.0]: https://github.com/Origenes-System-Develop/polar/commit/571904b
