@@ -42,7 +42,7 @@ describe("NovaOcorrenciaPage", () => {
       renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
       await screen.findByRole("option", { name: "Estudante 01" });
       await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
-      await user.type(screen.getByLabelText("Categoria"), "Desrespeito");
+      await user.selectOptions(screen.getByLabelText("Categoria"), "Desrespeito");
       await user.type(screen.getByLabelText("Local"), "Sala de aula");
       await user.type(screen.getByLabelText("Descricao"), original);
       vi.mocked(fetch).mockResolvedValueOnce(resposta);

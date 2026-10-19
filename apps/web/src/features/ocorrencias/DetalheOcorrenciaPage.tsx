@@ -1,6 +1,6 @@
-import { CheckCircle2, Clock, Lock } from "lucide-react";
+import { CheckCircle2, Clock, Lock, Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { canAccess, type Permission } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
@@ -28,6 +28,19 @@ const expectedCurrentStatus: Record<StatusOcorrencia, StatusOcorrencia> = {
   RESOLVIDA: "EM_ANALISE",
   ENCERRADA: "RESOLVIDA",
   REGISTRADA: "REGISTRADA"
+};
+
+const DESTINATARIO_LABEL: Record<NotificacaoOcorrencia["destinatario"], string> = {
+  COORDENACAO: "Coordenacao",
+  DIRECAO: "Direcao",
+  PAET: "PAET",
+  RESPONSAVEL: "Responsavel"
+};
+
+const RESULTADO_LABEL: Record<NotificacaoOcorrencia["resultado"], string> = {
+  ENVIADO: "E-mail enviado",
+  FALHOU: "Falha no envio do e-mail",
+  NAO_ENVIADO: "Registrado no sistema, sem e-mail"
 };
 
 function formatarDataHora(valor: string): string {
@@ -122,7 +135,20 @@ export function DetalheOcorrenciaPage() {
 
   return (
     <>
-      <PageHeader title="Detalhe da ocorrencia" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: ocorrencia.id }]} />
+      <PageHeader
+        title="Detalhe da ocorrencia"
+        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: ocorrencia.id }]}
+        actions={
+          // Mesma regra da API: so o autor, e so enquanto REGISTRADA.
+          ocorrencia.criadoPorId === user?.id && ocorrencia.status === "REGISTRADA" ? (
+            <Link to={`/ocorrencias/${ocorrencia.id}/editar`}>
+              <Button variant="secondary" icon={<Pencil size={18} />}>
+                Editar
+              </Button>
+            </Link>
+          ) : null
+        }
+      />
       <div className="page-grid">
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
         <div className="grid-2">
@@ -205,8 +231,8 @@ export function DetalheOcorrenciaPage() {
             <ul className="timeline">
               {notificacoes.map((notificacao) => (
                 <li key={notificacao.id}>
-                  <strong>{notificacao.destinatario}</strong>
-                  <span className="muted">Resultado: {notificacao.resultado}</span>
+                  <strong>{DESTINATARIO_LABEL[notificacao.destinatario]}</strong>
+                  <span className="muted">{RESULTADO_LABEL[notificacao.resultado]}</span>
                   <time className="muted" dateTime={notificacao.criadoEm}>{formatarDataHora(notificacao.criadoEm)}</time>
                 </li>
               ))}

@@ -23,7 +23,7 @@ describe("pendencias", () => {
   // O ADM tem todas as permissoes, mas o backend restringe as transicoes ao papel
   // exato -- entao ele nao pode mover nada e nao deve receber pendencia.
   it("nao atribui pendencia a quem nao muda status", () => {
-    for (const papel of ["PROFESSOR", "ADM", "ALUNO"] as const) {
+    for (const papel of ["PROFESSOR", "ADM"] as const) {
       expect(statusPendentes(papel)).toEqual([]);
       expect(contarPendencias(papel, resumo)).toBe(0);
     }

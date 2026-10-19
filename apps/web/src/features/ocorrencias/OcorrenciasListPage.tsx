@@ -8,6 +8,7 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import {
+  CATEGORIAS_OCORRENCIA,
   PRIORIDADES_OCORRENCIA,
   PRIORIDADE_PESO,
   type OcorrenciaDetalhada
@@ -53,6 +54,12 @@ export function OcorrenciasListPage() {
     };
   }, []);
 
+  // Inclui categorias antigas (texto livre) que ainda existam nos registros.
+  const categorias = useMemo(
+    () => [...new Set<string>([...CATEGORIAS_OCORRENCIA, ...ocorrencias.map((item) => item.categoria)])],
+    [ocorrencias]
+  );
+
   const filtered = useMemo(
     () =>
       ocorrencias
@@ -61,7 +68,7 @@ export function OcorrenciasListPage() {
             item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
             (!status || item.status === status) &&
             (!prioridade || item.prioridade === prioridade) &&
-            (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase())) &&
+            (!categoria || item.categoria === categoria) &&
             (!bimestre || item.bimestre === Number(bimestre))
         )
         .sort((a, b) => {
@@ -129,7 +136,12 @@ export function OcorrenciasListPage() {
                 { label: "Baixa para alta", value: "MENOR" }
               ]}
             />
-            <Input label="Categoria" value={categoria} onChange={(event) => setCategoria(event.target.value)} />
+            <Select
+              label="Categoria"
+              value={categoria}
+              onChange={(event) => setCategoria(event.target.value)}
+              options={[{ label: "Todas", value: "" }, ...categorias.map((item) => ({ label: item, value: item }))]}
+            />
           </div>
         </Card>
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}

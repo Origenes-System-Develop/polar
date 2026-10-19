@@ -22,8 +22,7 @@ const rotulosDePapel: Record<string, string> = {
   PROFESSOR: "Professor",
   COORDENADOR: "Coordenacao",
   DIRETOR: "Direcao",
-  ADM: "Administracao",
-  ALUNO: "Estudante"
+  ADM: "Administracao"
 };
 
 export function rotuloDePapel(papel: string | undefined): string {

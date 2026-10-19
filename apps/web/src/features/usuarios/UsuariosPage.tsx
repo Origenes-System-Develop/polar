@@ -166,8 +166,7 @@ export function UsuariosPage() {
               { label: "PROFESSOR", value: "PROFESSOR" },
               { label: "COORDENADOR", value: "COORDENADOR" },
               { label: "DIRETOR", value: "DIRETOR" },
-              { label: "ADM", value: "ADM" },
-              { label: "ALUNO", value: "ALUNO" }
+              { label: "ADM", value: "ADM" }
             ]}
           />
           <Input label="Senha temporaria" type="password" value={form.senha} onChange={(event) => setUserField("senha", event.target.value)} />

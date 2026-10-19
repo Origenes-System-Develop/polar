@@ -14,6 +14,7 @@ export interface AlunoInput {
   turmaNome?: string | undefined;
   responsavelNome?: string | undefined;
   responsavelContato?: string | undefined;
+  responsavelEmail?: string | undefined;
   ativo?: boolean | undefined;
 }
 
@@ -101,6 +102,7 @@ export class AlunosService {
       turmaId: turma.id,
       responsavelNome: input.responsavelNome ?? "",
       responsavelContato: input.responsavelContato ?? "",
+      responsavelEmail: input.responsavelEmail ?? "",
       ativo: true,
       criadoEm: now,
       atualizadoEm: now
@@ -135,6 +137,7 @@ export class AlunosService {
       turmaId: turma?.id ?? aluno.turmaId,
       responsavelNome: input.responsavelNome ?? aluno.responsavelNome,
       responsavelContato: input.responsavelContato ?? aluno.responsavelContato,
+      responsavelEmail: input.responsavelEmail ?? aluno.responsavelEmail,
       ativo: input.ativo ?? aluno.ativo,
       atualizadoEm: now
     }));
