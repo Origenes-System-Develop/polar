@@ -45,7 +45,8 @@ export const createOcorrenciaSchema = z.object({
   descricao: textoLimpo(2000).pipe(z.string().min(10, "Descricao deve ter pelo menos 10 caracteres.")),
   local: textoLimpo(160).optional(),
   testemunhas: textoLimpo(240).optional(),
-  bimestre: z.coerce.number().int().min(1).max(4)
+  bimestre: z.coerce.number().int().min(1).max(4),
+  confirmarModeracao: z.boolean().optional()
 });
 
 export const updateOcorrenciaSchema = z.object({
@@ -53,7 +54,8 @@ export const updateOcorrenciaSchema = z.object({
   prioridade: z.preprocess(normalizePrioridade, z.nativeEnum(PrioridadeOcorrencia)).optional(),
   descricao: textoLimpo(2000).pipe(z.string().min(10)).optional(),
   local: textoLimpo(160).optional(),
-  testemunhas: textoLimpo(240).optional()
+  testemunhas: textoLimpo(240).optional(),
+  confirmarModeracao: z.boolean().optional()
 });
 
 export const updateStatusSchema = z.object({

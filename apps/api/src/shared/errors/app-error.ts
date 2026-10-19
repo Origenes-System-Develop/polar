@@ -15,6 +15,14 @@ export function badRequest(message: string, details: unknown = null): AppError {
   return new AppError(message, 400, "BAD_REQUEST", details);
 }
 
+// 422: o texto nao e gravado ate a pessoa revisar e reenviar com confirmarModeracao.
+export function conteudoInadequado(
+  details: unknown,
+  message = "A descricao contem termos inadequados. Revise o texto ou confirme para registrar mesmo assim."
+): AppError {
+  return new AppError(message, 422, "CONTEUDO_INADEQUADO", details);
+}
+
 export function unauthorized(message = "Autenticacao obrigatoria."): AppError {
   return new AppError(message, 401, "UNAUTHORIZED");
 }

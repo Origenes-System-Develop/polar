@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
 import { PRIORIDADES_OCORRENCIA, type AlunoDetalhado, type PrioridadeOcorrencia, type Turma } from "../../services/domain";
+import { ApiError } from "../../services/api";
 import { createOcorrencia } from "./ocorrencias.service";
 
 const schema = z.object({
@@ -44,6 +45,7 @@ export function NovaOcorrenciaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [moderacao, setModeracao] = useState<{ mensagem: string; sugestao: string | null } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -72,6 +74,8 @@ export function NovaOcorrenciaPage() {
 
   function setField(field: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
+    if (field === "descricao") setModeracao(null);
   }
 
   function setAluno(alunoId: string) {
@@ -83,8 +87,7 @@ export function NovaOcorrenciaPage() {
     }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function registrar(confirmarModeracao = false) {
     const result = schema.safeParse(form);
     if (!result.success) {
       setErrors(Object.fromEntries(Object.entries(result.error.flatten().fieldErrors).map(([key, value]) => [key, value?.[0]])));
@@ -94,6 +97,7 @@ export function NovaOcorrenciaPage() {
     setSubmitting(true);
     setErrors({});
     setApiError("");
+    setModeracao(null);
     try {
       const ocorrencia = await createOcorrencia({
         alunoId: result.data.alunoId,
@@ -102,14 +106,25 @@ export function NovaOcorrenciaPage() {
         bimestre: result.data.bimestre,
         descricao: result.data.descricao,
         local: result.data.local,
-        testemunhas: result.data.testemunhas
+        testemunhas: result.data.testemunhas,
+        ...(confirmarModeracao && { confirmarModeracao })
       });
       navigate(`/ocorrencias/${ocorrencia.id}`);
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : "Nao foi possivel registrar a ocorrencia.");
+      if (err instanceof ApiError && err.code === "CONTEUDO_INADEQUADO") {
+        const sugestao = (err.details as { sugestao?: string | null } | null)?.sugestao ?? null;
+        setModeracao({ mensagem: err.message, sugestao });
+      } else {
+        setApiError(err instanceof Error ? err.message : "Nao foi possivel registrar a ocorrencia.");
+      }
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void registrar();
   }
 
   return (
@@ -162,9 +177,32 @@ export function NovaOcorrenciaPage() {
           <Input label="Testemunhas" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
           <label className="ui-field span-2" htmlFor="descricao">
             <span>Descricao</span>
-            <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao)} />
+            <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} />
             {errors.descricao ? <small className="ui-field__error">{errors.descricao}</small> : null}
           </label>
+          {moderacao ? (
+            <div className="moderation-notice span-2" role="alert">
+              <strong>{moderacao.mensagem}</strong>
+              {moderacao.sugestao ? (
+                <>
+                  <p>Sugestao de redacao (so e aplicada se voce clicar em &quot;Usar sugestao&quot;):</p>
+                  <blockquote>{moderacao.sugestao}</blockquote>
+                </>
+              ) : (
+                <p>Descreva o fato (o que foi dito ou feito) sem repetir o termo ofensivo.</p>
+              )}
+              <div className="actions-row">
+                {moderacao.sugestao ? (
+                  <Button variant="secondary" onClick={() => setField("descricao", moderacao.sugestao ?? "")}>
+                    Usar sugestao
+                  </Button>
+                ) : null}
+                <Button variant="ghost" disabled={submitting} onClick={() => void registrar(true)}>
+                  Manter meu texto e registrar
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <div className="actions-row span-2">
             <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
               {submitting ? "Registrando..." : "Registrar"}
