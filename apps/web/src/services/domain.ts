@@ -168,6 +168,7 @@ export interface CreateOcorrenciaPayload {
   descricao: string;
   local?: string;
   testemunhas?: string;
+  confirmarModeracao?: boolean;
 }
 
 export interface CreateAlunoPayload {

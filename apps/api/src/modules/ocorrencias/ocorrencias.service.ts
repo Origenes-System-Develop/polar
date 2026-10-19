@@ -1,4 +1,4 @@
-import { badRequest, conflict, forbidden, notFound } from "../../shared/errors/app-error.js";
+import { badRequest, conflict, conteudoInadequado, forbidden, notFound } from "../../shared/errors/app-error.js";
 import {
   PapelUsuario,
   PrioridadeOcorrencia,
@@ -16,6 +16,7 @@ import type { NotificacaoOcorrenciaRepository } from "../../shared/database/repo
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
+import { analisarDescricao, sugerirRedacao } from "./moderacao/moderacao-descricao.js";
 
 const proximoStatus: Record<StatusOcorrencia, StatusOcorrencia | null> = {
   [StatusOcorrencia.REGISTRADA]: StatusOcorrencia.EM_ANALISE,
@@ -42,6 +43,20 @@ function garantirTransicao(ocorrencia: Ocorrencia, status: StatusOcorrencia): vo
   }
 }
 
+// Avisa antes de gravar: sem confirmacao a descricao com termos da lista nao e
+// salva, e a resposta traz a sugestao. O texto original nunca e alterado aqui.
+// Devolve true quando a pessoa confirmou mesmo assim (vai para o audit).
+function garantirDescricaoAdequada(descricao: string, confirmou = false): boolean {
+  const analise = analisarDescricao(descricao);
+  if (analise.permitido) {
+    return false;
+  }
+  if (!confirmou) {
+    throw conteudoInadequado({ termos: analise.termos, sugestao: sugerirRedacao(descricao) });
+  }
+  return true;
+}
+
 export interface OcorrenciaCreateInput {
   alunoId: string;
   categoria: string;
@@ -50,6 +65,7 @@ export interface OcorrenciaCreateInput {
   local?: string | undefined;
   testemunhas?: string | undefined;
   bimestre: number;
+  confirmarModeracao?: boolean | undefined;
 }
 
 export interface OcorrenciaUpdateInput {
@@ -58,6 +74,7 @@ export interface OcorrenciaUpdateInput {
   descricao?: string | undefined;
   local?: string | undefined;
   testemunhas?: string | undefined;
+  confirmarModeracao?: boolean | undefined;
 }
 
 /**
@@ -150,6 +167,7 @@ export class OcorrenciasService {
     if (!alunoId || !categoria || !descricao) {
       throw badRequest("Ocorrencia exige aluno, categoria, prioridade e descricao.");
     }
+    const moderacaoConfirmada = garantirDescricaoAdequada(descricao, input.confirmarModeracao);
 
     const aluno = await this.alunos.findById(alunoId);
     if (!aluno || !aluno.ativo) {
@@ -219,7 +237,7 @@ export class OcorrenciasService {
       acao: "OCORRENCIA_CRIADA",
       entidade: "ocorrencias",
       entidadeId: ocorrencia.id,
-      metadata: { alunoId },
+      metadata: { alunoId, ...(moderacaoConfirmada && { moderacaoConfirmada }) },
       criadoEm: now
     });
 
@@ -237,11 +255,14 @@ export class OcorrenciasService {
     garantirEditavel(current);
 
     // Sem campo algum nao ha edicao: evita poluir o historico com registro vazio.
-    const temAlteracao = Object.values(input).some((valor) => valor !== undefined);
+    const { confirmarModeracao, ...campos } = input;
+    const temAlteracao = Object.values(campos).some((valor) => valor !== undefined);
     if (!temAlteracao) {
       throw badRequest("Informe pelo menos um campo para editar.");
     }
 
+    const moderacaoConfirmada =
+      input.descricao !== undefined && garantirDescricaoAdequada(input.descricao, confirmarModeracao);
     const now = agoraIso();
     const updated = await this.ocorrencias.updateWithHistorico(
       id,
@@ -278,7 +299,7 @@ export class OcorrenciasService {
       acao: "OCORRENCIA_ATUALIZADA",
       entidade: "ocorrencias",
       entidadeId: updated.id,
-      metadata: {},
+      metadata: moderacaoConfirmada ? { moderacaoConfirmada } : {},
       criadoEm: now
     });
 
