@@ -33,6 +33,7 @@ tags nem releases no GitHub; por isso os links apontam para commits.
 
 ### Alterado
 
+- Marcas oficiais do Polar (menu, login, favicon) e da equipe Polaris (rodapé), com animação curta ao aparecer e no hover. Botão de recolher o menu dentro da barra lateral, com transição suave e preferência lembrada.
 - Revisão visual e de texto mantendo a identidade atual: login sem gradiente, fonte Public Sans carregada de verdade, nome Polar em todas as telas, status e perfis com nome legível em vez do valor interno, acentos em toda a interface e textos diretos. Guia em `docs/frontend/guia-de-voz.md`, com teste que barra travessão, exclamação e frases de folheto.
 - Função da API executada na região de São Paulo (`gru1`) na Vercel.
 - Produção migrada para novas contas da Vercel e do Supabase.

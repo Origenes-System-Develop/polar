@@ -1,10 +1,10 @@
 import { LogIn } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import logoPolar from "../../assets/logo-polar.svg";
 import { useAuth } from "../../app/providers";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { MarcaPolar } from "../../components/ui/Marca";
 import { ApiError } from "../../services/api";
 import { loginRequest } from "./auth.service";
 
@@ -70,7 +70,7 @@ export function LoginPage() {
       <section className="login-access">
         <div className="login-access__inner">
           <div className="login-brand">
-            <img src={logoPolar} alt="" />
+            <MarcaPolar size={48} />
             <div>
               <strong>Polar</strong>
               <span>Ocorrências escolares</span>

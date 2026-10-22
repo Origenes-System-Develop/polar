@@ -1,8 +1,8 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, Home, Settings, Users } from "lucide-react";
+import { BarChart3, BookOpen, ChevronsLeft, ClipboardList, GraduationCap, Home, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import logoPolar from "../../assets/logo-polar.svg";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
+import { MarcaPolar } from "../ui/Marca";
 import "./layout.css";
 
 const navItems = [
@@ -15,13 +15,13 @@ const navItems = [
   { label: "Configurações", to: "/configuracoes", icon: Settings, permission: "configuracoes:manage" as const }
 ];
 
-export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
+export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { user } = useAuth();
 
   return (
     <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
       <div className="sidebar__brand">
-        <img src={logoPolar} alt="" />
+        <MarcaPolar size={38} />
         <div className="sidebar__brand-text">
           <strong>Polar</strong>
           <span>Ocorrências escolares</span>
@@ -41,6 +41,17 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
             );
           })}
       </nav>
+
+      <button
+        type="button"
+        className="sidebar__toggle"
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        title={collapsed ? "Expandir menu" : undefined}
+      >
+        <ChevronsLeft size={20} aria-hidden="true" />
+        <span className="sidebar__label">{collapsed ? "Expandir menu" : "Recolher menu"}</span>
+      </button>
     </aside>
   );
 }

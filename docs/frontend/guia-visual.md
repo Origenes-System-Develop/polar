@@ -55,6 +55,8 @@ Tipografia: Public Sans (Google Fonts, carregada em `index.html`). A Inter estav
 
 Ficam de fora os clichês de sistema feito por IA: gradiente roxo/azul, brilho neon, ícone de robô ou faísca, escudo decorativo. Textos seguem `guia-de-voz.md`.
 
+Marcas oficiais (pasta de identidade do time), em `components/ui/Marca.tsx`: a do Polar (estrela de seis pontas entre dois arcos) e a marca do sistema, usada no menu, no login e no favicon; a da Polaris (Ursa Menor) e a da equipe e aparece so no rodapé, como assinatura. Ao aparecer, os arcos se desenham e a estrela acende; no hover a estrela gira 60 graus. Sem animação contínua e nada com `prefers-reduced-motion`.
+
 ## 5. Componentes principais
 
 Base de UI (`components/ui/`): `Button`, `Card`, `Input`, `Select`, `Table`, `Badge`,

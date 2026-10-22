@@ -1,11 +1,11 @@
-import logoPolar from "../../assets/logo-polar.svg";
+import { MarcaPolar, MarcaPolaris } from "../ui/Marca";
 import "./layout.css";
 
 export function AppFooter() {
   return (
     <footer className="app-footer">
       <div className="app-footer__brand">
-        <img src={logoPolar} alt="" />
+        <MarcaPolar size={30} />
         <strong>Polar</strong>
       </div>
 
@@ -23,6 +23,11 @@ export function AppFooter() {
         <strong>Privacidade</strong>
         <span>Dados de estudantes protegidos pela LGPD.</span>
       </div>
+
+      <span className="app-footer__equipe">
+        <MarcaPolaris size={26} />
+        <span>Feito pela equipe Polaris</span>
+      </span>
     </footer>
   );
 }

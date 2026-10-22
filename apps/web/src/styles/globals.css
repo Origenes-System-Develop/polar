@@ -196,10 +196,6 @@ textarea:focus-visible {
   gap: var(--space-3);
 }
 
-.login-brand img {
-  width: 48px;
-  height: 48px;
-}
 
 .login-brand strong {
   display: block;
