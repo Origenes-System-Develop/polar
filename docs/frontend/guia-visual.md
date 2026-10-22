@@ -1,10 +1,10 @@
-# Guia visual do frontend P.O.L.A
+# Guia visual do frontend Polar
 
 ## 1. Referencia estetica
 
 O frontend segue uma linguagem institucional escolar: fundo claro, navegacao lateral, cards brancos, tabelas limpas e hierarquia visual objetiva.
 
-A Sala do Futuro e a referencia deliberada de organizacao visual, porque e a plataforma que os estudantes ja usam diariamente e com a qual o P.O.L.A devera integrar. Aproximar a interface reduz o atrito de quem transita entre os dois sistemas. O que se aproxima e a **gramatica visual** -- estrutura de navegacao, hierarquia, uso de cor como sinal. Identidade, logo, textos e fluxo sao proprios do P.O.L.A, e a secao 3 continua valendo integralmente.
+A Sala do Futuro e a referencia deliberada de organizacao visual, porque e a plataforma que os estudantes ja usam diariamente e com a qual o Polar devera integrar. Aproximar a interface reduz o atrito de quem transita entre os dois sistemas. O que se aproxima e a **gramatica visual** -- estrutura de navegacao, hierarquia, uso de cor como sinal. Identidade, logo, textos e fluxo sao proprios do Polar, e a secao 3 continua valendo integralmente.
 
 ## 2. O que pode ser inspirado
 
@@ -24,13 +24,13 @@ A Sala do Futuro e a referencia deliberada de organizacao visual, porque e a pla
 - Logo da Sala do Futuro.
 - Logo GOV.BR.
 - Textos oficiais.
-- Nomes de menus sem sentido para o P.O.L.A.
+- Nomes de menus sem sentido para o Polar.
 - Telas identicas.
 - Identidade visual exata.
 - Dados reais de alunos.
 - CPF, RG, endereco ou informacoes pessoais.
 
-## 4. Cores oficiais do P.O.L.A
+## 4. Cores oficiais do Polar
 
 A fonte de verdade e `apps/web/src/styles/tokens.css`. Esta lista e o resumo; divergiu, o token vence.
 
@@ -39,7 +39,7 @@ A fonte de verdade e `apps/web/src/styles/tokens.css`. Esta lista e o resumo; di
 - Azul principal: `#1351b4`
 - Azul forte: `#0c3d8d`
 - Azul suave (item ativo do menu): `#e8f1fb`
-- Ciano de marca (painel do login): `#1a9ec4` a `#10748f`
+- Painel do login: azul forte chapado (`#0c3d8d`). Sem gradiente.
 - Texto principal: `#1f2937`
 - Texto secundario: `#667085`
 - Sucesso: `#16844a`
@@ -50,6 +50,10 @@ Destaques dos cards de indicador (faixa superior de 4px, uma cor por indicador p
 que o numero seja localizavel antes da leitura do rotulo):
 
 - Azul `#2d9cdb` · Laranja `#f2a33c` · Vermelho `#eb5757` · Verde `#27ae60`
+
+Tipografia: Public Sans (Google Fonts, carregada em `index.html`). A Inter estava declarada mas nunca era carregada.
+
+Ficam de fora os clichês de sistema feito por IA: gradiente roxo/azul, brilho neon, ícone de robô ou faísca, escudo decorativo. Textos seguem `guia-de-voz.md`.
 
 ## 5. Componentes principais
 

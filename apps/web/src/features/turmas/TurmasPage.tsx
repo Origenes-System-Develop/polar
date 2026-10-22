@@ -138,7 +138,7 @@ export function TurmasPage() {
         setError(
           err instanceof Error
             ? err.message
-            : "Nao foi possivel carregar turmas."
+            : "Não foi possível carregar as turmas. Recarregue a página."
         );
       } finally {
         if (active) {
@@ -199,7 +199,7 @@ export function TurmasPage() {
       !form.turno.trim()
     ) {
       setFormError(
-        "Nome, ano letivo e turno sao obrigatorios."
+        "Preencha nome, ano letivo e turno."
       );
       return;
     }
@@ -230,7 +230,7 @@ export function TurmasPage() {
       setFormError(
         err instanceof Error
           ? err.message
-          : "Nao foi possivel salvar a turma."
+          : "Não foi possível salvar a turma. Tente de novo."
       );
     } finally {
       setSaving(false);
@@ -283,7 +283,7 @@ export function TurmasPage() {
       setViradaError(
         err instanceof Error
           ? err.message
-          : "Nao foi possivel preparar a virada de ano."
+          : "Não foi possível preparar a virada de ano. Tente de novo."
       );
     } finally {
       setViradaLoading(false);
@@ -362,7 +362,7 @@ export function TurmasPage() {
       !Number.isInteger(anoDestino)
     ) {
       setViradaError(
-        "Informe anos letivos validos."
+        "Informe anos letivos válidos."
       );
       return;
     }
@@ -435,7 +435,7 @@ export function TurmasPage() {
       setViradaError(
         err instanceof Error
           ? err.message
-          : "Nao foi possivel concluir a virada de ano."
+          : "Não foi possível concluir a virada de ano. Nada foi alterado. Tente de novo."
       );
     } finally {
       setViradaLoading(false);
@@ -477,7 +477,7 @@ export function TurmasPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Nao foi possivel inativar a turma."
+          : "Não foi possível inativar a turma. Tente de novo."
       );
     } finally {
       setInativando(false);
@@ -495,7 +495,7 @@ export function TurmasPage() {
         title="Turmas"
         breadcrumb={[
           {
-            label: "Inicio",
+            label: "Início",
             to: "/"
           },
           {
@@ -550,8 +550,7 @@ export function TurmasPage() {
             </strong>
 
             <span>
-              Assim que houver turmas cadastradas,
-              elas aparecerão aqui.
+              Cadastre a primeira em "Nova turma".
             </span>
           </div>
         ) : (
@@ -578,7 +577,7 @@ export function TurmasPage() {
               },
               {
                 key: "acao",
-                header: "Acao",
+                header: "Ação",
                 render: (item) =>
                   canManage ? (
                     <div className="actions-row">
@@ -610,7 +609,7 @@ export function TurmasPage() {
                     </div>
                   ) : (
                     <span className="muted">
-                      Consulta
+                      Só consulta
                     </span>
                   )
               }
@@ -678,7 +677,7 @@ export function TurmasPage() {
             }
             options={[
               {
-                label: "Manha",
+                label: "Manhã",
                 value: "Manha"
               },
               {
@@ -702,7 +701,7 @@ export function TurmasPage() {
             onChange={(event) => setTurmaField("tipoEnsino", event.target.value)}
             options={[
               { label: "Ensino regular", value: "REGULAR" },
-              { label: "Ensino tecnico", value: "TECNICO" }
+              { label: "Ensino técnico", value: "TECNICO" }
             ]}
           />
 
@@ -1013,7 +1012,7 @@ export function TurmasPage() {
       <ConfirmDialog
         open={!!confirmTarget}
         title="Inativar turma"
-        message={`Tem certeza que deseja inativar a turma "${confirmTarget?.nome}"? Essa ação pode ser revertida depois.`}
+        message={`Inativar a turma "${confirmTarget?.nome}"? Os alunos e o histórico continuam guardados, e dá para reativar depois.`}
         onConfirm={
           handleConfirmInativar
         }

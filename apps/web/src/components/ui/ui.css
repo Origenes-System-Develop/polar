@@ -194,6 +194,23 @@
   font-size: 1.1rem;
 }
 
+.ui-modal__body p {
+  margin: 0 0 var(--space-4);
+  line-height: 1.55;
+}
+
+.ui-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.ui-tabs__panel {
+  min-width: 0;
+}
+
 .ui-tabs {
   display: grid;
   gap: var(--space-4);

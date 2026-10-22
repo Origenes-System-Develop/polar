@@ -28,7 +28,7 @@ const schema = z.object({
   categoria: z.string().min(1, "Informe a categoria."),
   prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], { required_error: "Informe a prioridade." }),
   bimestre: z.coerce.number().int().min(1).max(4),
-  descricao: z.string().min(10, "Descreva a ocorrencia com pelo menos 10 caracteres."),
+  descricao: z.string().min(10, "Descreva a ocorrência com pelo menos 10 caracteres."),
   local: z.string().min(1, "Informe o local."),
   testemunhas: z.string().optional()
 });
@@ -89,7 +89,7 @@ export function NovaOcorrenciaPage() {
         setApiError("");
       } catch (err) {
         if (!active) return;
-        setApiError(err instanceof Error ? err.message : "Nao foi possivel carregar alunos e turmas.");
+        setApiError(err instanceof Error ? err.message : "Não foi possível carregar alunos e turmas. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -165,7 +165,7 @@ export function NovaOcorrenciaPage() {
         const sugestao = (err.details as { sugestao?: string | null } | null)?.sugestao ?? null;
         setModeracao({ mensagem: err.message, sugestao });
       } else {
-        setApiError(err instanceof Error ? err.message : editando ? "Nao foi possivel salvar a ocorrencia." : "Nao foi possivel registrar a ocorrencia.");
+        setApiError(err instanceof Error ? err.message : editando ? "Não foi possível salvar a ocorrência. Tente de novo." : "Não foi possível registrar a ocorrência. Tente de novo.");
       }
     } finally {
       setSubmitting(false);
@@ -180,8 +180,8 @@ export function NovaOcorrenciaPage() {
   return (
     <>
       <PageHeader
-        title={editando ? "Editar ocorrencia" : "Nova ocorrencia"}
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: editando ? "Editar" : "Nova" }]}
+        title={editando ? "Editar ocorrência" : "Registrar ocorrência"}
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: editando ? "Editar" : "Nova" }]}
       />
       <Card>
         {apiError ? <p className="text-danger">{apiError}</p> : null}
@@ -236,7 +236,7 @@ export function NovaOcorrenciaPage() {
           <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
           <Input label="Testemunhas" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
           <label className="ui-field span-2" htmlFor="descricao">
-            <span>Descricao</span>
+            <span>Descrição</span>
             <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} />
             {errors.descricao ? <small className="ui-field__error">{errors.descricao}</small> : null}
           </label>
@@ -245,7 +245,7 @@ export function NovaOcorrenciaPage() {
               <strong>{moderacao.mensagem}</strong>
               {moderacao.sugestao ? (
                 <>
-                  <p>Sugestao de redacao (so e aplicada se voce clicar em &quot;Usar sugestao&quot;):</p>
+                  <p>Sugestão de texto. Só entra se você clicar em &quot;Usar sugestão&quot;:</p>
                   <blockquote>{moderacao.sugestao}</blockquote>
                 </>
               ) : (
@@ -254,7 +254,7 @@ export function NovaOcorrenciaPage() {
               <div className="actions-row">
                 {moderacao.sugestao ? (
                   <Button variant="secondary" onClick={() => setField("descricao", moderacao.sugestao ?? "")}>
-                    Usar sugestao
+                    Usar sugestão
                   </Button>
                 ) : null}
                 <Button variant="ghost" disabled={submitting} onClick={() => void registrar(true)}>
@@ -265,7 +265,7 @@ export function NovaOcorrenciaPage() {
           ) : null}
           <div className="actions-row span-2">
             <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
-              {submitting ? "Salvando..." : editando ? "Salvar alteracoes" : "Registrar"}
+              {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
             </Button>
           </div>
         </form>

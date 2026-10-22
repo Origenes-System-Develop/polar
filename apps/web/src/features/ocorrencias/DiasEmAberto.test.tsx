@@ -27,7 +27,7 @@ describe("diasDesde", () => {
 describe("DiasEmAberto", () => {
   it("nao envelhece ocorrencia encerrada", () => {
     render(<DiasEmAberto desde={isoHaDias(40)} status="ENCERRADA" />);
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("encerrada")).toBeInTheDocument();
   });
 
   it("escala a severidade conforme o tempo em aberto", () => {

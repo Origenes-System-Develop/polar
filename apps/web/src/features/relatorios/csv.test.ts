@@ -22,8 +22,8 @@ const base: OcorrenciaDetalhada = {
 describe("ocorrenciasParaCsv", () => {
   it("gera cabecalho e linha com ; e BOM", () => {
     const [cabecalho, linha] = ocorrenciasParaCsv([base]).split("\r\n");
-    expect(cabecalho).toBe("﻿Data;Aluno;Turma;Bimestre;Categoria;Prioridade;Status;Descricao;Local;Testemunhas");
-    expect(linha).toMatch(/;Estudante 01;8A;2;Atraso;Alta;Em analise;Chegou atrasado\.;Portao;$/);
+    expect(cabecalho).toBe("﻿Data;Aluno;Turma;Bimestre;Categoria;Prioridade;Status;Descrição;Local;Testemunhas");
+    expect(linha).toMatch(/;Estudante 01;8A;2;Atraso;Alta;Em análise;Chegou atrasado\.;Portao;$/);
   });
 
   it("escapa aspas, ponto e virgula e quebra de linha", () => {

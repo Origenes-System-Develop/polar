@@ -6,24 +6,22 @@ export function AppFooter() {
     <footer className="app-footer">
       <div className="app-footer__brand">
         <img src={logoPolar} alt="" />
-        <strong>P.O.L.A</strong>
+        <strong>Polar</strong>
       </div>
 
       <div className="app-footer__column">
-        <strong>Sistema</strong>
-        <span>Ocorrencias institucionais</span>
-        <span>Ambiente da rede publica</span>
+        <strong>Histórico</strong>
+        <span>Cada ação fica registrada, com nome, data e hora.</span>
       </div>
 
       <div className="app-footer__column">
-        <strong>Suporte</strong>
-        <span>Procure a coordenacao da unidade</span>
-        <span>Registros sao auditados</span>
+        <strong>Dúvidas</strong>
+        <span>Procure a coordenação da sua escola.</span>
       </div>
 
       <div className="app-footer__column">
         <strong>Privacidade</strong>
-        <span>Dados de estudantes protegidos pela LGPD</span>
+        <span>Dados de estudantes protegidos pela LGPD.</span>
       </div>
     </footer>
   );

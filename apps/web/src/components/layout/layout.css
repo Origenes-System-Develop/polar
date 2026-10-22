@@ -93,17 +93,6 @@
   font-weight: 700;
 }
 
-.sidebar__footer {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  color: var(--color-text-soft);
-  font-size: 0.84rem;
-  white-space: nowrap;
-}
-
 /* Recolhida: some o texto e centraliza os icones. O title nos links garante
    que o destino continue identificavel sem o rotulo visivel. */
 .app-shell.is-collapsed .sidebar__label,
@@ -112,8 +101,7 @@
 }
 
 .app-shell.is-collapsed .sidebar__nav a,
-.app-shell.is-collapsed .sidebar__brand,
-.app-shell.is-collapsed .sidebar__footer {
+.app-shell.is-collapsed .sidebar__brand {
   justify-content: center;
   padding: 0;
 }

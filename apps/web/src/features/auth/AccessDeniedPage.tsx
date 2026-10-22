@@ -8,9 +8,9 @@ export function AccessDeniedPage() {
     <>
       <PageHeader title="Acesso negado" />
       <Card>
-        <p>Seu perfil nao possui permissao para acessar esta area.</p>
+        <p>Seu perfil não tem acesso a esta página. Se precisar, fale com a coordenação.</p>
         <Link to="/">
-          <Button>Voltar ao dashboard</Button>
+          <Button>Voltar ao início</Button>
         </Link>
       </Card>
     </>

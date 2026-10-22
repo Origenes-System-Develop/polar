@@ -19,10 +19,10 @@ export function iniciaisDe(nome: string | undefined): string {
 }
 
 const rotulosDePapel: Record<string, string> = {
-  PROFESSOR: "Professor",
-  COORDENADOR: "Coordenacao",
-  DIRETOR: "Direcao",
-  ADM: "Administracao"
+  PROFESSOR: "Professor(a)",
+  COORDENADOR: "Coordenação",
+  DIRETOR: "Direção",
+  ADM: "Administração"
 };
 
 export function rotuloDePapel(papel: string | undefined): string {

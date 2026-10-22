@@ -42,7 +42,7 @@ describe("AlunosPage", () => {
     await user.click(screen.getAllByRole("button", { name: /^editar$/i })[0]);
     expect(screen.getByRole("dialog", { name: /editar aluno/i })).toBeInTheDocument();
     expect(screen.getByLabelText("Nome")).toHaveValue("Estudante 01");
-    await user.type(screen.getByLabelText("E-mail do responsavel"), "familia@exemplo.com");
+    await user.type(screen.getByLabelText("E-mail do responsável"), "familia@exemplo.com");
     await user.click(screen.getByRole("button", { name: /salvar aluno/i }));
 
     await waitFor(() => {

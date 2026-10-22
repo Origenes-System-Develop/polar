@@ -22,7 +22,7 @@ export function Topbar({
         type="button"
         className={`topbar__collapse ${sidebarCollapsed ? "is-collapsed" : ""}`.trim()}
         onClick={onToggleSidebar}
-        aria-label={sidebarCollapsed ? "Expandir navegacao" : "Recolher navegacao"}
+        aria-label={sidebarCollapsed ? "Expandir navegação" : "Recolher navegação"}
       >
         <ChevronLeft size={18} aria-hidden="true" />
       </button>
