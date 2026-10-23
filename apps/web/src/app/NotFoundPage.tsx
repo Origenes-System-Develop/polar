@@ -6,11 +6,11 @@ import { Card } from "../components/ui/Card";
 export function NotFoundPage() {
   return (
     <>
-      <PageHeader title="Pagina nao encontrada" />
+      <PageHeader title="Página não encontrada" />
       <Card>
-        <p>A rota solicitada nao existe.</p>
+        <p>Este endereço não existe no Polar.</p>
         <Link to="/">
-          <Button>Voltar ao dashboard</Button>
+          <Button>Voltar ao início</Button>
         </Link>
       </Card>
     </>

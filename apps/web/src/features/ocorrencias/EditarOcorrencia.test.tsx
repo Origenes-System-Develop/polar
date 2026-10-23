@@ -57,7 +57,7 @@ describe("Edicao de ocorrencia pelo autor", () => {
     expect(screen.getByLabelText("Categoria")).toHaveValue("Atraso");
 
     await user.selectOptions(screen.getByLabelText("Prioridade"), "ALTA");
-    await user.click(screen.getByRole("button", { name: /salvar alteracoes/i }));
+    await user.click(screen.getByRole("button", { name: /salvar alterações/i }));
 
     expect(await screen.findByText("detalhe")).toBeInTheDocument();
     const [url, init] = vi.mocked(fetch).mock.calls.at(-1) ?? [];

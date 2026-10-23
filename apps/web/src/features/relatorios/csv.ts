@@ -2,7 +2,7 @@ import { PRIORIDADE_LABEL, type OcorrenciaDetalhada } from "../../services/domai
 
 const STATUS_LABEL: Record<OcorrenciaDetalhada["status"], string> = {
   REGISTRADA: "Registrada",
-  EM_ANALISE: "Em analise",
+  EM_ANALISE: "Em análise",
   RESOLVIDA: "Resolvida",
   ENCERRADA: "Encerrada"
 };
@@ -20,7 +20,7 @@ function dataHora(valor: string): string {
 }
 
 export function ocorrenciasParaCsv(ocorrencias: OcorrenciaDetalhada[]): string {
-  const cabecalho = ["Data", "Aluno", "Turma", "Bimestre", "Categoria", "Prioridade", "Status", "Descricao", "Local", "Testemunhas"];
+  const cabecalho = ["Data", "Aluno", "Turma", "Bimestre", "Categoria", "Prioridade", "Status", "Descrição", "Local", "Testemunhas"];
   const linhas = ocorrencias.map((item) => [
     dataHora(item.criadoEm),
     item.aluno,

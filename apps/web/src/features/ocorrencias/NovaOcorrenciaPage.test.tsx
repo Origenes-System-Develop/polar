@@ -12,7 +12,7 @@ describe("NovaOcorrenciaPage", () => {
 
     expect(await screen.findByText("Selecione um aluno.")).toBeInTheDocument();
     expect(screen.getByText("Informe a categoria.")).toBeInTheDocument();
-    expect(screen.getByText("Descreva a ocorrencia com pelo menos 10 caracteres.")).toBeInTheDocument();
+    expect(screen.getByText("Descreva a ocorrência com pelo menos 10 caracteres.")).toBeInTheDocument();
   });
 
   it("oferece todos os niveis de prioridade validos com texto visivel", () => {
@@ -21,7 +21,7 @@ describe("NovaOcorrenciaPage", () => {
     const prioridade = screen.getByLabelText("Prioridade");
     expect(prioridade).toHaveValue("MEDIA");
     expect(screen.getByRole("option", { name: "Baixa" })).toHaveValue("BAIXA");
-    expect(screen.getByRole("option", { name: "Media" })).toHaveValue("MEDIA");
+    expect(screen.getByRole("option", { name: "Média" })).toHaveValue("MEDIA");
     expect(screen.getByRole("option", { name: "Alta" })).toHaveValue("ALTA");
     expect(screen.getByRole("option", { name: "Urgente" })).toHaveValue("URGENTE");
   });
@@ -44,7 +44,7 @@ describe("NovaOcorrenciaPage", () => {
       await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
       await user.selectOptions(screen.getByLabelText("Categoria"), "Desrespeito");
       await user.type(screen.getByLabelText("Local"), "Sala de aula");
-      await user.type(screen.getByLabelText("Descricao"), original);
+      await user.type(screen.getByLabelText("Descrição"), original);
       vi.mocked(fetch).mockResolvedValueOnce(resposta);
       await user.click(screen.getByRole("button", { name: /registrar/i }));
     }
@@ -55,15 +55,15 @@ describe("NovaOcorrenciaPage", () => {
 
       expect(await screen.findByText(mensagem)).toBeInTheDocument();
       expect(screen.getByText(sugestao)).toBeInTheDocument();
-      expect(screen.getByLabelText("Descricao")).toHaveValue(original);
+      expect(screen.getByLabelText("Descrição")).toHaveValue(original);
     });
 
     it("so troca o texto depois do clique em Usar sugestao", async () => {
       const user = userEvent.setup();
       await preencherEEnviar(user, respostaModeracao({ termos: ["idiota"], sugestao }));
-      await user.click(await screen.findByRole("button", { name: "Usar sugestao" }));
+      await user.click(await screen.findByRole("button", { name: "Usar sugestão" }));
 
-      expect(screen.getByLabelText("Descricao")).toHaveValue(sugestao);
+      expect(screen.getByLabelText("Descrição")).toHaveValue(sugestao);
       expect(screen.queryByText(mensagem)).not.toBeInTheDocument();
     });
 
@@ -81,7 +81,7 @@ describe("NovaOcorrenciaPage", () => {
       await preencherEEnviar(user, respostaModeracao({ termos: ["puta"], sugestao: null }));
 
       expect(await screen.findByText(/sem repetir o termo ofensivo/i)).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Usar sugestao" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Usar sugestão" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Manter meu texto e registrar" })).toBeInTheDocument();
     });
   });

@@ -6,7 +6,14 @@ import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
-import type { NotificacaoOcorrencia, OcorrenciaDetalhada, OcorrenciaHistorico, StatusOcorrencia } from "../../services/domain";
+import {
+  STATUS_LABEL,
+  acaoLegivel,
+  type NotificacaoOcorrencia,
+  type OcorrenciaDetalhada,
+  type OcorrenciaHistorico,
+  type StatusOcorrencia
+} from "../../services/domain";
 import { listNotificacoesOcorrencia } from "../../services/school.service";
 import { getOcorrenciaDetalhada, listHistoricoOcorrencia, updateOcorrenciaStatus } from "./ocorrencias.service";
 import { PrioridadeBadge, StatusBadge } from "./status";
@@ -18,7 +25,7 @@ interface StatusAction {
 }
 
 const statusActions: StatusAction[] = [
-  { label: "Colocar em analise", status: "EM_ANALISE", permission: "ocorrencias:status:analise" },
+  { label: "Colocar em análise", status: "EM_ANALISE", permission: "ocorrencias:status:analise" },
   { label: "Marcar resolvida", status: "RESOLVIDA", permission: "ocorrencias:status:resolver" },
   { label: "Encerrar", status: "ENCERRADA", permission: "ocorrencias:status:encerrar" }
 ];
@@ -31,16 +38,16 @@ const expectedCurrentStatus: Record<StatusOcorrencia, StatusOcorrencia> = {
 };
 
 const DESTINATARIO_LABEL: Record<NotificacaoOcorrencia["destinatario"], string> = {
-  COORDENACAO: "Coordenacao",
-  DIRECAO: "Direcao",
+  COORDENACAO: "Coordenação",
+  DIRECAO: "Direção",
   PAET: "PAET",
-  RESPONSAVEL: "Responsavel"
+  RESPONSAVEL: "Responsável"
 };
 
 const RESULTADO_LABEL: Record<NotificacaoOcorrencia["resultado"], string> = {
   ENVIADO: "E-mail enviado",
   FALHOU: "Falha no envio do e-mail",
-  NAO_ENVIADO: "Registrado no sistema, sem e-mail"
+  NAO_ENVIADO: "Registrado no Polar, sem e-mail"
 };
 
 function formatarDataHora(valor: string): string {
@@ -79,7 +86,7 @@ export function DetalheOcorrenciaPage() {
       setNotificacoes(nextNotificacoes);
       setError("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel carregar a ocorrencia.");
+      setError(err instanceof Error ? err.message : "Não foi possível carregar a ocorrência. Recarregue a página.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +114,7 @@ export function DetalheOcorrenciaPage() {
       setObservacao("");
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel alterar o status.");
+      setError(err instanceof Error ? err.message : "Não foi possível mudar o status. Tente de novo.");
     } finally {
       setUpdating(false);
     }
@@ -116,7 +123,7 @@ export function DetalheOcorrenciaPage() {
   if (loading && !ocorrencia) {
     return (
       <>
-        <PageHeader title="Detalhe da ocorrencia" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: "Carregando" }]} />
+        <PageHeader title="Ocorrência" breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: "Carregando" }]} />
         <Card>
           <p className="muted">Carregando ocorrencia...</p>
         </Card>
@@ -127,8 +134,8 @@ export function DetalheOcorrenciaPage() {
   if (!ocorrencia) {
     return (
       <>
-        <PageHeader title="Detalhe da ocorrencia" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: "Nao encontrada" }]} />
-        <Card className="state-message state-message--danger">{error || "Ocorrencia nao encontrada."}</Card>
+        <PageHeader title="Ocorrência" breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: "Não encontrada" }]} />
+        <Card className="state-message state-message--danger">{error || "Ocorrência não encontrada. Ela pode ter sido aberta por outra pessoa e não estar visível para você."}</Card>
       </>
     );
   }
@@ -136,8 +143,8 @@ export function DetalheOcorrenciaPage() {
   return (
     <>
       <PageHeader
-        title="Detalhe da ocorrencia"
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias", to: "/ocorrencias" }, { label: ocorrencia.id }]}
+        title="Ocorrência"
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: ocorrencia.aluno }]}
         actions={
           // Mesma regra da API: so o autor, e so enquanto REGISTRADA.
           ocorrencia.criadoPorId === user?.id && ocorrencia.status === "REGISTRADA" ? (
@@ -160,7 +167,7 @@ export function DetalheOcorrenciaPage() {
               <strong>Turma:</strong> {ocorrencia.turma}
             </p>
             <p>
-              <strong>Bimestre:</strong> {ocorrencia.bimestre}º Bimestre
+              <strong>Bimestre:</strong> {ocorrencia.bimestre ? `${ocorrencia.bimestre}º` : "Não informado"}
             </p>
             <p>
               <strong>Categoria:</strong> {ocorrencia.categoria}
@@ -170,18 +177,17 @@ export function DetalheOcorrenciaPage() {
               <PrioridadeBadge prioridade={ocorrencia.prioridade} />
             </div>
           </Card>
-          <Card title="Acoes permitidas">
+          <Card title="O que você pode fazer">
             {actions.length > 0 ? (
               <div className="page-grid">
-                <label className="field">
-                  <span className="field-label">Observacao / encaminhamento (opcional)</span>
+                <label className="ui-field">
+                  <span>Observação ou encaminhamento (opcional)</span>
                   <textarea
-                    className="input"
                     rows={3}
                     maxLength={500}
                     value={observacao}
                     onChange={(event) => setObservacao(event.target.value)}
-                    placeholder="Ex: conversa realizada com o aluno; familia comunicada."
+                    placeholder="Exemplo: conversa com o aluno feita, família avisada por telefone."
                   />
                 </label>
                 <div className="actions-row">
@@ -196,37 +202,37 @@ export function DetalheOcorrenciaPage() {
                     </Button>
                   ))}
                 </div>
-                <p className="muted">A observacao e gravada no historico junto com a mudanca de status.</p>
+                <p className="muted">A observação fica no histórico junto com a mudança de status.</p>
               </div>
             ) : (
-              <p className="muted">Nenhuma acao disponivel para o perfil atual.</p>
+              <p className="muted">Não há nada para você fazer nesta ocorrência agora.</p>
             )}
           </Card>
         </div>
-        <Card title="Descricao">
+        <Card title="Descrição">
           <p>{ocorrencia.descricao}</p>
-          <p className="muted">Local: {ocorrencia.local || "Nao informado"}</p>
-          <p className="muted">Testemunhas: {ocorrencia.testemunhas || "Nao informado"}</p>
+          <p className="muted">Local: {ocorrencia.local || "Não informado"}</p>
+          <p className="muted">Testemunhas: {ocorrencia.testemunhas || "Não informado"}</p>
         </Card>
-        <Card title="Historico">
+        <Card title="Histórico">
           <ol className="timeline">
             {historico.map((item) => (
               <li key={item.id}>
-                <strong>{item.acao}</strong>
+                <strong>{acaoLegivel(item.acao)}</strong>
                 <span className="muted">
-                  {item.status} por {item.usuarioNome}
+                  {STATUS_LABEL[item.status]}{item.usuarioNome ? ` · ${item.usuarioNome}` : ""}
                 </span>
                 <time className="muted" dateTime={item.criadoEm}>
                   {formatarDataHora(item.criadoEm)}
                 </time>
-                {item.observacao ? <span className="muted">Observacao: {item.observacao}</span> : null}
+                {item.observacao ? <span className="muted">Observação: {item.observacao}</span> : null}
               </li>
             ))}
           </ol>
         </Card>
-        <Card title="Encaminhamentos automaticos">
+        <Card title="Avisos enviados">
           {notificacoes.length === 0 ? (
-            <p className="muted">Nenhum encaminhamento registrado para esta ocorrencia.</p>
+            <p className="muted">Nenhum aviso foi enviado para esta ocorrência.</p>
           ) : (
             <ul className="timeline">
               {notificacoes.map((notificacao) => (

@@ -1,30 +1,30 @@
-import { BarChart3, BookOpen, ClipboardList, GraduationCap, Home, Settings, Shield, Users } from "lucide-react";
+import { BarChart3, BookOpen, ChevronsLeft, ClipboardList, GraduationCap, Home, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import logoPolar from "../../assets/logo-polar.svg";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
+import { MarcaPolar } from "../ui/Marca";
 import "./layout.css";
 
 const navItems = [
-  { label: "Inicio", to: "/", icon: Home, permission: "dashboard:view" as const },
-  { label: "Ocorrencias", to: "/ocorrencias", icon: ClipboardList, permission: "ocorrencias:view" as const },
+  { label: "Início", to: "/", icon: Home, permission: "dashboard:view" as const },
+  { label: "Ocorrências", to: "/ocorrencias", icon: ClipboardList, permission: "ocorrencias:view" as const },
   { label: "Alunos", to: "/alunos", icon: GraduationCap, permission: "alunos:view" as const },
   { label: "Turmas", to: "/turmas", icon: BookOpen, permission: "turmas:view" as const },
-  { label: "Usuarios", to: "/usuarios", icon: Users, permission: "usuarios:manage" as const },
-  { label: "Relatorios", to: "/relatorios", icon: BarChart3, permission: "relatorios:view" as const },
-  { label: "Configuracoes", to: "/configuracoes", icon: Settings, permission: "configuracoes:manage" as const }
+  { label: "Usuários", to: "/usuarios", icon: Users, permission: "usuarios:manage" as const },
+  { label: "Relatórios", to: "/relatorios", icon: BarChart3, permission: "relatorios:view" as const },
+  { label: "Configurações", to: "/configuracoes", icon: Settings, permission: "configuracoes:manage" as const }
 ];
 
-export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
+export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { user } = useAuth();
 
   return (
-    <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegacao principal">
+    <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
       <div className="sidebar__brand">
-        <img src={logoPolar} alt="" />
+        <MarcaPolar size={38} />
         <div className="sidebar__brand-text">
-          <strong>P.O.L.A</strong>
-          <span>Gestao escolar</span>
+          <strong>Polar</strong>
+          <span>Ocorrências escolares</span>
         </div>
       </div>
 
@@ -42,10 +42,16 @@ export function Sidebar({ collapsed = false }: { collapsed?: boolean }) {
           })}
       </nav>
 
-      <div className="sidebar__footer">
-        <Shield size={18} aria-hidden="true" />
-        <span className="sidebar__label">Ambiente institucional</span>
-      </div>
+      <button
+        type="button"
+        className="sidebar__toggle"
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        title={collapsed ? "Expandir menu" : undefined}
+      >
+        <ChevronsLeft size={20} aria-hidden="true" />
+        <span className="sidebar__label">{collapsed ? "Expandir menu" : "Recolher menu"}</span>
+      </button>
     </aside>
   );
 }

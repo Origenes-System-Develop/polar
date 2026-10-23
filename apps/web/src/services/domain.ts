@@ -29,9 +29,23 @@ export const CATEGORIAS_OCORRENCIA = [
   "Outros"
 ] as const;
 
+export const STATUS_LABEL: Record<StatusOcorrencia, string> = {
+  REGISTRADA: "Registrada",
+  EM_ANALISE: "Em análise",
+  RESOLVIDA: "Resolvida",
+  ENCERRADA: "Encerrada"
+};
+
+// O historico e append-only: o texto gravado nao muda. Acento e nome do status entram so na tela.
+export function acaoLegivel(acao: string): string {
+  return acao
+    .replace(/^Ocorrencia /, "Ocorrência ")
+    .replace(/\b(REGISTRADA|EM_ANALISE|RESOLVIDA|ENCERRADA)\b/g, (status) => STATUS_LABEL[status as StatusOcorrencia].toLowerCase());
+}
+
 export const PRIORIDADES_OCORRENCIA = [
   { value: "BAIXA", label: "Baixa", peso: 1 },
-  { value: "MEDIA", label: "Media", peso: 2 },
+  { value: "MEDIA", label: "Média", peso: 2 },
   { value: "ALTA", label: "Alta", peso: 3 },
   { value: "URGENTE", label: "Urgente", peso: 4 }
 ] as const satisfies ReadonlyArray<{ value: PrioridadeOcorrencia; label: string; peso: number }>;

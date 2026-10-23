@@ -8,7 +8,11 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Table } from "../../components/ui/Table";
 import { getDashboardResumo, listMovimentacoesRecentes, listOcorrenciasDetalhadas } from "../../services/school.service";
-import type { DashboardResumo, MovimentacaoRecente, OcorrenciaDetalhada } from "../../services/domain";
+import { acaoLegivel, type DashboardResumo, type MovimentacaoRecente, type OcorrenciaDetalhada } from "../../services/domain";
+
+function saudacao(hora = new Date().getHours()): string {
+  return hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+}
 import { contarPendencias, descricaoPendencias, statusPendentes } from "../ocorrencias/pendencias";
 import { DiasEmAberto } from "../ocorrencias/DiasEmAberto";
 import { PrioridadeBadge, StatusBadge } from "../ocorrencias/status";
@@ -46,7 +50,7 @@ export function DashboardPage() {
         setError("");
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar o dashboard.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar o painel. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -76,16 +80,16 @@ export function DashboardPage() {
         </span>
         <div className="greeting__text">
           <h1>
-            Ola, <strong>{user?.nome?.split(" ")[0] ?? "bem-vindo"}</strong>
+            {saudacao()}, <strong>{user?.nome?.split(" ")[0] ?? ""}</strong>
           </h1>
           <p className="greeting__meta">
-            {rotuloDePapel(user?.papel)} · Dashboard de ocorrencias institucionais
+            {rotuloDePapel(user?.papel)} · {new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
           </p>
         </div>
         {canAccess(user?.papel, "ocorrencias:create") ? (
           <div className="greeting__actions">
             <Link to="/ocorrencias/nova">
-              <Button icon={<ClipboardPlus size={18} />}>Nova ocorrencia</Button>
+              <Button icon={<ClipboardPlus size={18} />}>Registrar ocorrência</Button>
             </Link>
           </div>
         ) : null}
@@ -109,7 +113,7 @@ export function DashboardPage() {
               }}
             >
               <span className="stat-card__value">{loading ? "..." : pendencias}</span>
-              <span className="stat-card__label">Pendencias</span>
+              <span className="stat-card__label">Pendências</span>
               <span className="pendencias-card__hint">{descricaoPendencias(user?.papel, pendencias)}</span>
             </Card>
           ) : (
@@ -121,7 +125,7 @@ export function DashboardPage() {
 
           <Card className="stat-card stat-card--orange">
             <span className="stat-card__value">{loading ? "..." : emAnalise}</span>
-            <span className="stat-card__label">Em analise</span>
+            <span className="stat-card__label">Em análise</span>
           </Card>
 
           <Card className="stat-card stat-card--red">
@@ -136,13 +140,13 @@ export function DashboardPage() {
         </div>
 
         <div className="grid-2-wide">
-          <Card title="Ultimas ocorrencias">
+          <Card title="Últimas ocorrências">
             {loading ? (
-              <p className="muted">Carregando ocorrencias...</p>
+              <p className="muted">Carregando ocorrências...</p>
             ) : ocorrencias.length === 0 ? (
               <div className="empty-state">
-                <strong>Nenhuma ocorrencia registrada.</strong>
-                <span>Quando houver registros no seu escopo, eles aparecem aqui.</span>
+                <strong>Nenhuma ocorrência registrada ainda.</strong>
+                <span>Quando alguém registrar, ela aparece aqui.</span>
               </div>
             ) : (
               <Table
@@ -152,7 +156,7 @@ export function DashboardPage() {
                   { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                   {
                     key: "prioridade",
-                    header: "Prioridade",
+                    header: "Gravidade",
                     render: (item) => <PrioridadeBadge prioridade={item.prioridade} />
                   },
                   {
@@ -166,17 +170,17 @@ export function DashboardPage() {
           </Card>
 
           <div className="page-grid">
-            <Card title="Acoes rapidas">
+            <Card title="Atalhos">
               <div className="actions-row">
                 <Link to="/ocorrencias">
                   <Button variant="secondary" icon={<FileText size={18} />}>
-                    Ocorrencias
+                    Ver ocorrências
                   </Button>
                 </Link>
                 {canAccess(user?.papel, "relatorios:view") ? (
                   <Link to="/relatorios">
                     <Button variant="secondary" icon={<FileText size={18} />}>
-                      Relatorios
+                      Ver relatórios
                     </Button>
                   </Link>
                 ) : null}
@@ -191,17 +195,17 @@ export function DashboardPage() {
 }
 function MovimentacoesRecentesPanel({ movimentacoes, loading }: { movimentacoes: MovimentacaoRecente[]; loading: boolean }) {
   return (
-    <Card title="Movimentacoes recentes">
+    <Card title="O que mudou">
       {loading ? (
-        <p className="muted">Carregando movimentacoes...</p>
+        <p className="muted">Carregando...</p>
       ) : movimentacoes.length === 0 ? (
-        <p className="muted">Nenhuma movimentacao disponivel no seu escopo.</p>
+        <p className="muted">Nada mudou por aqui ainda.</p>
       ) : (
         <ul className="timeline">
           {movimentacoes.map((item) => (
             <li key={item.id}>
               <strong>{item.usuarioNome}</strong>
-              <span className="muted">{item.acao} ({item.status})</span>
+              <span className="muted">{acaoLegivel(item.acao)}</span>
               <time className="muted" dateTime={item.criadoEm}>
                 {new Intl.DateTimeFormat("pt-BR", {
                   day: "2-digit",
