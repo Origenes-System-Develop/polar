@@ -50,19 +50,19 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     if (window.location.pathname !== "/login") {
       window.location.assign("/login");
     }
-    throw new ApiError("Sessao expirada. Acesse novamente.", 401, "UNAUTHORIZED");
+    throw new ApiError("Sua sessão expirou. Entre de novo.", 401, "UNAUTHORIZED");
   }
 
   if (response.status === 403) {
     if (window.location.pathname !== "/acesso-negado") {
       window.location.assign("/acesso-negado");
     }
-    throw new ApiError("Acesso negado para esta operacao.", 403, "FORBIDDEN");
+    throw new ApiError("Seu perfil não tem permissão para isso.", 403, "FORBIDDEN");
   }
 
   const body = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
-    const message = body?.error?.message ?? body?.message ?? "Nao foi possivel concluir a operacao.";
+    const message = body?.error?.message ?? body?.message ?? "Não foi possível concluir. Tente de novo.";
     const code = body?.error?.code ?? "API_ERROR";
     throw new ApiError(message, response.status, code, body?.error?.details ?? null);
   }

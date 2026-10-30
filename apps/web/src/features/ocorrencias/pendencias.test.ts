@@ -23,7 +23,7 @@ describe("pendencias", () => {
   // O ADM tem todas as permissoes, mas o backend restringe as transicoes ao papel
   // exato -- entao ele nao pode mover nada e nao deve receber pendencia.
   it("nao atribui pendencia a quem nao muda status", () => {
-    for (const papel of ["PROFESSOR", "ADM", "ALUNO"] as const) {
+    for (const papel of ["PROFESSOR", "ADM"] as const) {
       expect(statusPendentes(papel)).toEqual([]);
       expect(contarPendencias(papel, resumo)).toBe(0);
     }
@@ -35,10 +35,10 @@ describe("pendencias", () => {
   });
 
   it("descreve a pendencia conforme o papel e o total", () => {
-    expect(descricaoPendencias("COORDENADOR", 1)).toMatch(/1 ocorrencia aguarda sua analise/i);
-    expect(descricaoPendencias("COORDENADOR", 5)).toMatch(/5 ocorrencias aguardam sua analise/i);
-    expect(descricaoPendencias("DIRETOR", 2)).toMatch(/aguardam encerramento/i);
-    expect(descricaoPendencias("COORDENADOR", 0)).toMatch(/nada aguardando/i);
-    expect(descricaoPendencias("PROFESSOR", 0)).toMatch(/nao executa mudancas de status/i);
+    expect(descricaoPendencias("COORDENADOR", 1)).toMatch(/1 ocorrência espera sua análise/i);
+    expect(descricaoPendencias("COORDENADOR", 5)).toMatch(/5 ocorrências esperam sua análise/i);
+    expect(descricaoPendencias("DIRETOR", 2)).toMatch(/esperam o encerramento/i);
+    expect(descricaoPendencias("COORDENADOR", 0)).toMatch(/nenhuma ocorrência espera por você/i);
+    expect(descricaoPendencias("PROFESSOR", 0)).toMatch(/não muda o status/i);
   });
 });

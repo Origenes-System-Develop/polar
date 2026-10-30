@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PrioridadeOcorrencia, StatusOcorrencia } from "../../shared/domain.js";
+import { CATEGORIAS_OCORRENCIA, PrioridadeOcorrencia, StatusOcorrencia } from "../../shared/domain.js";
 
 function normalizePrioridade(value: unknown): unknown {
   if (value === undefined || value === null) {
@@ -29,6 +29,10 @@ function removerHtml(value: string): string {
   return value.replace(/<[^>]*>/g, "").trim();
 }
 
+const categoria = z.enum(CATEGORIAS_OCORRENCIA, {
+  errorMap: () => ({ message: "Escolha uma categoria da lista." })
+});
+
 function textoLimpo(max: number) {
   return z
     .string()
@@ -40,7 +44,7 @@ function textoLimpo(max: number) {
 
 export const createOcorrenciaSchema = z.object({
   alunoId: z.string().trim().min(1, "Aluno e obrigatorio."),
-  categoria: textoLimpo(120).pipe(z.string().min(1, "Categoria e obrigatoria.")),
+  categoria,
   prioridade: z.preprocess(normalizePrioridade, z.nativeEnum(PrioridadeOcorrencia)),
   descricao: textoLimpo(2000).pipe(z.string().min(10, "Descricao deve ter pelo menos 10 caracteres.")),
   local: textoLimpo(160).optional(),
@@ -50,7 +54,7 @@ export const createOcorrenciaSchema = z.object({
 });
 
 export const updateOcorrenciaSchema = z.object({
-  categoria: textoLimpo(120).pipe(z.string().min(1)).optional(),
+  categoria: categoria.optional(),
   prioridade: z.preprocess(normalizePrioridade, z.nativeEnum(PrioridadeOcorrencia)).optional(),
   descricao: textoLimpo(2000).pipe(z.string().min(10)).optional(),
   local: textoLimpo(160).optional(),

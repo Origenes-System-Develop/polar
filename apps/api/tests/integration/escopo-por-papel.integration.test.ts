@@ -1,17 +1,13 @@
 // Matriz negativa de escopo por papel: o que cada papel NAO pode ler.
 //
-// Este arquivo cobre dois furos que so aparecem quando se olha o agregado, e nao
+// Este arquivo cobre um furo que so aparece quando se olha o agregado, e nao
 // o CRUD:
 //
-// 1. O dashboard nao aplicava escopo. `DashboardService.resumo()` chamava
-//    `ocorrencias.list()` -- a listagem global -- enquanto a rota exige apenas
-//    CONSULTAR_OCORRENCIAS, permissao que o professor possui. Resultado: o
-//    professor nao conseguia listar as ocorrencias dos colegas, mas recebia os
-//    numeros agregados da escola inteira.
-//
-// 2. O papel ALUNO tem CONSULTAR_OCORRENCIAS (a permissao abre a rota), mas o
-//    modelo ainda nao vincula Usuario a Aluno. Sem escopo explicito ele cairia no
-//    caso global. A regra e negar por padrao: lista vazia, agregado zerado.
+// O dashboard nao aplicava escopo. `DashboardService.resumo()` chamava
+// `ocorrencias.list()` -- a listagem global -- enquanto a rota exige apenas
+// CONSULTAR_OCORRENCIAS, permissao que o professor possui. Resultado: o
+// professor nao conseguia listar as ocorrencias dos colegas, mas recebia os
+// numeros agregados da escola inteira.
 
 import { beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
@@ -88,65 +84,5 @@ describe("Escopo de leitura por papel", () => {
         .expect(200);
       expect(resumo.body.data.totalOcorrencias).toBe(2);
     }
-  });
-
-  it("ALUNO nao le ocorrencia alguma: lista vazia e agregado zerado", async () => {
-    const idAlheia = await criarOcorrencia(t.professor, "Ocorrencia de terceiro, invisivel para o aluno.");
-
-    const lista = await request(ctx.app)
-      .get("/api/ocorrencias")
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .expect(200);
-    expect(lista.body.data).toHaveLength(0);
-
-    const resumo = await request(ctx.app)
-      .get("/api/dashboard")
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .expect(200);
-    expect(resumo.body.data.totalOcorrencias).toBe(0);
-    expect(resumo.body.data.ocorrenciasPorCategoria).toEqual({});
-
-    // Acesso direto por id tambem e negado, e nao apenas omitido da lista.
-    await request(ctx.app)
-      .get(`/api/ocorrencias/${idAlheia}`)
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .expect(403);
-    await request(ctx.app)
-      .get(`/api/ocorrencias/${idAlheia}/historico`)
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .expect(403);
-  });
-
-  it("ALUNO nao registra ocorrencia, nem gerencia usuarios, turmas ou alunos", async () => {
-    await request(ctx.app)
-      .post("/api/ocorrencias")
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .send({
-        alunoId: ctx.ids.aluno,
-        categoria: "Atraso",
-        prioridade: "BAIXA",
-        descricao: "Tentativa de registro por conta de aluno.",
-        bimestre: 1
-      })
-      .expect(403);
-
-    await request(ctx.app).get("/api/usuarios").set("Authorization", `Bearer ${t.estudante}`).expect(403);
-
-    await request(ctx.app)
-      .post("/api/turmas")
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .send({ nome: "Turma do aluno", anoLetivo: 2026, turno: "Manha" })
-      .expect(403);
-
-    await request(ctx.app)
-      .post("/api/alunos")
-      .set("Authorization", `Bearer ${t.estudante}`)
-      .send({ nome: "Novo", matricula: "9999", turmaId: ctx.ids.turma })
-      .expect(403);
-  });
-
-  it("ALUNO nao acessa relatorios nem auditoria", async () => {
-    await request(ctx.app).get("/api/relatorios/ocorrencias").set("Authorization", `Bearer ${t.estudante}`).expect(403);
-    await request(ctx.app).get("/api/auditoria").set("Authorization", `Bearer ${t.estudante}`).expect(403);
   });
 });

@@ -112,6 +112,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       turmaId: turma.id,
       responsavelNome: "",
       responsavelContato: "",
+      responsavelEmail: "",
       ativo: true,
       criadoEm: now,
       atualizadoEm: now
@@ -162,6 +163,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       turmaId: turma.id,
       responsavelNome: "Responsável Ção",
       responsavelContato: "(11) 90000-0000",
+      responsavelEmail: "",
       ativo: true,
       criadoEm: now,
       atualizadoEm: now
@@ -228,6 +230,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       turmaId: turma.id,
       responsavelNome: "",
       responsavelContato: "",
+      responsavelEmail: "",
       ativo: true,
       criadoEm: now,
       atualizadoEm: now
@@ -333,6 +336,7 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
       turmaId: turma.id,
       responsavelNome: "",
       responsavelContato: "",
+      responsavelEmail: "",
       ativo: true,
       criadoEm: now,
       atualizadoEm: now

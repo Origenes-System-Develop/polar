@@ -31,9 +31,6 @@ O nome evoluiu ao longo do projeto: PM-GPO → Acta → P.O.L.A → **POLAR** (n
 | `COORDENADOR` | Ver todas; `REGISTRADA→EM_ANALISE`; `EM_ANALISE→RESOLVIDA` (com observação); relatórios operacionais | Encerrar; pular etapas; editar histórico |
 | `DIRETOR` | Ver todas; `RESOLVIDA→ENCERRADA` (com observação); relatórios gerais | Analisar/resolver; editar histórico |
 | `ADM` | Gerir usuários, turmas, alunos, configurações e auditoria | Alterar status de ocorrência; editar ocorrência de terceiros |
-| `ALUNO` | Autenticar; conta somente leitura | Registrar ou alterar ocorrência; ver ocorrência alguma (ver nota) |
-
-**Sobre o papel `ALUNO`.** A conta existe e autentica, mas o modelo ainda não liga um `Usuario` a um registro de `Aluno`. Sem esse vínculo não há como decidir *quais* ocorrências são "as dele", e a regra do sistema é negar por padrão: listagem vazia e dashboard zerado. `Aluno` continua sendo entidade de dados — a conta de papel `ALUNO` é uma coisa, o registro do estudante é outra.
 
 ## 4. Escopo
 
@@ -56,7 +53,7 @@ Dashboard de indicadores, filtros combinados, notas e faltas, notificações int
 
 ### Fora de escopo
 
-App mobile nativo; multi-escola; integração com sistemas externos (SEDUC etc.); comunicação com pais (e-mail/SMS); dashboards analíticos complexos/BI; IA embarcada; aluno como usuário.
+App mobile nativo; multi-escola; integração com sistemas externos (SEDUC etc.); comunicação com pais além do aviso automático por e-mail (SMS, mensagens, portal); dashboards analíticos complexos/BI; IA embarcada; aluno como usuário.
 
 Princípio de controle: **"se não ajuda diretamente a registrar ou acompanhar ocorrências, não entra no MVP."**
 

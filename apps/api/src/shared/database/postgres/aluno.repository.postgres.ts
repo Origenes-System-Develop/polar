@@ -10,6 +10,7 @@ interface AlunoRow {
   turma_id: string;
   responsavel_nome: string;
   responsavel_contato: string;
+  responsavel_email: string;
   ativo: boolean;
   criado_em: Date;
   atualizado_em: Date;
@@ -23,13 +24,14 @@ function toAluno(row: AlunoRow): Aluno {
     turmaId: row.turma_id,
     responsavelNome: row.responsavel_nome,
     responsavelContato: row.responsavel_contato,
+    responsavelEmail: row.responsavel_email,
     ativo: row.ativo,
     criadoEm: isoFromDbRequired(row.criado_em),
     atualizadoEm: isoFromDbRequired(row.atualizado_em)
   };
 }
 
-const COLUNAS = "id, nome, matricula, turma_id, responsavel_nome, responsavel_contato, ativo, criado_em, atualizado_em";
+const COLUNAS = "id, nome, matricula, turma_id, responsavel_nome, responsavel_contato, responsavel_email, ativo, criado_em, atualizado_em";
 
 export class PostgresAlunoRepository implements AlunoRepository {
   constructor(private readonly pool: Pool) {}
@@ -63,13 +65,14 @@ export class PostgresAlunoRepository implements AlunoRepository {
   }
 
   async create(aluno: Aluno): Promise<Aluno> {
-    await this.pool.query(`INSERT INTO alunos (${COLUNAS}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
+    await this.pool.query(`INSERT INTO alunos (${COLUNAS}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, [
       aluno.id,
       aluno.nome,
       aluno.matricula,
       aluno.turmaId,
       aluno.responsavelNome,
       aluno.responsavelContato,
+      aluno.responsavelEmail,
       aluno.ativo,
       dbDateTime(aluno.criadoEm),
       dbDateTime(aluno.atualizadoEm)
@@ -91,14 +94,15 @@ export class PostgresAlunoRepository implements AlunoRepository {
       const updated = updater(toAluno(row));
       await client.query(
         `UPDATE alunos
-           SET nome = $1, matricula = $2, turma_id = $3, responsavel_nome = $4, responsavel_contato = $5, ativo = $6, atualizado_em = $7
-         WHERE id = $8`,
+           SET nome = $1, matricula = $2, turma_id = $3, responsavel_nome = $4, responsavel_contato = $5, responsavel_email = $6, ativo = $7, atualizado_em = $8
+         WHERE id = $9`,
         [
           updated.nome,
           updated.matricula,
           updated.turmaId,
           updated.responsavelNome,
           updated.responsavelContato,
+          updated.responsavelEmail,
           updated.ativo,
           dbDateTime(updated.atualizadoEm),
           id

@@ -20,7 +20,8 @@ const initialAlunoForm = {
   matricula: "",
   turmaId: "",
   responsavelNome: "",
-  responsavelContato: ""
+  responsavelContato: "",
+  responsavelEmail: ""
 };
 
 export function AlunosPage() {
@@ -35,6 +36,8 @@ export function AlunosPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(initialAlunoForm);
+  // null = modal de cadastro; id = edicao do aluno.
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const canManage = canAccess(user?.papel, "alunos:manage");
 
   // Estado do modal de confirmação de inativação
@@ -59,7 +62,7 @@ export function AlunosPage() {
         setError("");
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar alunos.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar os alunos. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -86,28 +89,50 @@ export function AlunosPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function abrirModal(aluno?: AlunoDetalhadoComResumoOcorrencias) {
+    setEditandoId(aluno?.id ?? null);
+    setForm(
+      aluno
+        ? {
+            nome: aluno.nome,
+            matricula: aluno.matricula,
+            turmaId: aluno.turmaId,
+            responsavelNome: aluno.responsavelNome ?? "",
+            responsavelContato: aluno.responsavelContato ?? "",
+            responsavelEmail: aluno.responsavelEmail ?? ""
+          }
+        : initialAlunoForm
+    );
+    setFormError("");
+    setModalOpen(true);
+  }
+
   async function handleCreateAluno(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.nome.trim() || !form.matricula.trim() || !form.turmaId) {
-      setFormError("Nome, matricula e turma sao obrigatorios.");
+      setFormError("Preencha nome, matrícula e turma.");
       return;
     }
 
     setSaving(true);
     setFormError("");
     try {
-      await createAluno(form);
+      if (editandoId) {
+        await updateAluno(editandoId, form);
+      } else {
+        await createAluno(form);
+      }
       setModalOpen(false);
       setForm(initialAlunoForm);
       await refreshData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Nao foi possivel criar o aluno.");
+      setFormError(err instanceof Error ? err.message : editandoId ? "Não foi possível salvar o aluno. Tente de novo." : "Não foi possível cadastrar o aluno. Tente de novo.");
     } finally {
       setSaving(false);
     }
   }
 
-  // Abre o modal de confirmação — não inativa nada ainda
+  // Abre o modal de confirmação; não inativa nada ainda
   function handleInativarClick(id: string, nome: string) {
     setConfirmTarget({ id, nome });
   }
@@ -121,7 +146,7 @@ export function AlunosPage() {
       await updateAluno(confirmTarget.id, { ativo: false });
       await refreshData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel inativar o aluno.");
+      setError(err instanceof Error ? err.message : "Não foi possível inativar o aluno. Tente de novo.");
     } finally {
       setInativando(false);
       setConfirmTarget(null);
@@ -132,8 +157,8 @@ export function AlunosPage() {
     <>
       <PageHeader
         title="Alunos"
-        description="Consulta e acompanhamento escolar."
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Alunos" }]}
+        description="Procure pelo nome ou pela turma. O histórico de cada aluno mostra todas as ocorrências dele."
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Alunos" }]}
       />
       <div className="page-grid">
         <Card title="Filtros">
@@ -148,7 +173,7 @@ export function AlunosPage() {
           </div>
         </Card>
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
-        <Card title="Lista de alunos" action={canManage ? <Button variant="secondary" onClick={() => setModalOpen(true)}>Novo aluno</Button> : null}>
+        <Card title="Lista de alunos" action={canManage ? <Button variant="secondary" onClick={() => abrirModal()}>Novo aluno</Button> : null}>
           {loading ? (
             <p className="muted">Carregando alunos...</p>
           ) : (
@@ -156,7 +181,7 @@ export function AlunosPage() {
               data={data}
               columns={[
                 { key: "nome", header: "Nome", render: (item) => item.nome },
-                { key: "matricula", header: "Matricula", render: (item) => item.matricula },
+                { key: "matricula", header: "Matrícula", render: (item) => item.matricula },
                 { key: "turma", header: "Turma", render: (item) => item.turma },
                 {
                   key: "indicador",
@@ -172,14 +197,19 @@ export function AlunosPage() {
                 },
                 {
                   key: "acao",
-                  header: "Acao",
+                  header: "Ação",
                   render: (item) => (
                     <div className="actions-row">
                       <Link to={`/alunos/${item.id}`}>
                         <Button variant="ghost" icon={<Eye size={18} />}>
-                          Historico
+                          Ver histórico
                         </Button>
                       </Link>
+                      {canManage ? (
+                        <Button variant="secondary" onClick={() => abrirModal(item)}>
+                          Editar
+                        </Button>
+                      ) : null}
                       {canManage ? (
                         <Button variant="danger" onClick={() => handleInativarClick(item.id, item.nome)}>
                           Inativar
@@ -193,19 +223,25 @@ export function AlunosPage() {
           )}
         </Card>
       </div>
-      <Modal title="Novo aluno" open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal title={editandoId ? "Editar aluno" : "Novo aluno"} open={modalOpen} onClose={() => setModalOpen(false)}>
         {formError ? <p className="text-danger">{formError}</p> : null}
         <form className="form-grid" onSubmit={handleCreateAluno}>
           <Input label="Nome" value={form.nome} onChange={(event) => setAlunoField("nome", event.target.value)} />
-          <Input label="Matricula" value={form.matricula} onChange={(event) => setAlunoField("matricula", event.target.value)} />
+          <Input label="Matrícula" value={form.matricula} onChange={(event) => setAlunoField("matricula", event.target.value)} />
           <Select
             label="Turma"
             value={form.turmaId}
             onChange={(event) => setAlunoField("turmaId", event.target.value)}
             options={[{ label: "Selecione", value: "" }, ...turmas.map((item) => ({ label: item.nome, value: item.id }))]}
           />
-          <Input label="Responsavel" value={form.responsavelNome} onChange={(event) => setAlunoField("responsavelNome", event.target.value)} />
-          <Input label="Contato do responsavel" value={form.responsavelContato} onChange={(event) => setAlunoField("responsavelContato", event.target.value)} />
+          <Input label="Responsável" value={form.responsavelNome} onChange={(event) => setAlunoField("responsavelNome", event.target.value)} />
+          <Input label="Telefone do responsável" value={form.responsavelContato} onChange={(event) => setAlunoField("responsavelContato", event.target.value)} />
+          <Input
+            label="E-mail do responsável"
+            type="email"
+            value={form.responsavelEmail}
+            onChange={(event) => setAlunoField("responsavelEmail", event.target.value)}
+          />
           <div className="actions-row span-2">
             <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar aluno"}</Button>
           </div>
@@ -214,7 +250,7 @@ export function AlunosPage() {
       <ConfirmDialog
         open={!!confirmTarget}
         title="Inativar aluno"
-        message={`Tem certeza que deseja inativar o aluno "${confirmTarget?.nome}"? Essa ação pode ser revertida depois.`}
+        message={`Inativar "${confirmTarget?.nome}"? O histórico continua guardado e dá para reativar depois.`}
         onConfirm={handleConfirmInativar}
         onCancel={() => setConfirmTarget(null)}
         loading={inativando}

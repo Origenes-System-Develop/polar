@@ -5,9 +5,9 @@ import { PrioridadeBadge } from "./status";
 describe("PrioridadeBadge", () => {
   it.each([
     ["BAIXA", "Baixa: Baixa gravidade", "ui-badge--success"],
-    ["MEDIA", "Media: Gravidade moderada", "ui-badge--warning"],
+    ["MEDIA", "Média: Gravidade moderada", "ui-badge--warning"],
     ["ALTA", "Alta: Grave", "ui-badge--danger"],
-    ["URGENTE", "Urgente: Urgencia", "ui-badge--critical"]
+    ["URGENTE", "Urgente: Urgência", "ui-badge--critical"]
   ] as const)("exibe %s com texto e marcador, sem depender apenas de cor", (prioridade, texto, classe) => {
     render(<PrioridadeBadge prioridade={prioridade} />);
 
