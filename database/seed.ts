@@ -126,6 +126,7 @@ function aluno(nome: string, matricula: string, turmaId: string, responsavel: st
     turmaId,
     responsavelNome: responsavel,
     responsavelContato: contato,
+    responsavelEmail: "",
     ativo: true,
     criadoEm,
     atualizadoEm: criadoEm
@@ -233,8 +234,7 @@ async function main(): Promise<void> {
       40
     );
     const direcao = usuario(CONTAS.direcao.nome, CONTAS.direcao.email, PapelUsuario.DIRETOR, senhaHash, 40);
-    const contaAluno = usuario(CONTAS.aluno.nome, CONTAS.aluno.email, PapelUsuario.ALUNO, senhaHash, 40);
-    for (const u of [admin, professor, coordenacao, direcao, contaAluno]) {
+    for (const u of [admin, professor, coordenacao, direcao]) {
       await repos.users.create(u);
     }
 
@@ -279,7 +279,7 @@ async function main(): Promise<void> {
     const ocorrencias: OcorrenciaSeed[] = [
       {
         alunoId: alunoPorIndice(0).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Atraso",
         prioridade: PrioridadeOcorrencia.BAIXA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -291,7 +291,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(5).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Desrespeito",
         prioridade: PrioridadeOcorrencia.BAIXA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -303,7 +303,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(11).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Uso indevido de celular",
         prioridade: PrioridadeOcorrencia.MEDIA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -315,7 +315,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(7).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Não fez atividade",
         prioridade: PrioridadeOcorrencia.BAIXA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -327,7 +327,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(2).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Agressão verbal",
         prioridade: PrioridadeOcorrencia.ALTA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -341,7 +341,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(9).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Falta de material",
         prioridade: PrioridadeOcorrencia.MEDIA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -355,7 +355,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(13).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Indisciplina em sala",
         prioridade: PrioridadeOcorrencia.MEDIA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -369,7 +369,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(3).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Dano ao patrimônio",
         prioridade: PrioridadeOcorrencia.BAIXA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -390,7 +390,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(6).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Saída sem autorização",
         prioridade: PrioridadeOcorrencia.BAIXA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -411,7 +411,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(12).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Briga",
         prioridade: PrioridadeOcorrencia.MEDIA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -432,7 +432,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(4).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Uniforme inadequado",
         prioridade: PrioridadeOcorrencia.ALTA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -460,7 +460,7 @@ async function main(): Promise<void> {
       },
       {
         alunoId: alunoPorIndice(11).id,
-        categoria: "Registro demonstrativo",
+        categoria: "Má conduta",
         prioridade: PrioridadeOcorrencia.ALTA,
         descricao: "Registro demonstrativo sem dados pessoais.",
         local: "Ambiente escolar",
@@ -525,7 +525,6 @@ async function main(): Promise<void> {
     console.log(`  COORDENADOR: ${CONTAS.coordenacao.email}`);
     console.log(`  DIRETOR:     ${CONTAS.direcao.email}`);
     console.log(`  ADM:         ${CONTAS.adm.email}`);
-    console.log(`  ALUNO:       ${CONTAS.aluno.email}`);
   } finally {
     await close();
   }

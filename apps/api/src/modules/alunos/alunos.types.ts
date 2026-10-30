@@ -6,7 +6,8 @@ export const createAlunoSchema = z.object({
   turmaId: z.string().trim().min(1).max(36).optional(),
   turmaNome: z.string().trim().min(1).max(120).optional(),
   responsavelNome: z.string().trim().max(120).default(""),
-  responsavelContato: z.string().trim().max(80).default("")
+  responsavelContato: z.string().trim().max(80).default(""),
+  responsavelEmail: z.string().trim().max(160).email("E-mail do responsavel invalido.").or(z.literal("")).default("")
 });
 
 export const updateAlunoSchema = createAlunoSchema.partial().extend({

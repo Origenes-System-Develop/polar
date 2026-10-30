@@ -19,6 +19,7 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.13",
     "pg": "^8.13.1",
     "zod": "^3.24.4"
   },
@@ -28,6 +29,7 @@
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.21",
+    "@types/nodemailer": "^7.0.12",
     "@types/pg": "^8.11.10",
     "@types/supertest": "^6.0.3",
     "eslint": "^9.27.0",
@@ -35,6 +37,6 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
-    "vitest": "^3.1.4"
+    "vitest": "^5.0.5"
   }
 }

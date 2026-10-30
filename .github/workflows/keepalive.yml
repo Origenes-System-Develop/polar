@@ -1,0 +1,28 @@
+name: Keepalive
+
+# O plano Free do Supabase pausa o projeto apos 7 dias de pouca atividade, e o
+# login fica fora do ar ate alguem restaurar no painel. Este job faz um login com
+# usuario inexistente a cada 2 dias: a API consulta o banco (SELECT em usuarios) e
+# responde 401. Nao grava nada e nao entra na auditoria. Se vier outro status
+# (500 = banco fora), o job falha e o GitHub avisa por e-mail.
+#
+# shortcut: o Supabase nao documenta se consulta pelo pooler conta como atividade;
+# se o projeto pausar mesmo assim, o unico caminho garantido e o plano Pro.
+
+on:
+  schedule:
+    - cron: "0 12 */2 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login com usuario inexistente (espera 401)
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-all-errors --retry-delay 10 -m 60 \
+            -X POST https://polarescolar.vercel.app/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"keepalive@invalido.local","senha":"keepalive"}')
+          echo "status=$status"
+          test "$status" = "401"

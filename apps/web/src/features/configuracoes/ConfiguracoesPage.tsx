@@ -7,12 +7,12 @@ import { Input } from "../../components/ui/Input";
 export function ConfiguracoesPage() {
   return (
     <>
-      <PageHeader title="Configuracoes" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Configuracoes" }]} />
-      <Card title="Dados institucionais">
+      <PageHeader title="Configurações" breadcrumb={[{ label: "Início", to: "/" }, { label: "Configurações" }]} />
+      <Card title="Dados da escola">
         <div className="form-grid">
-          <Input label="Nome da instituicao" defaultValue="Escola P.O.L.A" />
+          <Input label="Nome da escola" defaultValue="" />
           <Input label="Ano letivo" defaultValue="2026" />
-          <Input label="Responsavel administrativo" defaultValue="Secretaria escolar" />
+          <Input label="Responsável administrativo" defaultValue="Secretaria escolar" />
           <div className="actions-row span-2">
             <Button icon={<Save size={18} />}>Salvar</Button>
           </div>
