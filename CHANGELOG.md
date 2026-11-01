@@ -40,6 +40,13 @@ tags nem releases no GitHub; por isso os links apontam para commits.
 
 ### Corrigido
 
+- Segurança de sessão: o limite de tentativas de login passou a contar por IP e
+  e-mail (uma conta não tranca a escola inteira) e a usar o IP real do cliente
+  atrás da Vercel; erros e falhas de e-mail deixam de gravar e-mails nos logs; o
+  401 limpa também o usuário guardado no navegador.
+- Conta com senha provisória só consegue trocar a senha (nova tela Meu perfil)
+  antes de usar o sistema, como a documentação de LGPD já descrevia. A troca
+  devolve uma sessão nova.
 - Data do histórico exibida em `pt-BR` e nome do usuário no histórico.
 - Exibição e filtro de ocorrências por bimestre.
 - Migração do campo `bimestre` em bancos existentes e cálculo do bimestre de

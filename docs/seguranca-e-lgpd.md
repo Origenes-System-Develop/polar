@@ -7,13 +7,14 @@
 | Senhas nunca em texto puro | bcrypt (custo 10) em `auth.service.ts`; nenhuma resposta expõe `senha_hash` | A02 Cryptographic Failures |
 | Autenticação stateless | JWT assinado (`JWT_SECRET` ≥ 32 chars, obrigatório — a API não sobe sem ele), expiração configurável, issuer fixo | A07 Identification & Auth Failures |
 | Autorização no servidor | Middleware `authorize(permissao)` por rota + regras de negócio no service (a UI apenas oculta) | A01 Broken Access Control |
-| Bloqueio de força bruta | 5 tentativas inválidas → bloqueio de 15 min (423); rate-limit por IP no login (429); mensagem genérica que não revela se o e-mail existe | A07 |
+| Bloqueio de força bruta | 5 tentativas inválidas → bloqueio de 15 min (423); limite de tentativas no login (429) por IP + e-mail e, mais alto, por IP, com o IP real do cliente atrás do proxy da Vercel (contadores em memória, valem por instância); mensagem genérica que não revela se o e-mail existe | A07 |
 | Validação de entrada | Zod em todos os endpoints; descrição ≥ 10 chars; caracteres de controle rejeitados; HTML removido (texto puro) | A03 Injection |
 | SQL parametrizado | 100% das queries via placeholders `$1..$n` do pg — zero concatenação de SQL | A03 Injection |
 | Cabeçalhos de proteção | `helmet` (CSP, X-Content-Type-Options, frame-ancestors etc.) | A05 Security Misconfiguration |
 | CORS restrito | Lista de origens explícita via `CORS_ORIGIN` | A05 |
-| Política de senha | 8–72 caracteres, sem espaços nas bordas, sem caracteres de controle; troca obrigatória no primeiro login de conta criada por ADM | A07 |
+| Política de senha | 8–72 caracteres, sem espaços nas bordas, sem caracteres de controle; troca obrigatória no primeiro login de conta criada por ADM: até a troca (tela Meu perfil), a API responde 403 `TROCA_SENHA_OBRIGATORIA` em tudo, exceto `/auth/me` e `/auth/alterar-senha` | A07 |
 | Segredos fora do código | Tudo por variável de ambiente; `.env` no `.gitignore`; senha bootstrap fraca derruba o boot em produção | A05 |
+| Logs do servidor | Erros e falhas de e-mail são registrados sem e-mails e sem o `detail` do pg (`shared/utils/logs.ts`); o bootstrap não imprime o e-mail do admin | A09 Logging Failures |
 | Trilha de auditoria | `audit_logs` para login (sucesso/falha), criação/edição de entidades e transições de status | A09 Logging Failures |
 | Histórico imutável | `ocorrencia_historico` é append-only em todas as camadas; tentativa de edição → 405 | A08 Integrity Failures |
 | Payload limitado | `express.json({ limit: "1mb" })` | — |

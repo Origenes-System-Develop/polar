@@ -34,7 +34,7 @@ export class AuthController {
     }
 
     const body = changePasswordSchema.parse(req.body);
-    await this.services.auth.alterarSenha(usuario.id, body.senhaAtual, body.novaSenha);
-    return res.status(204).send();
+    const sessao = await this.services.auth.alterarSenha(usuario.id, body.senhaAtual, body.novaSenha);
+    return res.json(sessao);
   };
 }
