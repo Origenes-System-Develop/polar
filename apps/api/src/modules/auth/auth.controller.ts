@@ -3,6 +3,7 @@ import { z } from "zod";
 import { badRequest } from "../../shared/errors/app-error.js";
 import { senhaSchema } from "../../shared/validation/senha.js";
 import type { Services } from "../../shared/services.js";
+import { avatarSchema } from "./avatar.js";
 
 export const loginSchema = z.object({
   email: z.string().trim().min(1, "E-mail e obrigatorio."),
@@ -27,6 +28,15 @@ export class AuthController {
     return res.json({ user: req.usuario });
   };
 
+  avatar = async (req: Request, res: Response): Promise<Response> => {
+    const usuario = req.usuario;
+    if (!usuario) {
+      throw badRequest("Usuario autenticado nao encontrado.");
+    }
+    const body = avatarSchema.parse(req.body);
+    return res.json({ user: await this.services.auth.atualizarAvatar(usuario.id, body) });
+  };
+
   alterarSenha = async (req: Request, res: Response): Promise<Response> => {
     const usuario = req.usuario;
     if (!usuario) {
@@ -34,7 +44,7 @@ export class AuthController {
     }
 
     const body = changePasswordSchema.parse(req.body);
-    await this.services.auth.alterarSenha(usuario.id, body.senhaAtual, body.novaSenha);
-    return res.status(204).send();
+    const sessao = await this.services.auth.alterarSenha(usuario.id, body.senhaAtual, body.novaSenha);
+    return res.json(sessao);
   };
 }

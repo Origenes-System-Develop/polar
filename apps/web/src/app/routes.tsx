@@ -1,9 +1,11 @@
+import { lazy, Suspense } from "react";
 import { Navigate, RouteObject, useRoutes } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { AlunosPage } from "../features/alunos/AlunosPage";
 import { PerfilAlunoPage } from "../features/alunos/PerfilAlunoPage";
 import { AccessDeniedPage } from "../features/auth/AccessDeniedPage";
 import { LoginPage } from "../features/auth/LoginPage";
+import { PerfilPage } from "../features/auth/PerfilPage";
 import { ConfiguracoesPage } from "../features/configuracoes/ConfiguracoesPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { DetalheOcorrenciaPage } from "../features/ocorrencias/DetalheOcorrenciaPage";
@@ -14,6 +16,9 @@ import { TurmasPage } from "../features/turmas/TurmasPage";
 import { UsuariosPage } from "../features/usuarios/UsuariosPage";
 import { NotFoundPage } from "./NotFoundPage";
 import { ProtectedRoute } from "./ProtectedRoute";
+
+// O estudio traz a biblioteca de desenho do avatar: so baixa quando alguem abre a tela.
+const EstudioPage = lazy(() => import("../features/avatar/EstudioPage").then((m) => ({ default: m.EstudioPage })));
 
 const routes: RouteObject[] = [
   { path: "/login", element: <LoginPage /> },
@@ -60,6 +65,15 @@ const routes: RouteObject[] = [
           {
             element: <ProtectedRoute permission="configuracoes:manage" />,
             children: [{ path: "configuracoes", element: <ConfiguracoesPage /> }]
+          },
+          { path: "perfil", element: <PerfilPage /> },
+          {
+            path: "perfil/estudio",
+            element: (
+              <Suspense fallback={<p className="muted">Abrindo o estúdio...</p>}>
+                <EstudioPage />
+              </Suspense>
+            )
           },
           { path: "acesso-negado", element: <AccessDeniedPage /> },
           { path: "404", element: <NotFoundPage /> },

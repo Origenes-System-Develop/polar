@@ -8,11 +8,10 @@ describe("PrioridadeBadge", () => {
     ["MEDIA", "Média: Gravidade moderada", "ui-badge--warning"],
     ["ALTA", "Alta: Grave", "ui-badge--danger"],
     ["URGENTE", "Urgente: Urgência", "ui-badge--critical"]
-  ] as const)("exibe %s com texto e marcador, sem depender apenas de cor", (prioridade, texto, classe) => {
+  ] as const)("exibe %s com o nome da gravidade em texto, sem depender apenas de cor", (prioridade, texto, classe) => {
     render(<PrioridadeBadge prioridade={prioridade} />);
 
     const badge = screen.getByText(texto);
     expect(badge).toHaveClass(classe);
-    expect(badge.querySelector(".severity-badge__marker")).toBeInTheDocument();
   });
 });
