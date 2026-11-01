@@ -37,11 +37,15 @@ CREATE TABLE IF NOT EXISTS users (
   tentativas_login_invalidas INTEGER NOT NULL DEFAULT 0,
   bloqueado_ate TIMESTAMPTZ(3) NULL,
   ultimo_login_em TIMESTAMPTZ(3) NULL,
+  avatar JSONB NULL,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
   CONSTRAINT pk_users PRIMARY KEY (id),
   CONSTRAINT uq_users_email UNIQUE (email)
 );
+
+-- Imagem de perfil (avatar ou iniciais). Bancos ja existentes ganham a coluna vazia.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar JSONB NULL;
 
 CREATE TABLE IF NOT EXISTS turmas (
   id CHAR(36) NOT NULL,

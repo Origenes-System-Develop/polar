@@ -50,6 +50,10 @@ export enum TipoEnsino {
   TECNICO = "TECNICO"
 }
 
+// Imagem de perfil: iniciais (padrao) ou avatar montado no estudio. `config` e o que o estudio
+// precisa para reabrir a edicao; `svg` e o desenho pronto, exibido sempre dentro de <img>.
+export type AvatarUsuario = { tipo: "iniciais" } | { tipo: "avatar"; config: Record<string, string>; svg: string };
+
 export interface Usuario {
   id: string;
   nome: string;
@@ -61,6 +65,7 @@ export interface Usuario {
   tentativasLoginInvalidas: number;
   bloqueadoAte: string | null;
   ultimoLoginEm: string | null;
+  avatar?: AvatarUsuario | null;
   criadoEm: string;
   atualizadoEm: string;
 }
@@ -72,6 +77,7 @@ export interface UsuarioPublico {
   papel: PapelUsuario;
   ativo: boolean;
   precisaTrocarSenha: boolean;
+  avatar: AvatarUsuario | null;
   criadoEm: string;
   atualizadoEm: string;
   ultimoLoginEm: string | null;
@@ -197,6 +203,7 @@ export function usuarioPublico(usuario: Usuario): UsuarioPublico {
     papel: usuario.papel,
     ativo: usuario.ativo,
     precisaTrocarSenha: usuario.precisaTrocarSenha,
+    avatar: usuario.avatar ?? null,
     criadoEm: usuario.criadoEm,
     atualizadoEm: usuario.atualizadoEm,
     ultimoLoginEm: usuario.ultimoLoginEm

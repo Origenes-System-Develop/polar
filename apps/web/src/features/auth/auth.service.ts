@@ -1,4 +1,5 @@
 import { apiRequest, setToken, USER_KEY } from "../../services/api";
+import type { AvatarUsuario } from "../avatar/tipos";
 import type { AuthUser, LoginResponse } from "./auth.types";
 
 export function getStoredUser(): AuthUser | null {
@@ -38,4 +39,11 @@ export async function alterarSenhaRequest(senhaAtual: string, novaSenha: string)
   setToken(result.token);
   storeUser(result.user);
   return result;
+}
+
+// Salva a imagem de perfil e guarda o usuario atualizado (com o avatar) no navegador.
+export async function salvarAvatarRequest(avatar: AvatarUsuario): Promise<AuthUser> {
+  const { user } = await apiRequest<{ user: AuthUser }>("/auth/avatar", { method: "PATCH", body: JSON.stringify(avatar) });
+  storeUser(user);
+  return user;
 }
