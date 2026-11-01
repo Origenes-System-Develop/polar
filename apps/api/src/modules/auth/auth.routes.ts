@@ -1,5 +1,5 @@
 import { Router } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import type { AppConfig } from "../../shared/config.js";
 import { asyncHandler } from "../../shared/middlewares/async-handler.js";
 import { authenticate } from "../../shared/middlewares/auth.middleware.js";
@@ -11,6 +11,9 @@ import { AuthController } from "./auth.controller.js";
 export function authRoutes(services: Services, config: AppConfig): Router {
   const router = Router();
   const controller = new AuthController(services);
+
+  // Teto por IP para todas as rotas de /auth (login tem o proprio limite, mais apertado).
+  router.use(rateLimit({ ...opcoesLimitePorUsuario(1000), keyGenerator: (req) => ipKeyGenerator(req.ip ?? "desconhecido") }));
 
   router.post("/login", loginRateLimit(), asyncHandler(controller.login));
   router.get("/me", authenticate(config, { permitirTrocaPendente: true }), rateLimit(opcoesLimitePorUsuario(300)), asyncHandler(controller.me));
