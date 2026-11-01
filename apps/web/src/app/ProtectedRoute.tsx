@@ -10,6 +10,11 @@ export function ProtectedRoute({ permission }: { permission?: Permission }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
+  // Senha provisoria: nada funciona antes da troca, entao a unica tela possivel e o perfil.
+  if (user.precisaTrocarSenha && location.pathname !== "/perfil") {
+    return <Navigate to="/perfil" replace />;
+  }
+
   if (permission && !canAccess(user.papel, permission)) {
     return <Navigate to="/acesso-negado" replace />;
   }

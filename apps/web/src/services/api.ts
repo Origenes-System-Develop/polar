@@ -5,6 +5,7 @@ const API_URL = (
   import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "/api" : "http://localhost:3000/api")
 ).replace(/\/$/, "");
 const TOKEN_KEY = "polar_token";
+export const USER_KEY = "polar_user";
 const LOGIN_PATH = "/auth/login";
 
 export class ApiError extends Error {
@@ -30,6 +31,12 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+// Sessao inteira: token e usuario guardado. Limpar so o token deixa o app achando que ha login.
+export function clearSession(): void {
+  clearToken();
+  localStorage.removeItem(USER_KEY);
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
@@ -46,7 +53,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   // 401 no login e credencial recusada, nao sessao expirada: segue para o erro
   // comum abaixo, com a mensagem da API ("Usuario ou senha invalidos.").
   if (response.status === 401 && path !== LOGIN_PATH) {
-    clearToken();
+    clearSession();
     if (window.location.pathname !== "/login") {
       window.location.assign("/login");
     }
@@ -54,6 +61,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   }
 
   if (response.status === 403) {
+    const corpo = await response.clone().json().catch(() => null);
+    if (corpo?.error?.code === "TROCA_SENHA_OBRIGATORIA") {
+      if (window.location.pathname !== "/perfil") window.location.assign("/perfil");
+      throw new ApiError(corpo.error.message, 403, "TROCA_SENHA_OBRIGATORIA");
+    }
     if (window.location.pathname !== "/acesso-negado") {
       window.location.assign("/acesso-negado");
     }

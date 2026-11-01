@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Settings, User, X } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Settings, User, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
@@ -94,6 +94,10 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
                 <span>Configurações</span>
               </Link>
             ) : null}
+            <Link to="/perfil" role="menuitem" onClick={() => setAberto(false)}>
+              <KeyRound size={18} aria-hidden="true" />
+              <span>Meu perfil</span>
+            </Link>
             <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
               <User size={18} aria-hidden="true" />
               <span>Minhas ocorrências</span>
