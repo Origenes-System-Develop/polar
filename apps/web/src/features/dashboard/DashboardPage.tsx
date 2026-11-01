@@ -1,9 +1,10 @@
-import { ClipboardPlus, FileText } from "lucide-react";
+import { ClipboardList, ClipboardPlus, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/providers";
 import { canAccess } from "../../app/permissions";
-import { iniciaisDe, rotuloDePapel } from "../../components/layout/iniciais";
+import { rotuloDePapel } from "../../components/layout/iniciais";
+import { Avatar } from "../../components/ui/Avatar";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Table } from "../../components/ui/Table";
@@ -17,6 +18,9 @@ import { contarPendencias, descricaoPendencias, statusPendentes } from "../ocorr
 import { DiasEmAberto } from "../ocorrencias/DiasEmAberto";
 import { PrioridadeBadge, StatusBadge } from "../ocorrencias/status";
 
+// Os indicadores entram em sequencia so na primeira vez da sessao; voltar ao inicio nao repete.
+let indicadoresJaEntraram = false;
+
 const emptyResumo: DashboardResumo = {
   totalOcorrencias: 0,
   ocorrenciasPorStatus: {},
@@ -27,6 +31,12 @@ const emptyResumo: DashboardResumo = {
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [entram] = useState(() => {
+    const primeira = !indicadoresJaEntraram;
+    indicadoresJaEntraram = true;
+    return primeira;
+  });
+  const entra = entram ? " stat-card--entra" : "";
   const [resumo, setResumo] = useState<DashboardResumo>(emptyResumo);
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDetalhada[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoRecente[]>([]);
@@ -75,9 +85,7 @@ export function DashboardPage() {
   return (
     <>
       <div className="greeting">
-        <span className="avatar avatar--lg" aria-hidden="true">
-          {iniciaisDe(user?.nome)}
-        </span>
+        <Avatar nome={user?.nome} avatar={user?.avatar} grande />
         <div className="greeting__text">
           <h1>
             {saudacao()}, <strong>{user?.nome?.split(" ")[0] ?? ""}</strong>
@@ -101,14 +109,14 @@ export function DashboardPage() {
         <div className="grid-4">
           {temPendencias ? (
             <Card
-              className={`stat-card ${pendencias > 0 ? "stat-card--red" : "stat-card--green"} pendencias-card`}
+              className={`stat-card ${pendencias > 0 ? "stat-card--red" : "stat-card--green"} pendencias-card${entra}`}
               role="button"
               tabIndex={0}
-              onClick={() => navigate("/ocorrencias")}
+              onClick={() => navigate("/ocorrencias?pendentes=1")}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  navigate("/ocorrencias");
+                  navigate("/ocorrencias?pendentes=1");
                 }
               }}
             >
@@ -117,23 +125,23 @@ export function DashboardPage() {
               <span className="pendencias-card__hint">{descricaoPendencias(user?.papel, pendencias)}</span>
             </Card>
           ) : (
-            <Card className="stat-card stat-card--blue">
+            <Card className={`stat-card stat-card--blue${entra}`}>
               <span className="stat-card__value">{loading ? "..." : total}</span>
               <span className="stat-card__label">Total</span>
             </Card>
           )}
 
-          <Card className="stat-card stat-card--orange">
+          <Card className={`stat-card stat-card--orange${entra}`}>
             <span className="stat-card__value">{loading ? "..." : emAnalise}</span>
             <span className="stat-card__label">Em análise</span>
           </Card>
 
-          <Card className="stat-card stat-card--red">
+          <Card className={`stat-card stat-card--red${entra}`}>
             <span className="stat-card__value">{loading ? "..." : alta + urgente}</span>
             <span className="stat-card__label">Graves ou urgentes</span>
           </Card>
 
-          <Card className="stat-card stat-card--green">
+          <Card className={`stat-card stat-card--green${entra}`}>
             <span className="stat-card__value">{loading ? "..." : encerradas}</span>
             <span className="stat-card__label">Encerradas</span>
           </Card>
@@ -145,6 +153,9 @@ export function DashboardPage() {
               <p className="muted">Carregando ocorrências...</p>
             ) : ocorrencias.length === 0 ? (
               <div className="empty-state">
+                <span className="empty-state__icon" aria-hidden="true">
+                  <ClipboardList size={30} />
+                </span>
                 <strong>Nenhuma ocorrência registrada ainda.</strong>
                 <span>Quando alguém registrar, ela aparece aqui.</span>
               </div>
@@ -152,7 +163,15 @@ export function DashboardPage() {
               <Table
                 data={ocorrencias}
                 columns={[
-                  { key: "aluno", header: "Aluno", render: (item) => item.aluno },
+                  {
+                    key: "aluno",
+                    header: "Aluno",
+                    render: (item) => (
+                      <Link className="row-link" to={`/ocorrencias/${item.id}`}>
+                        {item.aluno}
+                      </Link>
+                    )
+                  },
                   { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                   {
                     key: "prioridade",

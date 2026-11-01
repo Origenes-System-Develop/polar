@@ -1,16 +1,45 @@
-import { ChevronDown, LogOut, Settings, User, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronDown, KeyRound, LogOut, Settings, User, X } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
-import { iniciaisDe, rotuloDePapel } from "./iniciais";
+import { Avatar } from "../ui/Avatar";
+import { rotuloDePapel } from "./iniciais";
 import "./layout.css";
 
-export function UserMenu() {
+export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [aberto, setAberto] = useState(false);
+  const [posicao, setPosicao] = useState<{ left: number; bottom: number } | null>(null);
   const container = useRef<HTMLDivElement>(null);
+  const nomeCaixa = useRef<HTMLSpanElement>(null);
+  const medidor = useRef<HTMLSpanElement>(null);
+  const [curto, setCurto] = useState(false);
+  const nomeCompleto = user?.nome ?? "Usuário";
+
+  // Nome e sobrenome que nao cabem na caixa viram so o primeiro nome. O medidor invisivel
+  // tem sempre o nome inteiro, entao a decisao refaz a conta a cada mudanca de largura.
+  useLayoutEffect(() => {
+    const caixa = nomeCaixa.current;
+    const medida = medidor.current;
+    if (!caixa || !medida) return;
+    const conferir = () => setCurto(medida.offsetWidth > caixa.clientWidth);
+    conferir();
+    const observador = new ResizeObserver(conferir);
+    observador.observe(caixa);
+    return () => observador.disconnect();
+  }, [nomeCompleto]);
+
+  // No menu lateral o painel abre para cima e fora da caixa do menu (que corta o que passa dela),
+  // por isso usa posicao fixa calculada a partir do botao.
+  function alternar() {
+    if (!aberto && variante === "menu" && container.current) {
+      const caixa = container.current.getBoundingClientRect();
+      setPosicao({ left: caixa.left, bottom: window.innerHeight - caixa.top + 8 });
+    }
+    setAberto((valor) => !valor);
+  }
 
   // Fecha ao clicar fora ou no Esc: um menu que so fecha pelo proprio botao
   // prende o usuario quando ele ja mudou de ideia e clicou em outro lugar.
@@ -41,23 +70,26 @@ export function UserMenu() {
   }
 
   return (
-    <div className="user-menu" ref={container}>
+    <div className={`user-menu user-menu--${variante}`} ref={container}>
       <button
         type="button"
         className="user-menu__trigger"
-        onClick={() => setAberto((valor) => !valor)}
+        onClick={alternar}
         aria-expanded={aberto}
         aria-haspopup="menu"
       >
-        <span className="avatar" aria-hidden="true">
-          {iniciaisDe(user?.nome)}
+        <Avatar nome={user?.nome} avatar={user?.avatar} />
+        <span className="user-menu__name" ref={nomeCaixa} title={nomeCompleto}>
+          {curto ? nomeCompleto.split(" ")[0] : nomeCompleto}
+          <span className="user-menu__medidor" ref={medidor} aria-hidden="true">
+            {nomeCompleto}
+          </span>
         </span>
-        <span className="user-menu__name">{user?.nome ?? "Usuário"}</span>
-        <ChevronDown size={16} aria-hidden="true" />
+        <ChevronDown size={16} aria-hidden="true" className="user-menu__seta" />
       </button>
 
       {aberto ? (
-        <div className="user-menu__panel" role="menu">
+        <div className="user-menu__panel" role="menu" style={variante === "menu" && posicao ? { position: "fixed", ...posicao, top: "auto", right: "auto" } : undefined}>
           <header className="user-menu__panel-header">
             <strong>PERFIL</strong>
             <button type="button" onClick={() => setAberto(false)} aria-label="Fechar menu de perfil">
@@ -66,9 +98,7 @@ export function UserMenu() {
           </header>
 
           <div className="user-menu__identity">
-            <span className="avatar avatar--lg" aria-hidden="true">
-              {iniciaisDe(user?.nome)}
-            </span>
+            <Avatar nome={user?.nome} avatar={user?.avatar} grande />
             <div>
               <strong>{user?.nome ?? "Usuário"}</strong>
               <span>{rotuloDePapel(user?.papel)}</span>
@@ -83,6 +113,10 @@ export function UserMenu() {
                 <span>Configurações</span>
               </Link>
             ) : null}
+            <Link to="/perfil" role="menuitem" onClick={() => setAberto(false)}>
+              <KeyRound size={18} aria-hidden="true" />
+              <span>Meu perfil</span>
+            </Link>
             <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
               <User size={18} aria-hidden="true" />
               <span>Minhas ocorrências</span>

@@ -15,6 +15,17 @@ describe("ProtectedRoute", () => {
 
     expect(screen.getByText("Acesso negado")).toBeInTheDocument();
   });
+
+  it("leva quem tem senha provisoria para o perfil, antes de qualquer outra tela", () => {
+    localStorage.setItem(
+      "polar_user",
+      JSON.stringify({ id: "u2", nome: "Admin", email: "adm@polar.local", papel: "ADM", precisaTrocarSenha: true })
+    );
+
+    renderWithRoute();
+
+    expect(screen.getByText("Perfil")).toBeInTheDocument();
+  });
 });
 
 function renderWithRoute() {
@@ -27,6 +38,9 @@ function renderWithRoute() {
           </Route>
           <Route path="/acesso-negado" element={<p>Acesso negado</p>} />
           <Route path="/login" element={<p>Login</p>} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/perfil" element={<p>Perfil</p>} />
+          </Route>
         </Routes>
       </MemoryRouter>
     </AppProviders>

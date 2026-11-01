@@ -3,12 +3,12 @@ import { PRIORIDADE_LABEL, STATUS_LABEL, type PrioridadeOcorrencia, type StatusO
 
 const gravidadePorPrioridade: Record<
   PrioridadeOcorrencia,
-  { label: string; marker: string; tone: "success" | "warning" | "danger" | "critical" }
+  { label: string; tone: "success" | "warning" | "danger" | "critical" }
 > = {
-  BAIXA: { label: "Baixa gravidade", marker: "●", tone: "success" },
-  MEDIA: { label: "Gravidade moderada", marker: "●", tone: "warning" },
-  ALTA: { label: "Grave", marker: "▲", tone: "danger" },
-  URGENTE: { label: "Urgência", marker: "!", tone: "critical" }
+  BAIXA: { label: "Baixa gravidade", tone: "success" },
+  MEDIA: { label: "Gravidade moderada", tone: "warning" },
+  ALTA: { label: "Grave", tone: "danger" },
+  URGENTE: { label: "Urgência", tone: "critical" }
 };
 
 export function StatusBadge({ status }: { status: StatusOcorrencia }) {
@@ -20,7 +20,6 @@ export function PrioridadeBadge({ prioridade }: { prioridade: PrioridadeOcorrenc
   const gravidade = gravidadePorPrioridade[prioridade];
   return (
     <Badge tone={gravidade.tone}>
-      <span className="severity-badge__marker" aria-hidden="true">{gravidade.marker}</span>
       {PRIORIDADE_LABEL[prioridade]}: {gravidade.label}
     </Badge>
   );

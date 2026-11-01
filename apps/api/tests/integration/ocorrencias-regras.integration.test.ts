@@ -43,7 +43,14 @@ describe("Ocorrencias - regras v3", () => {
         senha: "SenhaForte2!"
       })
       .expect(201);
-    const professor2 = await login(ctx.app, "professora2@pola.test", "SenhaForte2!");
+    // Conta criada pelo ADM nasce com senha provisoria: so ganha acesso depois de trocar.
+    const provisorio = await login(ctx.app, "professora2@pola.test", "SenhaForte2!");
+    const troca = await request(ctx.app)
+      .post("/api/auth/alterar-senha")
+      .set("Authorization", `Bearer ${provisorio}`)
+      .send({ senhaAtual: "SenhaForte2!", novaSenha: "OutraSenha3!" })
+      .expect(200);
+    const professor2 = troca.body.token as string;
 
     const idProfessor1 = await criarOcorrencia(t.professor);
 

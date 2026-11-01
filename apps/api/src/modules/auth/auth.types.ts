@@ -1,10 +1,11 @@
-import type { PapelUsuario } from "../../shared/domain.js";
+import type { AvatarUsuario, PapelUsuario } from "../../shared/domain.js";
 
 export interface AuthenticatedUser {
   id: string;
   nome: string;
   email: string;
   papel: PapelUsuario;
+  precisaTrocarSenha?: boolean;
 }
 
 export interface LoginResult {
@@ -16,6 +17,7 @@ export interface LoginResult {
     papel: PapelUsuario;
     ativo: boolean;
     precisaTrocarSenha: boolean;
+    avatar: AvatarUsuario | null;
     criadoEm: string;
     atualizadoEm: string;
     ultimoLoginEm: string | null;

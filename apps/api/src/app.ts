@@ -40,6 +40,9 @@ export async function createApp(options: CreateAppOptions = {}) {
           .map((origin) => origin.trim())
           .filter(Boolean);
 
+  // Atras do proxy da Vercel, req.ip seria o do proxy e o limite de login juntaria todo mundo.
+  // 1 = confia so no salto mais proximo (a Vercel); nunca true, que aceitaria X-Forwarded-For forjado.
+  if (process.env.VERCEL) app.set("trust proxy", 1);
   app.use(helmet());
   app.use(
     cors({

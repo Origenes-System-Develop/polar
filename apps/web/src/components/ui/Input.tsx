@@ -10,7 +10,10 @@ export function Input({ label, id, error, className = "", ...props }: InputProps
   const inputId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <label className={`ui-field ${className}`.trim()} htmlFor={inputId}>
-      <span>{label}</span>
+      <span>
+        {label}
+        {props.required ? <i className="ui-field__obrigatorio" aria-hidden="true"> *</i> : null}
+      </span>
       <input id={inputId} aria-invalid={Boolean(error)} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
       {error ? (
         <small className="ui-field__error" id={`${inputId}-error`}>

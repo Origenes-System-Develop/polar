@@ -29,9 +29,7 @@ function removerHtml(value: string): string {
   return value.replace(/<[^>]*>/g, "").trim();
 }
 
-const categoria = z.enum(CATEGORIAS_OCORRENCIA, {
-  errorMap: () => ({ message: "Escolha uma categoria da lista." })
-});
+const categoria = z.enum(CATEGORIAS_OCORRENCIA, { message: "Escolha uma categoria da lista." });
 
 function textoLimpo(max: number) {
   return z

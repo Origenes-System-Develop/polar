@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import type { AppConfig } from "../../shared/config.js";
-import { PapelUsuario, usuarioPublico, type Usuario } from "../../shared/domain.js";
+import { PapelUsuario, usuarioPublico, type AvatarUsuario, type Usuario } from "../../shared/domain.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import { AppError, unauthorized } from "../../shared/errors/app-error.js";
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
@@ -32,7 +32,7 @@ export class AuthService {
 
     const existente = await this.users.findByEmailOrNome(this.config.bootstrapAdminEmail);
     if (existente) {
-      console.log(`bootstrap ignorado: usuario ${this.config.bootstrapAdminEmail} ja existe`);
+      console.log("bootstrap ignorado: o administrador ja existe");
       return;
     }
 
@@ -66,7 +66,7 @@ export class AuthService {
       metadata: { email: usuario.email },
       criadoEm: now
     });
-    console.log(`bootstrap: admin ${usuario.email} criado com sucesso`);
+    console.log("bootstrap: administrador criado com sucesso");
   }
 
   async login(identifier: string, password: string): Promise<LoginResult> {
@@ -108,7 +108,29 @@ export class AuthService {
       criadoEm: now
     });
 
-    const publicUser = usuarioPublico(updated);
+    return this.emitirSessao(updated);
+  }
+
+  async atualizarAvatar(usuarioId: string, avatar: AvatarUsuario): Promise<LoginResult["user"]> {
+    const now = agoraIso();
+    const atualizado = await this.users.update(usuarioId, (current) => ({ ...current, avatar, atualizadoEm: now }));
+    if (!atualizado) {
+      throw unauthorized();
+    }
+    await this.audit.create({
+      id: novoId(),
+      usuarioId,
+      acao: "AVATAR_ALTERADO",
+      entidade: "usuarios",
+      entidadeId: usuarioId,
+      metadata: { tipo: avatar.tipo },
+      criadoEm: now
+    });
+    return usuarioPublico(atualizado);
+  }
+
+  private emitirSessao(usuario: Usuario): LoginResult {
+    const publicUser = usuarioPublico(usuario);
     const signOptions: SignOptions = {
       expiresIn: this.config.jwtExpiresIn as Exclude<SignOptions["expiresIn"], undefined>,
       issuer: "pola-api"
@@ -118,7 +140,8 @@ export class AuthService {
         id: publicUser.id,
         nome: publicUser.nome,
         email: publicUser.email,
-        papel: publicUser.papel
+        papel: publicUser.papel,
+        precisaTrocarSenha: publicUser.precisaTrocarSenha
       },
       this.config.jwtSecret,
       signOptions
@@ -130,7 +153,8 @@ export class AuthService {
     };
   }
 
-  async alterarSenha(usuarioId: string, senhaAtual: string, novaSenha: string): Promise<void> {
+  // Devolve a sessao nova: o token antigo ainda carrega precisaTrocarSenha e seguiria bloqueado.
+  async alterarSenha(usuarioId: string, senhaAtual: string, novaSenha: string): Promise<LoginResult> {
     const usuario = await this.users.findById(usuarioId);
     if (!usuario) {
       throw unauthorized();
@@ -141,13 +165,17 @@ export class AuthService {
       throw unauthorized("Senha atual invalida.");
     }
 
+    const novoHash = await bcrypt.hash(novaSenha, 10);
     const now = agoraIso();
-    await this.users.update(usuario.id, (current) => ({
+    const atualizado = await this.users.update(usuario.id, (current) => ({
       ...current,
-      senhaHash: bcrypt.hashSync(novaSenha, 10),
+      senhaHash: novoHash,
       precisaTrocarSenha: false,
       atualizadoEm: now
     }));
+    if (!atualizado) {
+      throw unauthorized();
+    }
 
     await this.audit.create({
       id: novoId(),
@@ -158,6 +186,8 @@ export class AuthService {
       metadata: {},
       criadoEm: now
     });
+
+    return this.emitirSessao(atualizado);
   }
 
   private async registerFailedLogin(usuario: Usuario): Promise<void> {

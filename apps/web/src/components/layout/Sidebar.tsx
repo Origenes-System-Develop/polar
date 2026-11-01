@@ -1,8 +1,10 @@
-import { BarChart3, BookOpen, ChevronsLeft, ClipboardList, GraduationCap, Home, Settings, Users } from "lucide-react";
+import { BarChart3, BookOpen, ClipboardList, ClipboardPlus, GraduationCap, Home, PanelLeftClose, PanelLeftOpen, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { MarcaPolar } from "../ui/Marca";
+import { PendenciasBell } from "./PendenciasBell";
+import { UserMenu } from "./UserMenu";
 import "./layout.css";
 
 const navItems = [
@@ -11,22 +13,44 @@ const navItems = [
   { label: "Alunos", to: "/alunos", icon: GraduationCap, permission: "alunos:view" as const },
   { label: "Turmas", to: "/turmas", icon: BookOpen, permission: "turmas:view" as const },
   { label: "Usuários", to: "/usuarios", icon: Users, permission: "usuarios:manage" as const },
-  { label: "Relatórios", to: "/relatorios", icon: BarChart3, permission: "relatorios:view" as const },
-  { label: "Configurações", to: "/configuracoes", icon: Settings, permission: "configuracoes:manage" as const }
+  { label: "Relatórios", to: "/relatorios", icon: BarChart3, permission: "relatorios:view" as const }
 ];
 
 export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { user } = useAuth();
+  const admin = canAccess(user?.papel, "configuracoes:manage");
 
   return (
     <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
-      <div className="sidebar__brand">
-        <MarcaPolar size={38} />
-        <div className="sidebar__brand-text">
-          <strong>Polar</strong>
-          <span>Ocorrências escolares</span>
-        </div>
+      <div className="sidebar__head">
+        {collapsed ? (
+          // Recolhido: a propria marca vira o botao; ao passar o mouse troca pelo icone de expandir.
+          <button type="button" className="sidebar__marca-botao" onClick={onToggle} aria-label="Expandir menu" aria-expanded={false} title="Expandir menu">
+            <MarcaPolar size={36} />
+            <PanelLeftOpen size={22} aria-hidden="true" className="sidebar__marca-expandir" />
+          </button>
+        ) : (
+          <>
+            <div className="sidebar__brand">
+              <MarcaPolar size={38} />
+              <div className="sidebar__brand-text">
+                <strong>Polar</strong>
+                <span>Ocorrências escolares</span>
+              </div>
+            </div>
+            <button type="button" className="sidebar__recolher" onClick={onToggle} aria-label="Recolher menu" aria-expanded title="Recolher menu">
+              <PanelLeftClose size={22} aria-hidden="true" />
+            </button>
+          </>
+        )}
       </div>
+
+      {canAccess(user?.papel, "ocorrencias:create") ? (
+        <NavLink to="/ocorrencias/nova" className="sidebar__cta" title={collapsed ? "Registrar ocorrência" : undefined}>
+          <ClipboardPlus size={20} aria-hidden="true" />
+          <span className="sidebar__label">Registrar ocorrência</span>
+        </NavLink>
+      ) : null}
 
       <nav className="sidebar__nav">
         {navItems
@@ -42,16 +66,14 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
           })}
       </nav>
 
-      <button
-        type="button"
-        className="sidebar__toggle"
-        onClick={onToggle}
-        aria-expanded={!collapsed}
-        title={collapsed ? "Expandir menu" : undefined}
-      >
-        <ChevronsLeft size={20} aria-hidden="true" />
-        <span className="sidebar__label">{collapsed ? "Expandir menu" : "Recolher menu"}</span>
-      </button>
+      <div className="sidebar__foot">
+        <PendenciasBell />
+        {/* A engrenagem existe para todos: o ADM vai as configuracoes da escola, os demais ao proprio perfil. */}
+        <NavLink to={admin ? "/configuracoes" : "/perfil"} className="sidebar__config" aria-label={admin ? "Configurações" : "Meu perfil"} title={admin ? "Configurações" : "Meu perfil"}>
+          <Settings size={20} aria-hidden="true" />
+        </NavLink>
+        <UserMenu variante="menu" />
+      </div>
     </aside>
   );
 }

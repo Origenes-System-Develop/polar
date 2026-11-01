@@ -1,11 +1,12 @@
 import { CheckCircle2, Clock, Lock, Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { canAccess, type Permission } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   STATUS_LABEL,
   acaoLegivel,
@@ -14,8 +15,9 @@ import {
   type OcorrenciaHistorico,
   type StatusOcorrencia
 } from "../../services/domain";
-import { listNotificacoesOcorrencia } from "../../services/school.service";
+import { listNotificacoesOcorrencia, listOcorrenciasDetalhadas } from "../../services/school.service";
 import { getOcorrenciaDetalhada, listHistoricoOcorrencia, updateOcorrenciaStatus } from "./ocorrencias.service";
+import { statusPendentes } from "./pendencias";
 import { PrioridadeBadge, StatusBadge } from "./status";
 
 interface StatusAction {
@@ -50,6 +52,20 @@ const RESULTADO_LABEL: Record<NotificacaoOcorrencia["resultado"], string> = {
   NAO_ENVIADO: "Registrado no Polar, sem e-mail"
 };
 
+// Quem age em cada status, igual as regras da API: coordenacao analisa e resolve, direcao encerra.
+const PROVIDENCIA: Partial<Record<StatusOcorrencia, { quem: string; fez: string }>> = {
+  EM_ANALISE: { quem: "Coordenação", fez: "colocou em análise" },
+  RESOLVIDA: { quem: "Coordenação", fez: "marcou como resolvida" },
+  ENCERRADA: { quem: "Direção", fez: "encerrou" }
+};
+
+const SITUACAO: Record<StatusOcorrencia, string> = {
+  REGISTRADA: "Registrada. Aguarda a análise da coordenação.",
+  EM_ANALISE: "A coordenação está analisando.",
+  RESOLVIDA: "A coordenação resolveu. Aguarda o encerramento pela direção.",
+  ENCERRADA: "Encerrada pela direção. O histórico fica guardado."
+};
+
 function formatarDataHora(valor: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -63,7 +79,9 @@ function formatarDataHora(valor: string): string {
 
 export function DetalheOcorrenciaPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const [confirmandoEncerrar, setConfirmandoEncerrar] = useState(false);
   const [ocorrencia, setOcorrencia] = useState<OcorrenciaDetalhada | null>(null);
   const [historico, setHistorico] = useState<OcorrenciaHistorico[]>([]);
   const [notificacoes, setNotificacoes] = useState<NotificacaoOcorrencia[]>([]);
@@ -96,6 +114,9 @@ export function DetalheOcorrenciaPage() {
     void load();
   }, [load]);
 
+  // So o que a coordenacao e a direcao fizeram: as mudancas de status depois do registro.
+  const providencias = useMemo(() => historico.filter((item) => item.status !== "REGISTRADA" && PROVIDENCIA[item.status]), [historico]);
+
   const actions = useMemo(() => {
     if (!ocorrencia) return [];
     return statusActions.filter(
@@ -105,6 +126,18 @@ export function DetalheOcorrenciaPage() {
     );
   }, [ocorrencia, user?.papel]);
 
+  // Quem trabalha a fila de pendencias segue direto para a proxima, sem voltar a lista.
+  async function proximaPendencia(atualId: string) {
+    const pendentes = statusPendentes(user?.papel);
+    if (pendentes.length === 0) return undefined;
+    try {
+      const proxima = (await listOcorrenciasDetalhadas()).find((item) => item.id !== atualId && pendentes.includes(item.status));
+      return proxima ? { rotulo: "Próxima pendência", to: `/ocorrencias/${proxima.id}` } : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   async function changeStatus(status: StatusOcorrencia) {
     if (!id) return;
     setUpdating(true);
@@ -113,6 +146,7 @@ export function DetalheOcorrenciaPage() {
       await updateOcorrenciaStatus(id, status, observacao);
       setObservacao("");
       await load();
+      navigate(`/ocorrencias/${id}`, { replace: true, state: { aviso: { texto: "Status atualizado.", acao: await proximaPendencia(id) } } });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível mudar o status. Tente de novo.");
     } finally {
@@ -195,7 +229,7 @@ export function DetalheOcorrenciaPage() {
                     <Button
                       key={action.status}
                       disabled={updating}
-                      onClick={() => void changeStatus(action.status)}
+                      onClick={() => (action.status === "ENCERRADA" ? setConfirmandoEncerrar(true) : void changeStatus(action.status))}
                       icon={action.status === "ENCERRADA" ? <Lock size={18} /> : action.status === "RESOLVIDA" ? <CheckCircle2 size={18} /> : <Clock size={18} />}
                     >
                       {action.label}
@@ -209,6 +243,30 @@ export function DetalheOcorrenciaPage() {
             )}
           </Card>
         </div>
+        <Card title="Providências da coordenação e da direção" className="providencias">
+          <p className="providencias__situacao">
+            <StatusBadge status={ocorrencia.status} />
+            <span>{SITUACAO[ocorrencia.status]}</span>
+          </p>
+          {providencias.length === 0 ? (
+            <p className="muted">Ainda não houve providência. Quando a coordenação agir, aparece aqui.</p>
+          ) : (
+            <ol className="timeline">
+              {providencias.map((item) => (
+                <li key={item.id}>
+                  <strong>
+                    {PROVIDENCIA[item.status]?.quem} {PROVIDENCIA[item.status]?.fez}
+                  </strong>
+                  {item.usuarioNome ? <span className="muted">{item.usuarioNome}</span> : null}
+                  <time className="muted" dateTime={item.criadoEm}>
+                    {formatarDataHora(item.criadoEm)}
+                  </time>
+                  {item.observacao ? <span>Observação: {item.observacao}</span> : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </Card>
         <Card title="Descrição">
           <p>{ocorrencia.descricao}</p>
           <p className="muted">Local: {ocorrencia.local || "Não informado"}</p>
@@ -230,6 +288,18 @@ export function DetalheOcorrenciaPage() {
             ))}
           </ol>
         </Card>
+        <ConfirmDialog
+          open={confirmandoEncerrar}
+          title="Encerrar ocorrência"
+          message="Depois de encerrada, a ocorrência não muda mais de status. O histórico fica guardado."
+          confirmLabel="Encerrar"
+          loading={updating}
+          onCancel={() => setConfirmandoEncerrar(false)}
+          onConfirm={() => {
+            setConfirmandoEncerrar(false);
+            void changeStatus("ENCERRADA");
+          }}
+        />
         <Card title="Avisos enviados">
           {notificacoes.length === 0 ? (
             <p className="muted">Nenhum aviso foi enviado para esta ocorrência.</p>
