@@ -1,6 +1,6 @@
-import { Eye, Plus } from "lucide-react";
+import { ClipboardList, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -16,10 +16,17 @@ import {
 import { useAuth } from "../../app/providers";
 import { listOcorrenciasDetalhadas } from "./ocorrencias.service";
 import { DiasEmAberto } from "./DiasEmAberto";
+import { statusPendentes } from "./pendencias";
 import { PrioridadeBadge, StatusBadge } from "./status";
 
 export function OcorrenciasListPage() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?pendentes=1 vem do cartao "Pendencias" do inicio: so o que espera acao deste perfil.
+  const pendentes = useMemo(
+    () => (searchParams.get("pendentes") === "1" ? statusPendentes(user?.papel) : []),
+    [searchParams, user?.papel]
+  );
   const [aluno, setAluno] = useState("");
   const [status, setStatus] = useState("");
   const [prioridade, setPrioridade] = useState("");
@@ -67,6 +74,7 @@ export function OcorrenciasListPage() {
           (item) =>
             item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
             (!status || item.status === status) &&
+            (pendentes.length === 0 || pendentes.includes(item.status)) &&
             (!prioridade || item.prioridade === prioridade) &&
             (!categoria || item.categoria === categoria) &&
             (!bimestre || item.bimestre === Number(bimestre))
@@ -76,7 +84,7 @@ export function OcorrenciasListPage() {
           const diferenca = PRIORIDADE_PESO[b.prioridade] - PRIORIDADE_PESO[a.prioridade];
           return ordemPrioridade === "MAIOR" ? diferenca : -diferenca;
         }),
-    [aluno, bimestre, categoria, ocorrencias, ordemPrioridade, prioridade, status]
+    [aluno, bimestre, categoria, ocorrencias, ordemPrioridade, pendentes, prioridade, status]
   );
   return (
     <>
@@ -102,6 +110,14 @@ export function OcorrenciasListPage() {
             { label: "4º Bimestre", value: "4" }
           ]}
         />
+        {pendentes.length > 0 ? (
+          <Card className="filtro-ativo">
+            <span>Mostrando só o que espera por você.</span>
+            <Button variant="ghost" onClick={() => setSearchParams({})}>
+              Ver todas
+            </Button>
+          </Card>
+        ) : null}
         <Card title="Filtros">
           <div className="form-grid">
             <Input label="Aluno" value={aluno} onChange={(event) => setAluno(event.target.value)} />
@@ -150,6 +166,9 @@ export function OcorrenciasListPage() {
             <p className="muted">Carregando ocorrências...</p>
           ) : filtered.length === 0 ? (
             <div className="empty-state">
+              <span className="empty-state__icon" aria-hidden="true">
+                <ClipboardList size={30} />
+              </span>
               <strong>{ocorrencias.length === 0 ? "Nenhuma ocorrência para você ainda." : "Nada encontrado com esses filtros."}</strong>
               <span>
                 {ocorrencias.length === 0
@@ -161,7 +180,15 @@ export function OcorrenciasListPage() {
             <Table
               data={filtered}
               columns={[
-                { key: "aluno", header: "Aluno", render: (item) => item.aluno },
+                {
+                  key: "aluno",
+                  header: "Aluno",
+                  render: (item) => (
+                    <Link className="row-link" to={`/ocorrencias/${item.id}`}>
+                      {item.aluno}
+                    </Link>
+                  )
+                },
                 { key: "categoria", header: "Categoria", render: (item) => item.categoria },
                 { key: "status", header: "Status", render: (item) => <StatusBadge status={item.status} /> },
                 { key: "prioridade", header: "Prioridade", render: (item) => <PrioridadeBadge prioridade={item.prioridade} /> },
@@ -174,17 +201,6 @@ export function OcorrenciasListPage() {
                   key: "aberta",
                   header: "Em aberto",
                   render: (item) => <DiasEmAberto desde={item.criadoEm} status={item.status} />
-                },
-                {
-                  key: "acao",
-                  header: "Ação",
-                  render: (item) => (
-                    <Link to={`/ocorrencias/${item.id}`} aria-label={`Abrir ocorrência de ${item.aluno}`}>
-                      <Button variant="ghost" icon={<Eye size={18} />}>
-                        Abrir
-                      </Button>
-                    </Link>
-                  )
                 }
               ]}
             />

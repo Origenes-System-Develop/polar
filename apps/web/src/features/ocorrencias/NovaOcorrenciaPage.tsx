@@ -5,46 +5,59 @@ import { z } from "zod";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { Escolha } from "../../components/ui/Escolha";
 import { Input } from "../../components/ui/Input";
-import { Select } from "../../components/ui/Select";
-import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
+import { listAlunosDetalhados } from "../../services/school.service";
 import {
   CATEGORIAS_OCORRENCIA,
   PRIORIDADES_OCORRENCIA,
   type AlunoDetalhado,
   type Ocorrencia,
   type PrioridadeOcorrencia,
-  type Turma,
   type UpdateOcorrenciaPayload
 } from "../../services/domain";
 import { ApiError } from "../../services/api";
+import { BuscaAluno } from "./BuscaAluno";
 import { createOcorrencia, getOcorrencia, updateOcorrencia } from "./ocorrencias.service";
 
 const camposEditaveis = ["categoria", "prioridade", "descricao", "local", "testemunhas"] as const;
 
+// Prioridade e bimestre nao tem valor inicial: quem registra escolhe. Um padrao
+// ("Media", "1º bimestre") seria aceito sem ninguem conferir e entraria errado no dado.
 const schema = z.object({
   alunoId: z.string().min(1, "Selecione um aluno."),
-  turmaId: z.string().min(1, "Selecione uma turma."),
   categoria: z.string().min(1, "Informe a categoria."),
   prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], { message: "Informe a prioridade." }),
-  bimestre: z.coerce.number().int().min(1).max(4),
+  bimestre: z.coerce.number().int().min(1, "Informe o bimestre.").max(4, "Informe o bimestre."),
   descricao: z.string().min(10, "Descreva a ocorrência com pelo menos 10 caracteres."),
   local: z.string().min(1, "Informe o local."),
   testemunhas: z.string().optional()
 });
 
-type FormState = z.infer<typeof schema>;
+interface FormState {
+  alunoId: string;
+  categoria: string;
+  prioridade: string;
+  bimestre: string;
+  descricao: string;
+  local: string;
+  testemunhas: string;
+}
 
 const initialState: FormState = {
   alunoId: "",
-  turmaId: "",
   categoria: "",
-  prioridade: "MEDIA",
-  bimestre: 1,
+  prioridade: "",
+  bimestre: "",
   descricao: "",
   local: "",
   testemunhas: ""
 };
+
+const BIMESTRES = [1, 2, 3, 4].map((numero) => ({ value: String(numero), label: `${numero}º bimestre` }));
+
+// Cor de cada prioridade, a mesma dos selos da lista.
+const TOM_PRIORIDADE = { BAIXA: "success", MEDIA: "warning", ALTA: "danger", URGENTE: "critical" } as const;
 
 // Mesma tela para registrar e para o autor editar (rota /ocorrencias/:id/editar).
 export function NovaOcorrenciaPage() {
@@ -53,7 +66,6 @@ export function NovaOcorrenciaPage() {
   const [original, setOriginal] = useState<Ocorrencia | null>(null);
   const [form, setForm] = useState<FormState>(initialState);
   const [alunos, setAlunos] = useState<AlunoDetalhado[]>([]);
-  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -65,22 +77,16 @@ export function NovaOcorrenciaPage() {
 
     async function load() {
       try {
-        const [nextAlunos, nextTurmas, atual] = await Promise.all([
-          listAlunosDetalhados(),
-          listTurmas(),
-          id ? getOcorrencia(id) : Promise.resolve(null)
-        ]);
+        const [nextAlunos, atual] = await Promise.all([listAlunosDetalhados(), id ? getOcorrencia(id) : Promise.resolve(null)]);
         if (!active) return;
         setAlunos(nextAlunos);
-        setTurmas(nextTurmas);
         if (atual) {
           setOriginal(atual);
           setForm({
             alunoId: atual.alunoId,
-            turmaId: nextAlunos.find((aluno) => aluno.id === atual.alunoId)?.turmaId ?? "",
             categoria: atual.categoria,
             prioridade: atual.prioridade,
-            bimestre: atual.bimestre,
+            bimestre: String(atual.bimestre),
             descricao: atual.descricao,
             local: atual.local ?? "",
             testemunhas: atual.testemunhas ?? ""
@@ -89,7 +95,7 @@ export function NovaOcorrenciaPage() {
         setApiError("");
       } catch (err) {
         if (!active) return;
-        setApiError(err instanceof Error ? err.message : "Não foi possível carregar alunos e turmas. Recarregue a página.");
+        setApiError(err instanceof Error ? err.message : "Não foi possível carregar os alunos. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -108,17 +114,9 @@ export function NovaOcorrenciaPage() {
     if (field === "descricao") setModeracao(null);
   }
 
-  function setAluno(alunoId: string) {
-    const aluno = alunos.find((item) => item.id === alunoId);
-    setForm((current) => ({
-      ...current,
-      alunoId,
-      turmaId: aluno?.turmaId ?? current.turmaId
-    }));
-  }
-
   const editando = Boolean(id);
-  // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir do select.
+
+  // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir.
   const categorias: string[] =
     original && !(CATEGORIAS_OCORRENCIA as readonly string[]).includes(original.categoria)
       ? [...CATEGORIAS_OCORRENCIA, original.categoria]
@@ -146,7 +144,7 @@ export function NovaOcorrenciaPage() {
         if (Object.keys(alteracoes).length > 0) {
           await updateOcorrencia(original.id, { ...alteracoes, ...(confirmarModeracao && { confirmarModeracao }) });
         }
-        navigate(`/ocorrencias/${original.id}`);
+        navigate(`/ocorrencias/${original.id}`, { state: { aviso: { texto: "Alterações salvas." } } });
         return;
       }
       const ocorrencia = await createOcorrencia({
@@ -159,7 +157,9 @@ export function NovaOcorrenciaPage() {
         testemunhas: result.data.testemunhas,
         ...(confirmarModeracao && { confirmarModeracao })
       });
-      navigate(`/ocorrencias/${ocorrencia.id}`);
+      navigate(`/ocorrencias/${ocorrencia.id}`, {
+        state: { aviso: { texto: "Ocorrência registrada.", acao: { rotulo: "Registrar outra", to: "/ocorrencias/nova" } } }
+      });
     } catch (err) {
       if (err instanceof ApiError && err.code === "CONTEUDO_INADEQUADO") {
         const sugestao = (err.details as { sugestao?: string | null } | null)?.sugestao ?? null;
@@ -181,67 +181,41 @@ export function NovaOcorrenciaPage() {
     <>
       <PageHeader
         title={editando ? "Editar ocorrência" : "Registrar ocorrência"}
+        description={editando ? undefined : "Leva cerca de um minuto. Os campos com * são obrigatórios."}
         breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: editando ? "Editar" : "Nova" }]}
       />
-      <Card>
-        {apiError ? <p className="text-danger">{apiError}</p> : null}
-        <form className="form-grid" onSubmit={handleSubmit} noValidate>
-          <Select
-            label="Aluno"
-            value={form.alunoId}
-            onChange={(event) => setAluno(event.target.value)}
-            error={errors.alunoId}
-            disabled={loading || editando}
-            options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...alunos.map((aluno) => ({ label: aluno.nome, value: aluno.id }))]}
-          />
-          <Select
-            label="Bimestre"
-            value={String(form.bimestre)}
-            disabled={editando}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                bimestre: Number(event.target.value)
-              }))
-            }
-            options={[
-              { value: "1", label: "1º Bimestre" },
-              { value: "2", label: "2º Bimestre" },
-              { value: "3", label: "3º Bimestre" },
-              { value: "4", label: "4º Bimestre" }
-            ]}
-          />
-          <Select
-            label="Turma"
-            value={form.turmaId}
-            onChange={(event) => setField("turmaId", event.target.value)}
-            error={errors.turmaId}
-            disabled={loading || editando}
-            options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...turmas.map((turma) => ({ label: turma.nome, value: turma.id }))]}
-          />
-          <Select
-            label="Categoria"
+      {apiError ? (
+        <Card className="state-message state-message--danger" role="alert">
+          {apiError}
+        </Card>
+      ) : null}
+      <form className="form-sections" onSubmit={handleSubmit} noValidate>
+        <Card className="form-section form-section--azul">
+          <SecaoTitulo numero={1} titulo="Quem" dica="Escolha o aluno da lista." />
+          <BuscaAluno alunos={alunos} value={form.alunoId} onChange={(alunoId) => setField("alunoId", alunoId)} loading={loading} travado={editando} error={errors.alunoId} />
+        </Card>
+
+        <Card className="form-section form-section--laranja">
+          <SecaoTitulo numero={2} titulo="O que aconteceu" dica="Uma categoria e o relato do fato." />
+          <Escolha
+            legend="Categoria"
+            name="categoria"
+            required
             value={form.categoria}
-            onChange={(event) => setField("categoria", event.target.value)}
+            onChange={(valor) => setField("categoria", valor)}
             error={errors.categoria}
-            options={[{ label: "Selecione", value: "" }, ...categorias.map((categoria) => ({ label: categoria, value: categoria }))]}
+            options={categorias.map((categoria) => ({ label: categoria, value: categoria }))}
           />
-          <Select
-            label="Prioridade"
-            value={form.prioridade}
-            onChange={(event) => setField("prioridade", event.target.value)}
-            error={errors.prioridade}
-            options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))}
-          />
-          <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
-          <Input label="Testemunhas" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
-          <label className="ui-field span-2" htmlFor="descricao">
-            <span>Descrição</span>
-            <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} />
+          <label className="ui-field" htmlFor="descricao">
+            <span>
+              Descrição
+              <i className="ui-field__obrigatorio" aria-hidden="true"> *</i>
+            </span>
+            <textarea id="descricao" required value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} placeholder="Conte o que foi dito ou feito, sem opinião." />
             {errors.descricao ? <small className="ui-field__error">{errors.descricao}</small> : null}
           </label>
           {moderacao ? (
-            <div className="moderation-notice span-2" role="alert">
+            <div className="moderation-notice" role="alert">
               <strong>{moderacao.mensagem}</strong>
               {moderacao.sugestao ? (
                 <>
@@ -263,13 +237,52 @@ export function NovaOcorrenciaPage() {
               </div>
             </div>
           ) : null}
-          <div className="actions-row span-2">
-            <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
-              {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
-            </Button>
+        </Card>
+
+        <Card className="form-section form-section--coral">
+          <SecaoTitulo numero={3} titulo="Gravidade e período" dica="Quão sério é e em que bimestre aconteceu." />
+          <div className="form-grid">
+            <Escolha
+              legend="Prioridade"
+              name="prioridade"
+              required
+              value={form.prioridade}
+              onChange={(valor) => setField("prioridade", valor)}
+              error={errors.prioridade}
+              options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value, tone: TOM_PRIORIDADE[value] }))}
+            />
+            <Escolha legend="Bimestre" name="bimestre" required value={form.bimestre} onChange={(valor) => setField("bimestre", valor)} error={errors.bimestre} disabled={editando} options={BIMESTRES} />
           </div>
-        </form>
-      </Card>
+        </Card>
+
+        <Card className="form-section form-section--verde">
+          <SecaoTitulo numero={4} titulo="Onde" dica="O local e quem presenciou, se houver." />
+          <div className="form-grid">
+            <Input label="Local" required value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} placeholder="Exemplo: pátio, sala 12" />
+            <Input label="Testemunhas (opcional)" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
+          </div>
+        </Card>
+
+        <div className="actions-row">
+          <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
+            {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
+          </Button>
+        </div>
+      </form>
     </>
+  );
+}
+
+function SecaoTitulo({ numero, titulo, dica }: { numero: number; titulo: string; dica: string }) {
+  return (
+    <header className="form-section__titulo">
+      <span className="form-section__numero" aria-hidden="true">
+        {numero}
+      </span>
+      <div>
+        <h2>{titulo}</h2>
+        <p>{dica}</p>
+      </div>
+    </header>
   );
 }

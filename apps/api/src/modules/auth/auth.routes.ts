@@ -12,6 +12,7 @@ export function authRoutes(services: Services, config: AppConfig): Router {
 
   router.post("/login", loginRateLimit(), asyncHandler(controller.login));
   router.get("/me", authenticate(config, { permitirTrocaPendente: true }), asyncHandler(controller.me));
+  router.patch("/avatar", authenticate(config), asyncHandler(controller.avatar));
   router.post("/alterar-senha", authenticate(config, { permitirTrocaPendente: true }), asyncHandler(controller.alterarSenha));
 
   return router;

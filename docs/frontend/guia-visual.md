@@ -4,7 +4,9 @@
 
 O frontend segue uma linguagem institucional escolar: fundo claro, navegacao lateral, cards brancos, tabelas limpas e hierarquia visual objetiva.
 
-A Sala do Futuro e a referencia deliberada de organizacao visual, porque e a plataforma que os estudantes ja usam diariamente e com a qual o Polar devera integrar. Aproximar a interface reduz o atrito de quem transita entre os dois sistemas. O que se aproxima e a **gramatica visual** -- estrutura de navegacao, hierarquia, uso de cor como sinal. Identidade, logo, textos e fluxo sao proprios do Polar, e a secao 3 continua valendo integralmente.
+O Polar adota a identidade visual da Sala do Futuro, a plataforma que professores e estudantes ja usam todo dia. Quem passa de uma para o outra reconhece a tela: mesma fonte (Open Sans), mesmos cinzas e azuis, botoes em pilula, cartoes com linha colorida na base, menu lateral claro. O que continua do Polar: o nome, a marca (`Marca.tsx`), os textos (`guia-de-voz.md`) e o fluxo de ocorrencias. A secao 3 vale integralmente.
+
+A Sala do Futuro e referencia de **estilo**, nao de acessibilidade: dois cinzas dela (`#6b778c` e `#b3bac5`) ficam abaixo do contraste minimo do WCAG e foram escurecidos aqui. As medidas de referencia (cores, raios, tamanhos, sombras) estao em `docs/relatorio-sala-do-futuro.md`.
 
 ## 2. O que pode ser inspirado
 
@@ -17,7 +19,10 @@ A Sala do Futuro e a referencia deliberada de organizacao visual, porque e a pla
 - Abas.
 - Cards de resumo.
 - Tabelas limpas.
-- Botoes arredondados.
+- Botoes em pilula (raio 30px, 43px de altura).
+- Linha colorida de 3px na base dos cartoes de indicador.
+- Estado vazio com icone grande em quadrado arredondado.
+- Sombra do Material Design (niveis 1, 3 e 8).
 
 ## 3. O que nao pode ser copiado
 
@@ -36,31 +41,42 @@ A fonte de verdade e `apps/web/src/styles/tokens.css`. Esta lista e o resumo; di
 
 - Background do conteudo: `#f4f5f7`
 - Card e painel (sidebar, topbar, rodape): `#ffffff`
-- Azul principal: `#1351b4`
-- Azul forte: `#0c3d8d`
-- Azul suave (item ativo do menu): `#e8f1fb`
-- Painel do login: azul forte chapado (`#0c3d8d`). Sem gradiente.
-- Texto principal: `#1f2937`
-- Texto secundario: `#667085`
-- Sucesso: `#16844a`
-- Analise/alerta: `#b86b00`
-- Erro/prioridade alta: `#c73636`
+- Azul do botao: `#3d77b7` (hover `#2f64a0`)
+- Azul do texto e do item ativo do menu: `#1565d8` (`--color-link`)
+- Azul suave (item ativo do menu): `#e8f0fb`
+- Painel do login: gradiente `#1d6f9a` a `#0b5276`, texto branco (mais de 5,5:1 nas duas pontas).
+- Texto principal: `#183b56`
+- Texto secundario: `#59647a`; icones inativos e apoio: `#76829a`
+- Borda de campo: `#8a94a6` (3:1 contra o branco)
+- Sucesso: `#3b6649` sobre `#d6f9e0`
+- Analise/alerta: `#8a4f00` sobre `#fff3d6`
+- Erro/prioridade alta: `#c80000`
 
-Destaques dos cards de indicador (faixa superior de 4px, uma cor por indicador para
-que o numero seja localizavel antes da leitura do rotulo):
+Linha de cor na base dos cartoes de indicador (3px, uma cor por indicador para que o
+numero seja localizavel antes da leitura do rotulo):
 
-- Azul `#2d9cdb` · Laranja `#f2a33c` · Vermelho `#eb5757` · Verde `#27ae60`
+- Azul-ceu `#3c9cc6` · Areia `#c4802a` · Coral `#d8786b` · Verde `#2e9a5b`
 
-Tipografia: Public Sans (Google Fonts, carregada em `index.html`). A Inter estava declarada mas nunca era carregada.
+Todo par de cor de texto fecha 4,5:1 e todo elemento de interface 3:1; a conferencia e o
+script `scripts/contraste.mjs` (`node scripts/contraste.mjs --so-falhas` mostra so o que reprova;
+as linhas de referencia da Sala do Futuro reprovam de proposito), com a tabela em
+`docs/relatorio-sala-do-futuro.md`. Mudou um token, atualize o script e rode de novo.
 
-Ficam de fora os clichês de sistema feito por IA: gradiente roxo/azul, brilho neon, ícone de robô ou faísca, escudo decorativo. Textos seguem `guia-de-voz.md`.
+Tipografia: Open Sans variavel (400 a 800, so o alfabeto latino), hospedada em
+`apps/web/public/fonts/` com licenca OFL, sem requisicao a terceiros. Nao usar o peso 300:
+texto fino e cinza cansa quem le o dia todo.
+
+Ficam de fora os clichês de sistema feito por IA: gradiente roxo/rosa, brilho neon, ícone de robô ou faísca, escudo decorativo. Textos seguem `guia-de-voz.md`.
+
+Movimento: so `opacity` e `transform`, tempos curtos (`--dur-1/2/3`). A tela entra com um fade de 6px; os indicadores entram em sequencia so na primeira vez da sessao; o aviso entra de baixo. Nada anima em repeticao e nada usa JavaScript para animar. `prefers-reduced-motion` desliga tudo (regra unica no fim de `ui.css`).
 
 Marcas oficiais (pasta de identidade do time), em `components/ui/Marca.tsx`: a do Polar (estrela de seis pontas entre dois arcos) e a marca do sistema, usada no menu, no login e no favicon; a da Polaris (Ursa Menor) e a da equipe e aparece so no rodapé, como assinatura. Ao aparecer, os arcos se desenham e a estrela acende; no hover a estrela gira 60 graus. Sem animação contínua e nada com `prefers-reduced-motion`.
 
 ## 5. Componentes principais
 
 Base de UI (`components/ui/`): `Button`, `Card`, `Input`, `Select`, `Table`, `Badge`,
-`Modal`, `Tabs`, `Breadcrumb`.
+`Modal`, `Tabs`, `Breadcrumb`, `Escolha` (grupo de botoes de toque no lugar de lista), `Aviso` (confirmacao curta
+lida do `state` da navegacao).
 
 Estrutura (`components/layout/`): `AppShell`, `Sidebar`, `Topbar`, `PageHeader`,
 `AppFooter`, `UserMenu`, `PendenciasBell`.

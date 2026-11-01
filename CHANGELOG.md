@@ -31,7 +31,22 @@ tags nem releases no GitHub; por isso os links apontam para commits.
   (acentuação, aluno e concorrência), manual do usuário, plano de manutenção,
   `CODEOWNERS` e modelos de issue e Pull Request.
 
+### Adicionado
+
+- Estúdio de avatar (`/perfil/estudio`): o usuário monta um personagem ou fica com as iniciais, e o escolhido aparece no menu e no painel. São mais de 260 escolhas (52 na Sala do Futuro), com 40 tons de pele, 40 cores de cabelo e de roupa e seletor livre de cor. O desenho vem do estilo Avataaars via DiceBear 9.4.3, carregado só ao abrir o estúdio (52 kB gzip). Exige rodar `database/schema.sql` antes do deploy (coluna `users.avatar`).
+
 ### Alterado
+
+- Identidade visual da Sala do Futuro: Open Sans hospedada no projeto, botões em
+  pílula, cartões com linha colorida na base, menu lateral e topo no estilo dela,
+  contraste conferido por script (os cinzas dela foram escurecidos). Animações
+  curtas só com CSS e respeito a `prefers-reduced-motion`.
+- Registrar ocorrência: busca de aluno; categoria, prioridade e bimestre em botões
+  de toque (prioridade e bimestre sem valor inicial); turma mostrada em texto; aviso
+  "Ocorrência registrada" com atalho para registrar outra.
+- Painel e lista: o cartão de pendências abre a lista já filtrada, a linha inteira
+  abre a ocorrência, encerrar pede confirmação e, depois de mudar o status, o aviso
+  oferece a próxima pendência.
 
 - Marcas oficiais do Polar (menu, login, favicon) e da equipe Polaris (rodapé), com animação curta ao aparecer e no hover. Botão de recolher o menu dentro da barra lateral, com transição suave e preferência lembrada.
 - Revisão visual e de texto mantendo a identidade atual: login sem gradiente, fonte Public Sans carregada de verdade, nome Polar em todas as telas, status e perfis com nome legível em vez do valor interno, acentos em toda a interface e textos diretos. Guia em `docs/frontend/guia-de-voz.md`, com teste que barra travessão, exclamação e frases de folheto.

@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import type { AppConfig } from "../../shared/config.js";
-import { PapelUsuario, usuarioPublico, type Usuario } from "../../shared/domain.js";
+import { PapelUsuario, usuarioPublico, type AvatarUsuario, type Usuario } from "../../shared/domain.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import { AppError, unauthorized } from "../../shared/errors/app-error.js";
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
@@ -109,6 +109,24 @@ export class AuthService {
     });
 
     return this.emitirSessao(updated);
+  }
+
+  async atualizarAvatar(usuarioId: string, avatar: AvatarUsuario): Promise<LoginResult["user"]> {
+    const now = agoraIso();
+    const atualizado = await this.users.update(usuarioId, (current) => ({ ...current, avatar, atualizadoEm: now }));
+    if (!atualizado) {
+      throw unauthorized();
+    }
+    await this.audit.create({
+      id: novoId(),
+      usuarioId,
+      acao: "AVATAR_ALTERADO",
+      entidade: "usuarios",
+      entidadeId: usuarioId,
+      metadata: { tipo: avatar.tipo },
+      criadoEm: now
+    });
+    return usuarioPublico(atualizado);
   }
 
   private emitirSessao(usuario: Usuario): LoginResult {

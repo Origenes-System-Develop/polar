@@ -4,6 +4,12 @@ import { describe, expect, it } from "vitest";
 import { renderWithProviders } from "../../test/render";
 import { OcorrenciasListPage } from "./OcorrenciasListPage";
 
+// A lista de selecao tem painel proprio: abre pelo botao e escolhe pela opcao.
+async function escolher(campo: RegExp, opcao: string) {
+  await userEvent.click(screen.getByRole("combobox", { name: campo }));
+  await userEvent.click(await screen.findByRole("option", { name: opcao }));
+}
+
 describe("OcorrenciasListPage", () => {
   it("renderiza tabela com ocorrencias", async () => {
     renderWithProviders(<OcorrenciasListPage />, ["/ocorrencias"]);
@@ -17,13 +23,13 @@ describe("OcorrenciasListPage", () => {
     renderWithProviders(<OcorrenciasListPage />, ["/ocorrencias"]);
     await screen.findByText("Estudante 01");
 
-    await userEvent.selectOptions(screen.getByLabelText("Prioridade"), "ALTA");
+    await escolher(/^Prioridade/, "Alta");
     const linhasFiltradas = within(screen.getByRole("table")).getAllByRole("row");
     expect(linhasFiltradas).toHaveLength(2);
     expect(within(linhasFiltradas[1]).getByText("Alta: Grave")).toBeInTheDocument();
 
-    await userEvent.selectOptions(screen.getByLabelText("Prioridade"), "");
-    await userEvent.selectOptions(screen.getByLabelText("Ordenar por prioridade"), "MAIOR");
+    await escolher(/^Prioridade/, "Todas");
+    await escolher(/^Ordenar por prioridade/, "Alta para baixa");
     const linhasOrdenadas = within(screen.getByRole("table")).getAllByRole("row").slice(1);
     expect(within(linhasOrdenadas[0]).getByText("Alta: Grave")).toBeInTheDocument();
   });

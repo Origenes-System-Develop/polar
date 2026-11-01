@@ -53,10 +53,11 @@ describe("Edicao de ocorrencia pelo autor", () => {
     );
 
     expect(await screen.findByDisplayValue("Atrasos consecutivos na primeira aula.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Aluno")).toBeDisabled();
-    expect(screen.getByLabelText("Categoria")).toHaveValue("Atraso");
+    expect(screen.getByText(/^Turma:/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Trocar aluno" })).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Atraso" })).toBeChecked();
 
-    await user.selectOptions(screen.getByLabelText("Prioridade"), "ALTA");
+    await user.click(screen.getByRole("radio", { name: "Alta" }));
     await user.click(screen.getByRole("button", { name: /salvar alterações/i }));
 
     expect(await screen.findByText("detalhe")).toBeInTheDocument();
