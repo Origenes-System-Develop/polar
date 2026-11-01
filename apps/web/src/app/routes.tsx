@@ -4,6 +4,7 @@ import { AlunosPage } from "../features/alunos/AlunosPage";
 import { PerfilAlunoPage } from "../features/alunos/PerfilAlunoPage";
 import { AccessDeniedPage } from "../features/auth/AccessDeniedPage";
 import { LoginPage } from "../features/auth/LoginPage";
+import { PerfilPage } from "../features/auth/PerfilPage";
 import { ConfiguracoesPage } from "../features/configuracoes/ConfiguracoesPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { DetalheOcorrenciaPage } from "../features/ocorrencias/DetalheOcorrenciaPage";
@@ -61,6 +62,7 @@ const routes: RouteObject[] = [
             element: <ProtectedRoute permission="configuracoes:manage" />,
             children: [{ path: "configuracoes", element: <ConfiguracoesPage /> }]
           },
+          { path: "perfil", element: <PerfilPage /> },
           { path: "acesso-negado", element: <AccessDeniedPage /> },
           { path: "404", element: <NotFoundPage /> },
           { path: "*", element: <Navigate to="/404" replace /> }

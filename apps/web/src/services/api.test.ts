@@ -32,4 +32,14 @@ describe("apiRequest com 401", () => {
     expect(erro).toMatchObject({ message: "Sua sessão expirou. Entre de novo.", status: 401 });
     expect(getToken()).toBe("");
   });
+
+  it("descarta tambem o usuario guardado, para o app nao achar que ainda ha login", async () => {
+    setToken("token-vencido");
+    localStorage.setItem("polar_user", JSON.stringify({ id: "u1" }));
+    vi.stubGlobal("fetch", vi.fn(async () => respostaNaoAutorizada("Token JWT invalido ou expirado.")));
+
+    await apiRequest("/ocorrencias").catch(() => null);
+
+    expect(localStorage.getItem("polar_user")).toBeNull();
+  });
 });

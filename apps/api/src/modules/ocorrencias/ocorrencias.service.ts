@@ -19,6 +19,7 @@ import type { AuditRepository } from "../../shared/database/repositories/audit.r
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
 import type { EnviarEmail } from "../../shared/email.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
+import { semEmails } from "../../shared/utils/logs.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
 import { analisarDescricao, sugerirRedacao } from "./moderacao/moderacao-descricao.js";
 
@@ -294,7 +295,7 @@ export class OcorrenciasService {
         const envios = await Promise.allSettled(para.map((email) => enviar({ para: email, assunto, texto })));
         const falhas = envios.filter((envio): envio is PromiseRejectedResult => envio.status === "rejected");
         for (const falha of falhas) {
-          console.error(`Falha ao enviar e-mail (${destinatario}) da ocorrencia ${ocorrencia.id}:`, String(falha.reason));
+          console.error(`Falha ao enviar e-mail (${destinatario}) da ocorrencia ${ocorrencia.id}:`, semEmails(String(falha.reason)));
         }
         return [destinatario, falhas.length === 0 ? "ENVIADO" : "FALHOU"];
       })

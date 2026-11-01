@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler} from "express";
 import { ZodError } from "zod";
+import { descreverErro } from "../utils/logs.js";
 import { AppError } from "./app-error.js";
 
 export const errorMiddleware: ErrorRequestHandler = (error, _req, res, _next) => {
@@ -28,7 +29,7 @@ export const errorMiddleware: ErrorRequestHandler = (error, _req, res, _next) =>
     return res.status(error.statusCode).json(payload);
   }
 
-  console.error("Erro nao tratado:", error);
+  console.error("Erro nao tratado:", descreverErro(error));
   return res.status(500).json({
     error: {
       code: "INTERNAL_ERROR",

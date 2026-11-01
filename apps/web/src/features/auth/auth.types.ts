@@ -5,6 +5,7 @@ export interface AuthUser {
   nome: string;
   email: string;
   papel: UserRole;
+  precisaTrocarSenha?: boolean;
 }
 
 export interface LoginResponse {

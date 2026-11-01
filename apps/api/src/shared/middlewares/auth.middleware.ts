@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import type { AppConfig } from "../config.js";
 import { PapelUsuario } from "../domain.js";
-import { forbidden, unauthorized } from "../errors/app-error.js";
+import { AppError, forbidden, unauthorized } from "../errors/app-error.js";
 import { type Permissao, possuiPermissao } from "../permissions/permissions.js";
 import type { AuthenticatedUser } from "../../modules/auth/auth.types.js";
 
@@ -11,6 +11,7 @@ interface JwtPayload {
   nome: string;
   email: string;
   papel: PapelUsuario;
+  precisaTrocarSenha?: boolean;
 }
 
 function isJwtPayload(value: unknown): value is JwtPayload {
@@ -27,7 +28,9 @@ function isJwtPayload(value: unknown): value is JwtPayload {
   );
 }
 
-export function authenticate(config: AppConfig) {
+// Conta com senha provisoria so alcanca as rotas marcadas com permitirTrocaPendente
+// (ver quem sou e trocar a senha); todas as demais respondem 403 ate a troca.
+export function authenticate(config: AppConfig, opcoes: { permitirTrocaPendente?: boolean } = {}) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const header = req.headers.authorization ?? "";
     const [scheme, token] = header.split(" ");
@@ -41,6 +44,11 @@ export function authenticate(config: AppConfig) {
       const decoded = jwt.verify(token, config.jwtSecret, { issuer: "pola-api" });
       if (!isJwtPayload(decoded)) {
         next(unauthorized("Token JWT invalido."));
+        return;
+      }
+
+      if (decoded.precisaTrocarSenha === true && !opcoes.permitirTrocaPendente) {
+        next(new AppError("Troque a senha provisoria para continuar.", 403, "TROCA_SENHA_OBRIGATORIA"));
         return;
       }
 
