@@ -27,10 +27,8 @@ const camposEditaveis = ["categoria", "prioridade", "descricao", "local", "teste
 const schema = z.object({
   alunoId: z.string().min(1, "Selecione um aluno."),
   categoria: z.string().min(1, "Informe a categoria."),
-  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], {
-    errorMap: () => ({ message: "Informe a prioridade." })
-  }),
-  bimestre: z.coerce.number({ invalid_type_error: "Informe o bimestre." }).int().min(1, "Informe o bimestre.").max(4, "Informe o bimestre."),
+  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], { message: "Informe a prioridade." }),
+  bimestre: z.coerce.number().int().min(1, "Informe o bimestre.").max(4, "Informe o bimestre."),
   descricao: z.string().min(10, "Descreva a ocorrência com pelo menos 10 caracteres."),
   local: z.string().min(1, "Informe o local."),
   testemunhas: z.string().optional()
