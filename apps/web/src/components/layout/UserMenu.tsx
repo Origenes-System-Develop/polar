@@ -6,11 +6,22 @@ import { useAuth } from "../../app/providers";
 import { iniciaisDe, rotuloDePapel } from "./iniciais";
 import "./layout.css";
 
-export function UserMenu() {
+export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [aberto, setAberto] = useState(false);
+  const [posicao, setPosicao] = useState<{ left: number; bottom: number } | null>(null);
   const container = useRef<HTMLDivElement>(null);
+
+  // No menu lateral o painel abre para cima e fora da caixa do menu (que corta o que passa dela),
+  // por isso usa posicao fixa calculada a partir do botao.
+  function alternar() {
+    if (!aberto && variante === "menu" && container.current) {
+      const caixa = container.current.getBoundingClientRect();
+      setPosicao({ left: caixa.left, bottom: window.innerHeight - caixa.top + 8 });
+    }
+    setAberto((valor) => !valor);
+  }
 
   // Fecha ao clicar fora ou no Esc: um menu que so fecha pelo proprio botao
   // prende o usuario quando ele ja mudou de ideia e clicou em outro lugar.
@@ -41,11 +52,11 @@ export function UserMenu() {
   }
 
   return (
-    <div className="user-menu" ref={container}>
+    <div className={`user-menu user-menu--${variante}`} ref={container}>
       <button
         type="button"
         className="user-menu__trigger"
-        onClick={() => setAberto((valor) => !valor)}
+        onClick={alternar}
         aria-expanded={aberto}
         aria-haspopup="menu"
       >
@@ -53,11 +64,11 @@ export function UserMenu() {
           {iniciaisDe(user?.nome)}
         </span>
         <span className="user-menu__name">{user?.nome ?? "Usuário"}</span>
-        <ChevronDown size={16} aria-hidden="true" />
+        <ChevronDown size={16} aria-hidden="true" className="user-menu__seta" />
       </button>
 
       {aberto ? (
-        <div className="user-menu__panel" role="menu">
+        <div className="user-menu__panel" role="menu" style={variante === "menu" && posicao ? { position: "fixed", ...posicao, top: "auto", right: "auto" } : undefined}>
           <header className="user-menu__panel-header">
             <strong>PERFIL</strong>
             <button type="button" onClick={() => setAberto(false)} aria-label="Fechar menu de perfil">

@@ -87,7 +87,8 @@
   gap: var(--space-2);
 }
 
-.ui-field > span {
+.ui-field > span,
+.ui-field > label {
   color: var(--color-text-muted);
   font-size: 0.9rem;
   font-weight: 650;
@@ -126,6 +127,7 @@
 .ui-badge {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   min-height: 26px;
   border-radius: 999px;
   padding: 0 var(--space-3);
@@ -294,6 +296,17 @@
   gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.88rem;
+}
+
+.ui-breadcrumb a {
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-1) var(--ease-padrao);
+}
+
+.ui-breadcrumb a:hover {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .ui-breadcrumb span + span::before {
@@ -653,4 +666,162 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Select com painel proprio ---------- */
+
+.ui-select {
+  position: relative;
+}
+
+/* O <select> nativo fica no DOM, sem aparecer: guarda o valor do formulario. */
+.ui-select__nativo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ui-select__botao {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  background: #fff;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao);
+}
+
+.ui-select__botao:hover:not(:disabled) {
+  border-color: var(--color-link);
+}
+
+.ui-select__botao:focus-visible,
+.ui-select__botao[aria-expanded="true"] {
+  border-color: var(--color-link);
+  box-shadow: 0 0 0 1px var(--color-link);
+  outline: none;
+}
+
+.ui-select__botao:disabled {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.ui-select__botao[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.ui-select__valor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A seta e um icone em caixa fixa: fica sempre centrada, qualquer que seja a largura. */
+.ui-select__seta {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform var(--dur-2) var(--ease-padrao);
+}
+
+.ui-select__botao[aria-expanded="true"] .ui-select__seta {
+  transform: rotate(180deg);
+}
+
+.ui-select__lista {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + var(--space-1));
+  z-index: 35;
+  max-height: 280px;
+  margin: 0;
+  padding: var(--space-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+  transform-origin: top;
+  animation: select-abre var(--dur-1) var(--ease-padrao);
+}
+
+.ui-select__lista--cima {
+  top: auto;
+  bottom: calc(100% + var(--space-1));
+  transform-origin: bottom;
+}
+
+.ui-select__opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 42px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.ui-select__opcao.is-ativa {
+  background: var(--color-primary-soft);
+}
+
+.ui-select__opcao.is-selecionada {
+  color: var(--color-link);
+  font-weight: 700;
+}
+
+@keyframes select-abre {
+  from {
+    opacity: 0;
+    transform: scaleY(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* ---------- Barra de rolagem fina ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(89, 100, 122, 0.45) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background: rgba(89, 100, 122, 0.4);
+  background-clip: content-box;
+  transition: background var(--dur-2) var(--ease-padrao);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(21, 101, 216, 0.7);
+  background-clip: content-box;
 }

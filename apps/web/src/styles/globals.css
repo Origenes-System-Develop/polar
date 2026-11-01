@@ -386,10 +386,10 @@ textarea:focus-visible {
 }
 
 .severity-badge__marker {
-  display: inline-grid;
-  width: 1em;
-  place-items: center;
-  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 @media (max-width: 1100px) {

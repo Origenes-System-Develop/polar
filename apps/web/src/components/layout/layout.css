@@ -35,12 +35,105 @@
   overflow: hidden;
 }
 
+.sidebar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 48px;
+}
+
 .sidebar__brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-2);
-  min-height: 48px;
+  gap: var(--space-2);
+  padding: 0 var(--space-1);
+  min-width: 0;
+}
+
+.sidebar__recolher,
+.sidebar__marca-botao,
+.sidebar__config {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-padrao), color var(--dur-1) var(--ease-padrao);
+}
+
+.sidebar__recolher:hover,
+.sidebar__config:hover,
+.sidebar__config.active {
+  background: var(--color-bg);
+  color: var(--color-link);
+}
+
+/* Recolhido: a marca e o botao de expandir. Ao passar o mouse (ou focar) a marca some
+   e entra o icone de expandir, no mesmo lugar, como no menu do Gemini. */
+.sidebar__marca-botao {
+  position: relative;
+  width: 100%;
+  height: 48px;
+}
+
+.sidebar__marca-botao > * {
+  grid-area: 1 / 1;
+  transition: opacity var(--dur-2) var(--ease-padrao), transform var(--dur-2) var(--ease-padrao);
+}
+
+.sidebar__marca-expandir {
+  opacity: 0;
+  transform: scale(0.8);
+  color: var(--color-link);
+}
+
+.sidebar__marca-botao:hover,
+.sidebar__marca-botao:focus-visible {
+  background: var(--color-bg);
+}
+
+.sidebar__marca-botao:hover .marca,
+.sidebar__marca-botao:focus-visible .marca {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.sidebar__marca-botao:hover .sidebar__marca-expandir,
+.sidebar__marca-botao:focus-visible .sidebar__marca-expandir {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Rodape do menu: perfil (e engrenagem das configuracoes). */
+.sidebar__foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.sidebar__foot .user-menu {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-shell.is-collapsed .sidebar__foot {
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.app-shell.is-collapsed .sidebar__foot .user-menu {
+  flex: 0 0 auto;
 }
 
 
@@ -63,7 +156,7 @@
 
 .sidebar__brand-text span {
   color: var(--color-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.72rem;
 }
 
 .sidebar__nav {
@@ -141,32 +234,6 @@
   padding: 0;
 }
 
-.sidebar__toggle {
-  margin-top: auto;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  border: 0;
-  border-top: 1px solid var(--color-border);
-  border-radius: 0;
-  padding: var(--space-3) var(--space-4) 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.sidebar__toggle:hover {
-  color: var(--color-link);
-}
-
-.sidebar__toggle svg {
-  flex-shrink: 0;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* Recolhida: os rotulos encolhem e os icones ficam onde estavam. A largura
    recolhida centraliza o icone (16 de borda + 16 de recuo + 10 = 42 = 84/2).
    O title nos links mantem o destino identificavel sem o rotulo. */
@@ -177,8 +244,7 @@
   transition: max-width 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease;
 }
 
-.app-shell.is-collapsed .sidebar__nav a,
-.app-shell.is-collapsed .sidebar__toggle {
+.app-shell.is-collapsed .sidebar__nav a {
   gap: 0;
 }
 
@@ -186,8 +252,9 @@
   gap: 0;
 }
 
-.app-shell.is-collapsed .sidebar__toggle svg {
-  transform: rotate(180deg);
+.app-shell.is-collapsed .user-menu--menu .user-menu__name,
+.app-shell.is-collapsed .user-menu--menu .user-menu__seta {
+  display: none;
 }
 
 /* ---------- Barra superior ---------- */
@@ -196,7 +263,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  min-height: 64px;
+  min-height: 56px;
   background: var(--color-shell);
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -264,7 +331,29 @@
 }
 
 .user-menu__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
+}
+
+.user-menu--menu .user-menu__trigger {
+  width: 100%;
+}
+
+.user-menu--menu .user-menu__name {
+  flex: 1;
+  text-align: left;
+}
+
+.user-menu--menu .user-menu__panel {
+  width: min(288px, calc(100vw - var(--space-6)));
+}
+
+.user-menu__seta {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 .user-menu__panel {
@@ -435,45 +524,83 @@
 .app-footer {
   border-top: 1px solid var(--color-border);
   background: var(--color-shell);
-  padding: var(--space-6) var(--space-8);
+  padding: var(--space-6) var(--space-8) var(--space-4);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.app-footer__topo {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8);
   align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
 }
 
 .app-footer__brand {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-right: auto;
+}
+
+.app-footer__brand strong,
+.app-footer__brand span,
+.app-footer__avisos strong,
+.app-footer__avisos span {
+  display: block;
+}
+
+.app-footer__brand span {
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.app-footer__avisos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-footer__avisos li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 260px;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+}
+
+.app-footer__avisos svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-link);
+}
+
+.app-footer__avisos strong {
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.app-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
 }
 
 .app-footer__equipe {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  align-self: center;
-  color: var(--color-text-muted);
-  font-size: 0.86rem;
   font-weight: 600;
-}
-
-.app-footer__equipe:hover {
-  cursor: default;
-  color: var(--color-text);
-}
-
-.app-footer__column {
-  display: grid;
-  gap: var(--space-1);
-  font-size: 0.86rem;
-  color: var(--color-text-muted);
-}
-
-.app-footer__column strong {
-  color: var(--color-text);
-  margin-bottom: var(--space-1);
 }
 
 @media (max-width: 980px) {
@@ -494,7 +621,12 @@
     transform: translateX(0);
   }
 
-  .sidebar__toggle {
+  .sidebar__recolher,
+  .sidebar__marca-botao {
+    pointer-events: none;
+  }
+
+  .sidebar__recolher {
     display: none;
   }
 

@@ -52,6 +52,12 @@ Data: 01/11/2026. Base: `origin/develop` (`54563fa`). Dois pull requests, nesta 
 | `docs/frontend/guia-visual.md`, `CHANGELOG.md` | Atualizados. |
 | Testes | Ajustados ao formulário novo (`NovaOcorrenciaPage`, `EditarOcorrencia`); novos: `Aviso.test.tsx`, `StatusOcorrencia.test.tsx` (filtro de pendências, link da linha, confirmação ao encerrar), busca de aluno, turma exibida, prioridade e bimestre sem valor inicial. |
 
+| `components/ui/Select.tsx` | Lista de seleção com painel próprio (botão + lista com teclado, digitação para pular, abre para cima se faltar espaço). O `<select>` nativo continua no DOM, escondido, como fonte do valor; com `size` maior que 1 segue nativo (busca de aluno). Setas de dropdown centralizadas por ícone de caixa fixa. |
+| `Sidebar.tsx`, `UserMenu.tsx`, `Topbar.tsx`, `layout.css` | Menu no estilo do Gemini: recolher no ícone ao lado da marca; recolhido, a marca vira o botão de expandir ao passar o mouse; perfil e engrenagem das Configurações no rodapé do menu (o painel do perfil abre para cima). O perfil saiu do topo. "Configurações" saiu da lista, só a engrenagem leva a ela (ADM). Menu com 256 px. |
+| `AppFooter.tsx` | Rodapé refeito: marca, três avisos com ícone (histórico, privacidade, dúvidas) e uma linha final com ano e assinatura da Polaris. |
+| `status.tsx`, `globals.css` | Marcadores de prioridade passam de caracteres (`●`, `▲`, `!`) para ícones centralizados (seta, igual, triângulo, octógono). |
+| `ui.css` | Barra de rolagem fina e arredondada; trilha de navegação muda de cor ao passar o mouse. |
+
 Removido: a coluna "Ação" da lista (a linha inteira é o atalho), o seletor de Turma da tela de registro, os links do Google Fonts.
 
 ## 3. Medições da Sala do Futuro

@@ -70,7 +70,7 @@
   --space-8: 32px;
   --space-10: 40px;
 
-  --sidebar-width: 240px;
+  --sidebar-width: 256px;
   --sidebar-width-collapsed: 84px;
 
   /* Movimento: so opacity e transform, tempos curtos. */
