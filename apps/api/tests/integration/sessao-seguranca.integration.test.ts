@@ -82,3 +82,17 @@ describe("Troca de senha obrigatoria", () => {
     await request(app).post("/api/auth/login").send({ email: "nova@pola.test", senha: senhaNova }).expect(200);
   });
 });
+
+describe("Limite nas rotas autenticadas", () => {
+  it("a troca de senha tem limite por usuario e nao trava outra conta", async () => {
+    const { app } = await buildTestContext();
+    const auth = await tokens(app);
+    const trocar = (token: string) =>
+      request(app).post("/api/auth/alterar-senha").set("Authorization", `Bearer ${token}`).send({ senhaAtual: "errada-errada", novaSenha: "OutraSenha123" });
+
+    for (let i = 0; i < 10; i += 1) await trocar(auth.professor).expect(401);
+    const bloqueada = await trocar(auth.professor).expect(429);
+    expect(bloqueada.body.error.code).toBe("RATE_LIMITED");
+    await trocar(auth.coordenador).expect(401);
+  });
+});
