@@ -48,7 +48,7 @@ export function PendenciasBell() {
     <button
       type="button"
       className="pendencias-bell"
-      onClick={() => navigate("/ocorrencias")}
+      onClick={() => navigate("/ocorrencias?pendentes=1")}
       title={descricao}
       aria-label={descricao}
     >

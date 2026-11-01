@@ -52,6 +52,20 @@ const RESULTADO_LABEL: Record<NotificacaoOcorrencia["resultado"], string> = {
   NAO_ENVIADO: "Registrado no Polar, sem e-mail"
 };
 
+// Quem age em cada status, igual as regras da API: coordenacao analisa e resolve, direcao encerra.
+const PROVIDENCIA: Partial<Record<StatusOcorrencia, { quem: string; fez: string }>> = {
+  EM_ANALISE: { quem: "Coordenação", fez: "colocou em análise" },
+  RESOLVIDA: { quem: "Coordenação", fez: "marcou como resolvida" },
+  ENCERRADA: { quem: "Direção", fez: "encerrou" }
+};
+
+const SITUACAO: Record<StatusOcorrencia, string> = {
+  REGISTRADA: "Registrada. Aguarda a análise da coordenação.",
+  EM_ANALISE: "A coordenação está analisando.",
+  RESOLVIDA: "A coordenação resolveu. Aguarda o encerramento pela direção.",
+  ENCERRADA: "Encerrada pela direção. O histórico fica guardado."
+};
+
 function formatarDataHora(valor: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -99,6 +113,9 @@ export function DetalheOcorrenciaPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // So o que a coordenacao e a direcao fizeram: as mudancas de status depois do registro.
+  const providencias = useMemo(() => historico.filter((item) => item.status !== "REGISTRADA" && PROVIDENCIA[item.status]), [historico]);
 
   const actions = useMemo(() => {
     if (!ocorrencia) return [];
@@ -226,6 +243,30 @@ export function DetalheOcorrenciaPage() {
             )}
           </Card>
         </div>
+        <Card title="Providências da coordenação e da direção" className="providencias">
+          <p className="providencias__situacao">
+            <StatusBadge status={ocorrencia.status} />
+            <span>{SITUACAO[ocorrencia.status]}</span>
+          </p>
+          {providencias.length === 0 ? (
+            <p className="muted">Ainda não houve providência. Quando a coordenação agir, aparece aqui.</p>
+          ) : (
+            <ol className="timeline">
+              {providencias.map((item) => (
+                <li key={item.id}>
+                  <strong>
+                    {PROVIDENCIA[item.status]?.quem} {PROVIDENCIA[item.status]?.fez}
+                  </strong>
+                  {item.usuarioNome ? <span className="muted">{item.usuarioNome}</span> : null}
+                  <time className="muted" dateTime={item.criadoEm}>
+                    {formatarDataHora(item.criadoEm)}
+                  </time>
+                  {item.observacao ? <span>Observação: {item.observacao}</span> : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </Card>
         <Card title="Descrição">
           <p>{ocorrencia.descricao}</p>
           <p className="muted">Local: {ocorrencia.local || "Não informado"}</p>

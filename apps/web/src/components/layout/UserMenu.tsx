@@ -1,5 +1,5 @@
 import { ChevronDown, KeyRound, LogOut, Settings, User, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
@@ -12,6 +12,23 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
   const [aberto, setAberto] = useState(false);
   const [posicao, setPosicao] = useState<{ left: number; bottom: number } | null>(null);
   const container = useRef<HTMLDivElement>(null);
+  const nomeCaixa = useRef<HTMLSpanElement>(null);
+  const medidor = useRef<HTMLSpanElement>(null);
+  const [curto, setCurto] = useState(false);
+  const nomeCompleto = user?.nome ?? "Usuário";
+
+  // Nome e sobrenome que nao cabem na caixa viram so o primeiro nome. O medidor invisivel
+  // tem sempre o nome inteiro, entao a decisao refaz a conta a cada mudanca de largura.
+  useLayoutEffect(() => {
+    const caixa = nomeCaixa.current;
+    const medida = medidor.current;
+    if (!caixa || !medida) return;
+    const conferir = () => setCurto(medida.offsetWidth > caixa.clientWidth);
+    conferir();
+    const observador = new ResizeObserver(conferir);
+    observador.observe(caixa);
+    return () => observador.disconnect();
+  }, [nomeCompleto]);
 
   // No menu lateral o painel abre para cima e fora da caixa do menu (que corta o que passa dela),
   // por isso usa posicao fixa calculada a partir do botao.
@@ -63,7 +80,12 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
         <span className="avatar" aria-hidden="true">
           {iniciaisDe(user?.nome)}
         </span>
-        <span className="user-menu__name">{user?.nome ?? "Usuário"}</span>
+        <span className="user-menu__name" ref={nomeCaixa} title={nomeCompleto}>
+          {curto ? nomeCompleto.split(" ")[0] : nomeCompleto}
+          <span className="user-menu__medidor" ref={medidor} aria-hidden="true">
+            {nomeCompleto}
+          </span>
+        </span>
         <ChevronDown size={16} aria-hidden="true" className="user-menu__seta" />
       </button>
 

@@ -43,23 +43,35 @@ describe("NovaOcorrenciaPage", () => {
     await screen.findByRole("option", { name: /Estudante 01/ });
     const antes = screen.getAllByRole("option").length;
 
-    await user.type(screen.getByLabelText("Buscar aluno"), "ESTUDANTE 01");
+    await user.type(screen.getByRole("combobox", { name: /Aluno/ }), "ESTUDANTE 01");
 
     expect(screen.getByRole("option", { name: /Estudante 01/ })).toBeInTheDocument();
     expect(screen.getAllByRole("option").length).toBeLessThan(antes);
 
-    await user.clear(screen.getByLabelText("Buscar aluno"));
-    await user.type(screen.getByLabelText("Buscar aluno"), "zzz");
-    expect(screen.getByRole("option", { name: "Nenhum aluno encontrado" })).toBeInTheDocument();
+    await user.clear(screen.getByRole("combobox", { name: /Aluno/ }));
+    await user.type(screen.getByRole("combobox", { name: /Aluno/ }), "zzz");
+    expect(screen.getByText("Nenhum aluno encontrado.")).toBeInTheDocument();
   });
 
   it("mostra a turma do aluno escolhido", async () => {
     const user = userEvent.setup();
     renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
     await screen.findByRole("option", { name: /Estudante 01/ });
-    await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
+    await user.click(screen.getByRole("option", { name: /Estudante 01/ }));
 
     expect(screen.getByText(/^Turma:/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Trocar aluno" }));
+    expect(screen.getByRole("combobox", { name: /Aluno/ })).toBeInTheDocument();
+  });
+
+  it("marca com asterisco o que e obrigatorio e deixa testemunhas de fora", () => {
+    renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
+
+    for (const campo of ["Categoria", "Prioridade", "Bimestre"]) {
+      expect(screen.getByRole("group", { name: new RegExp(`^${campo}`) }).querySelector(".ui-field__obrigatorio")).toBeInTheDocument();
+    }
+    expect(screen.getByLabelText(/^Local/)).toBeRequired();
+    expect(screen.getByLabelText(/^Testemunhas/)).not.toBeRequired();
   });
 
   describe("moderacao da descricao", () => {
@@ -77,12 +89,12 @@ describe("NovaOcorrenciaPage", () => {
     async function preencherEEnviar(user: ReturnType<typeof userEvent.setup>, resposta: Response) {
       renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
       await screen.findByRole("option", { name: /Estudante 01/ });
-      await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
+      await user.click(screen.getByRole("option", { name: /Estudante 01/ }));
       await user.click(screen.getByRole("radio", { name: "Desrespeito" }));
       await user.click(screen.getByRole("radio", { name: "Média" }));
       await user.click(screen.getByRole("radio", { name: "2º bimestre" }));
-      await user.type(screen.getByLabelText("Local"), "Sala de aula");
-      await user.type(screen.getByLabelText("Descrição"), original);
+      await user.type(screen.getByLabelText(/^Local/), "Sala de aula");
+      await user.type(screen.getByLabelText(/^Descrição/), original);
       vi.mocked(fetch).mockResolvedValueOnce(resposta);
       await user.click(screen.getByRole("button", { name: /registrar/i }));
     }
@@ -93,7 +105,7 @@ describe("NovaOcorrenciaPage", () => {
 
       expect(await screen.findByText(mensagem)).toBeInTheDocument();
       expect(screen.getByText(sugestao)).toBeInTheDocument();
-      expect(screen.getByLabelText("Descrição")).toHaveValue(original);
+      expect(screen.getByLabelText(/^Descrição/)).toHaveValue(original);
     });
 
     it("so troca o texto depois do clique em Usar sugestao", async () => {
@@ -101,7 +113,7 @@ describe("NovaOcorrenciaPage", () => {
       await preencherEEnviar(user, respostaModeracao({ termos: ["idiota"], sugestao }));
       await user.click(await screen.findByRole("button", { name: "Usar sugestão" }));
 
-      expect(screen.getByLabelText("Descrição")).toHaveValue(sugestao);
+      expect(screen.getByLabelText(/^Descrição/)).toHaveValue(sugestao);
       expect(screen.queryByText(mensagem)).not.toBeInTheDocument();
     });
 

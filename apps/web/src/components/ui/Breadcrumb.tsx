@@ -6,7 +6,7 @@ export function Breadcrumb({ items }: { items: Array<{ label: string; to?: strin
     <nav className="ui-breadcrumb" aria-label="Caminho">
       {items.map((item, index) => (
         <span key={`${item.label}-${index}`}>
-          {item.to ? <Link to={item.to}>{item.label}</Link> : <span>{item.label}</span>}
+          {item.to ? <Link to={item.to}>{item.label}</Link> : <span className="ui-breadcrumb__atual" aria-current="page">{item.label}</span>}
         </span>
       ))}
     </nav>

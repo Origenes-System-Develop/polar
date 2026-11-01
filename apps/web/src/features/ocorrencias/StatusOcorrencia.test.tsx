@@ -97,3 +97,18 @@ describe("Encerrar ocorrencia", () => {
     expect(chamouStatus()).toBe(true);
   });
 });
+
+describe("Providencias no detalhe", () => {
+  it("mostra a situacao em palavras e, sem mudanca de status, avisa que ainda nao houve providencia", async () => {
+    logarComo("PROFESSOR");
+    renderWithProviders(
+      <Routes>
+        <Route path="/ocorrencias/:id" element={<DetalheOcorrenciaPage />} />
+      </Routes>,
+      ["/ocorrencias/o1"]
+    );
+
+    expect(await screen.findByText("A coordenação está analisando.")).toBeInTheDocument();
+    expect(screen.getByText(/Ainda não houve providência/)).toBeInTheDocument();
+  });
+});

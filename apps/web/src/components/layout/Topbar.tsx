@@ -1,5 +1,4 @@
 import { Menu } from "lucide-react";
-import { PendenciasBell } from "./PendenciasBell";
 import "./layout.css";
 
 export function Topbar({ onMenu }: { onMenu?: () => void }) {
@@ -9,9 +8,6 @@ export function Topbar({ onMenu }: { onMenu?: () => void }) {
         <Menu size={22} />
       </button>
 
-      <div className="topbar__spacer" />
-
-      <PendenciasBell />
     </header>
   );
 }

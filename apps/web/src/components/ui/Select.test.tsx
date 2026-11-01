@@ -67,10 +67,4 @@ describe("Select com painel proprio", () => {
     await user.click(screen.getByRole("combobox", { name: /^Bloqueado/ }));
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
-
-  it("com size maior que 1 continua sendo a lista nativa", () => {
-    render(<Select label="Aluno" size={4} options={opcoes} />);
-
-    expect(screen.getByRole("listbox", { name: "Aluno" })).toBeInTheDocument();
-  });
 });

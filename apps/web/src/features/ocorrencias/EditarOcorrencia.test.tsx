@@ -53,7 +53,8 @@ describe("Edicao de ocorrencia pelo autor", () => {
     );
 
     expect(await screen.findByDisplayValue("Atrasos consecutivos na primeira aula.")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: /^Aluno/ })).toBeDisabled();
+    expect(screen.getByText(/^Turma:/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Trocar aluno" })).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Atraso" })).toBeChecked();
 
     await user.click(screen.getByRole("radio", { name: "Alta" }));

@@ -259,7 +259,9 @@
 
 /* ---------- Barra superior ---------- */
 
+/* No computador o menu lateral ja concentra tudo (sino, perfil, configuracoes): sem barra vazia. */
 .topbar {
+  display: none;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -330,7 +332,15 @@
   background: var(--color-surface-muted);
 }
 
+.user-menu__medidor {
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .user-menu__name {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -522,78 +532,36 @@
 /* ---------- Rodape ---------- */
 
 .app-footer {
-  border-top: 1px solid var(--color-border);
-  background: var(--color-shell);
-  padding: var(--space-6) var(--space-8) var(--space-4);
-  display: grid;
-  gap: var(--space-5);
-}
-
-.app-footer__topo {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-6);
-}
-
-.app-footer__brand {
-  display: flex;
   align-items: center;
-  gap: var(--space-3);
-}
-
-.app-footer__brand strong,
-.app-footer__brand span,
-.app-footer__avisos strong,
-.app-footer__avisos span {
-  display: block;
-}
-
-.app-footer__brand span {
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-shell);
+  padding: var(--space-3) var(--space-8);
   color: var(--color-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
 }
 
 .app-footer__avisos {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  gap: var(--space-1) var(--space-5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .app-footer__avisos li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  max-width: 260px;
-  font-size: 0.86rem;
-  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .app-footer__avisos svg {
   flex-shrink: 0;
-  margin-top: 2px;
   color: var(--color-link);
-}
-
-.app-footer__avisos strong {
-  color: var(--color-text);
-  margin-bottom: 2px;
-}
-
-.app-footer__base {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
 }
 
 .app-footer__equipe {
@@ -636,6 +604,10 @@
     opacity: 1;
   }
 
+
+  .topbar {
+    display: flex;
+  }
 
   .topbar__menu {
     display: inline-flex;

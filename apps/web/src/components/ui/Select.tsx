@@ -9,31 +9,10 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 // Lista de selecao com painel proprio. O <select> nativo continua no DOM, escondido, como
-// fonte do valor: formularios, onChange (ChangeEvent) e testes seguem iguais. Com `size`
-// maior que 1 (lista sempre aberta, como a busca de aluno) volta a ser o <select> nativo.
-export function Select({ label, id, options, error, className = "", size, ...props }: SelectProps) {
+// fonte do valor: formularios, onChange (ChangeEvent) e testes seguem iguais.
+export function Select({ label, id, options, error, className = "", ...props }: SelectProps) {
   const selectId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, "-");
   const erroId = error ? `${selectId}-error` : undefined;
-
-  if (size && size > 1) {
-    return (
-      <label className={`ui-field ${className}`.trim()} htmlFor={selectId}>
-        <span>{label}</span>
-        <select id={selectId} size={size} aria-invalid={Boolean(error)} aria-describedby={erroId} {...props}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        {error ? (
-          <small className="ui-field__error" id={erroId}>
-            {error}
-          </small>
-        ) : null}
-      </label>
-    );
-  }
 
   return (
     <SelectPersonalizado
@@ -56,7 +35,7 @@ function SelectPersonalizado({
   error,
   className,
   ...props
-}: Omit<SelectProps, "id" | "size"> & { selectId: string; erroId?: string; className: string }) {
+}: Omit<SelectProps, "id"> & { selectId: string; erroId?: string; className: string }) {
   const nativo = useRef<HTMLSelectElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
   const raiz = useRef<HTMLDivElement>(null);
@@ -151,6 +130,7 @@ function SelectPersonalizado({
     <div className={`ui-field ${className}`.trim()}>
       <label id={`${selectId}-rotulo`} htmlFor={selectId}>
         {label}
+        {props.required ? <i className="ui-field__obrigatorio" aria-hidden="true"> *</i> : null}
       </label>
       <div className="ui-select" ref={raiz}>
         <select

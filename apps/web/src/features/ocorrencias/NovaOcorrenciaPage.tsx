@@ -1,5 +1,5 @@
 import { Save } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { PageHeader } from "../../components/layout/PageHeader";
@@ -7,7 +7,6 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Escolha } from "../../components/ui/Escolha";
 import { Input } from "../../components/ui/Input";
-import { Select } from "../../components/ui/Select";
 import { listAlunosDetalhados } from "../../services/school.service";
 import {
   CATEGORIAS_OCORRENCIA,
@@ -18,6 +17,7 @@ import {
   type UpdateOcorrenciaPayload
 } from "../../services/domain";
 import { ApiError } from "../../services/api";
+import { BuscaAluno } from "./BuscaAluno";
 import { createOcorrencia, getOcorrencia, updateOcorrencia } from "./ocorrencias.service";
 
 const camposEditaveis = ["categoria", "prioridade", "descricao", "local", "testemunhas"] as const;
@@ -56,9 +56,8 @@ const initialState: FormState = {
 
 const BIMESTRES = [1, 2, 3, 4].map((numero) => ({ value: String(numero), label: `${numero}º bimestre` }));
 
-function normalizar(texto: string): string {
-  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-}
+// Cor de cada prioridade, a mesma dos selos da lista.
+const TOM_PRIORIDADE = { BAIXA: "success", MEDIA: "warning", ALTA: "danger", URGENTE: "critical" } as const;
 
 // Mesma tela para registrar e para o autor editar (rota /ocorrencias/:id/editar).
 export function NovaOcorrenciaPage() {
@@ -67,7 +66,6 @@ export function NovaOcorrenciaPage() {
   const [original, setOriginal] = useState<Ocorrencia | null>(null);
   const [form, setForm] = useState<FormState>(initialState);
   const [alunos, setAlunos] = useState<AlunoDetalhado[]>([]);
-  const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -117,18 +115,6 @@ export function NovaOcorrenciaPage() {
   }
 
   const editando = Boolean(id);
-  const alunoEscolhido = alunos.find((aluno) => aluno.id === form.alunoId);
-
-  // Dois alunos com o mesmo nome na mesma turma: a matricula desempata na lista.
-  const opcoesAluno = useMemo(() => {
-    const termo = normalizar(busca.trim());
-    return alunos
-      .filter((aluno) => aluno.id === form.alunoId || !termo || normalizar(`${aluno.nome} ${aluno.turma} ${aluno.matricula}`).includes(termo))
-      .map((aluno) => {
-        const homonimo = alunos.some((outro) => outro.id !== aluno.id && outro.turma === aluno.turma && outro.nome === aluno.nome);
-        return { value: aluno.id, label: `${aluno.nome} · ${aluno.turma}${homonimo ? ` (matrícula ${aluno.matricula})` : ""}` };
-      });
-  }, [alunos, busca, form.alunoId]);
 
   // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir.
   const categorias: string[] =
@@ -195,62 +181,41 @@ export function NovaOcorrenciaPage() {
     <>
       <PageHeader
         title={editando ? "Editar ocorrência" : "Registrar ocorrência"}
+        description={editando ? undefined : "Leva cerca de um minuto. Os campos com * são obrigatórios."}
         breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: editando ? "Editar" : "Nova" }]}
       />
-      <Card>
-        {apiError ? <p className="text-danger">{apiError}</p> : null}
-        <form className="form-grid" onSubmit={handleSubmit} noValidate>
-          {editando ? null : (
-            <Input
-              className="span-2"
-              label="Buscar aluno"
-              type="search"
-              value={busca}
-              onChange={(event) => setBusca(event.target.value)}
-              placeholder="Digite parte do nome, a turma ou a matrícula"
-              autoComplete="off"
-              disabled={loading}
-            />
-          )}
-          <Select
-            className="span-2"
-            label="Aluno"
-            size={editando ? 1 : 5}
-            value={form.alunoId}
-            onChange={(event) => setField("alunoId", event.target.value)}
-            error={errors.alunoId}
-            disabled={loading || editando}
-            options={
-              loading
-                ? [{ label: "Carregando...", value: "" }]
-                : opcoesAluno.length > 0
-                  ? // A primeira entrada vazia casa com "ninguem escolhido": sem ela o navegador marca o
-                    // primeiro aluno sozinho e o clique nele nao dispara a escolha.
-                    [{ label: "Escolha um aluno da lista", value: "" }, ...opcoesAluno]
-                  : [{ label: "Nenhum aluno encontrado", value: "" }]
-            }
-          />
-          {alunoEscolhido ? (
-            <p className="muted span-2" aria-live="polite">
-              Turma: <strong>{alunoEscolhido.turma}</strong>
-            </p>
-          ) : null}
+      {apiError ? (
+        <Card className="state-message state-message--danger" role="alert">
+          {apiError}
+        </Card>
+      ) : null}
+      <form className="form-sections" onSubmit={handleSubmit} noValidate>
+        <Card className="form-section form-section--azul">
+          <SecaoTitulo numero={1} titulo="Quem" dica="Escolha o aluno da lista." />
+          <BuscaAluno alunos={alunos} value={form.alunoId} onChange={(alunoId) => setField("alunoId", alunoId)} loading={loading} travado={editando} error={errors.alunoId} />
+        </Card>
+
+        <Card className="form-section form-section--laranja">
+          <SecaoTitulo numero={2} titulo="O que aconteceu" dica="Uma categoria e o relato do fato." />
           <Escolha
-            className="span-2"
             legend="Categoria"
             name="categoria"
+            required
             value={form.categoria}
             onChange={(valor) => setField("categoria", valor)}
             error={errors.categoria}
             options={categorias.map((categoria) => ({ label: categoria, value: categoria }))}
           />
-          <label className="ui-field span-2" htmlFor="descricao">
-            <span>Descrição</span>
-            <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} />
+          <label className="ui-field" htmlFor="descricao">
+            <span>
+              Descrição
+              <i className="ui-field__obrigatorio" aria-hidden="true"> *</i>
+            </span>
+            <textarea id="descricao" required value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} placeholder="Conte o que foi dito ou feito, sem opinião." />
             {errors.descricao ? <small className="ui-field__error">{errors.descricao}</small> : null}
           </label>
           {moderacao ? (
-            <div className="moderation-notice span-2" role="alert">
+            <div className="moderation-notice" role="alert">
               <strong>{moderacao.mensagem}</strong>
               {moderacao.sugestao ? (
                 <>
@@ -272,32 +237,52 @@ export function NovaOcorrenciaPage() {
               </div>
             </div>
           ) : null}
-          <Escolha
-            legend="Prioridade"
-            name="prioridade"
-            value={form.prioridade}
-            onChange={(valor) => setField("prioridade", valor)}
-            error={errors.prioridade}
-            options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))}
-          />
-          <Escolha
-            legend="Bimestre"
-            name="bimestre"
-            value={form.bimestre}
-            onChange={(valor) => setField("bimestre", valor)}
-            error={errors.bimestre}
-            disabled={editando}
-            options={BIMESTRES}
-          />
-          <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
-          <Input label="Testemunhas (opcional)" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
-          <div className="actions-row span-2">
-            <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
-              {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
-            </Button>
+        </Card>
+
+        <Card className="form-section form-section--coral">
+          <SecaoTitulo numero={3} titulo="Gravidade e período" dica="Quão sério é e em que bimestre aconteceu." />
+          <div className="form-grid">
+            <Escolha
+              legend="Prioridade"
+              name="prioridade"
+              required
+              value={form.prioridade}
+              onChange={(valor) => setField("prioridade", valor)}
+              error={errors.prioridade}
+              options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value, tone: TOM_PRIORIDADE[value] }))}
+            />
+            <Escolha legend="Bimestre" name="bimestre" required value={form.bimestre} onChange={(valor) => setField("bimestre", valor)} error={errors.bimestre} disabled={editando} options={BIMESTRES} />
           </div>
-        </form>
-      </Card>
+        </Card>
+
+        <Card className="form-section form-section--verde">
+          <SecaoTitulo numero={4} titulo="Onde" dica="O local e quem presenciou, se houver." />
+          <div className="form-grid">
+            <Input label="Local" required value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} placeholder="Exemplo: pátio, sala 12" />
+            <Input label="Testemunhas (opcional)" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
+          </div>
+        </Card>
+
+        <div className="actions-row">
+          <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
+            {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
+          </Button>
+        </div>
+      </form>
     </>
+  );
+}
+
+function SecaoTitulo({ numero, titulo, dica }: { numero: number; titulo: string; dica: string }) {
+  return (
+    <header className="form-section__titulo">
+      <span className="form-section__numero" aria-hidden="true">
+        {numero}
+      </span>
+      <div>
+        <h2>{titulo}</h2>
+        <p>{dica}</p>
+      </div>
+    </header>
   );
 }

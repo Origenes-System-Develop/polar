@@ -58,7 +58,12 @@ Data: 01/11/2026. Base: `origin/develop` (`54563fa`). Dois pull requests, nesta 
 | `status.tsx`, `globals.css` | Marcadores de prioridade passam de caracteres (`●`, `▲`, `!`) para ícones centralizados (seta, igual, triângulo, octógono). |
 | `ui.css` | Barra de rolagem fina e arredondada; trilha de navegação muda de cor ao passar o mouse. |
 
-Removido: a coluna "Ação" da lista (a linha inteira é o atalho), o seletor de Turma da tela de registro, os links do Google Fonts.
+| `BuscaAluno.tsx` (novo), `NovaOcorrenciaPage.tsx`, `Escolha.tsx`, `ui.css` | Registro em quatro blocos coloridos e numerados (Quem, O que aconteceu, Gravidade e período, Onde); escolha de aluno por busca com cartões (iniciais, nome, turma) e cartão do aluno escolhido com "Trocar aluno"; asterisco vermelho nos obrigatórios; prioridades em botões nas cores do selo. |
+| `DetalheOcorrenciaPage.tsx` | Card "Providências da coordenação e da direção": situação em palavras e as mudanças de status com quem fez, quando e a observação. O professor já via o histórico, agora vê o que a coordenação e a direção fizeram sem procurar. |
+| `Sidebar.tsx`, `PendenciasBell.tsx`, `layout.css`, `Topbar.tsx` | Sino, engrenagem (Configurações para o ADM, Meu perfil para os demais) e perfil no rodapé do menu; a barra do topo só aparece no celular (no computador ficava vazia). Nome longo no perfil vira só o primeiro nome. |
+| `AppFooter.tsx` | Rodapé em uma linha só, menor que o primeiro. |
+
+Removido: ícones nos selos de prioridade (ficou só o texto), coluna "Ação" da lista (a linha inteira é o atalho), o seletor de Turma da tela de registro, os links do Google Fonts.
 
 ## 3. Medições da Sala do Futuro
 

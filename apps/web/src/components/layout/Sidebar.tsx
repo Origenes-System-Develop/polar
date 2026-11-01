@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { MarcaPolar } from "../ui/Marca";
+import { PendenciasBell } from "./PendenciasBell";
 import { UserMenu } from "./UserMenu";
 import "./layout.css";
 
@@ -17,6 +18,7 @@ const navItems = [
 
 export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { user } = useAuth();
+  const admin = canAccess(user?.papel, "configuracoes:manage");
 
   return (
     <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
@@ -65,11 +67,11 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
       </nav>
 
       <div className="sidebar__foot">
-        {canAccess(user?.papel, "configuracoes:manage") ? (
-          <NavLink to="/configuracoes" className="sidebar__config" aria-label="Configurações" title="Configurações">
-            <Settings size={20} aria-hidden="true" />
-          </NavLink>
-        ) : null}
+        <PendenciasBell />
+        {/* A engrenagem existe para todos: o ADM vai as configuracoes da escola, os demais ao proprio perfil. */}
+        <NavLink to={admin ? "/configuracoes" : "/perfil"} className="sidebar__config" aria-label={admin ? "Configurações" : "Meu perfil"} title={admin ? "Configurações" : "Meu perfil"}>
+          <Settings size={20} aria-hidden="true" />
+        </NavLink>
         <UserMenu variante="menu" />
       </div>
     </aside>
