@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/providers";
 import { canAccess } from "../../app/permissions";
-import { iniciaisDe, rotuloDePapel } from "../../components/layout/iniciais";
+import { rotuloDePapel } from "../../components/layout/iniciais";
+import { Avatar } from "../../components/ui/Avatar";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Table } from "../../components/ui/Table";
@@ -84,9 +85,7 @@ export function DashboardPage() {
   return (
     <>
       <div className="greeting">
-        <span className="avatar avatar--lg" aria-hidden="true">
-          {iniciaisDe(user?.nome)}
-        </span>
+        <Avatar nome={user?.nome} avatar={user?.avatar} grande />
         <div className="greeting__text">
           <h1>
             {saudacao()}, <strong>{user?.nome?.split(" ")[0] ?? ""}</strong>

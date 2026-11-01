@@ -306,6 +306,19 @@
   letter-spacing: 0.03em;
 }
 
+.avatar--imagem {
+  overflow: hidden;
+  padding: 0;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.avatar--imagem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .avatar--lg {
   width: 52px;
   height: 52px;

@@ -1,3 +1,5 @@
+import type { AvatarUsuario } from "../avatar/tipos";
+
 export type UserRole = "PROFESSOR" | "COORDENADOR" | "DIRETOR" | "ADM";
 
 export interface AuthUser {
@@ -6,6 +8,7 @@ export interface AuthUser {
   email: string;
   papel: UserRole;
   precisaTrocarSenha?: boolean;
+  avatar?: AvatarUsuario | null;
 }
 
 export interface LoginResponse {

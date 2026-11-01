@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dicebear/avataaars": "9.4.3",
+    "@dicebear/core": "9.4.3",
     "@vitejs/plugin-react": "^4.3.4",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",

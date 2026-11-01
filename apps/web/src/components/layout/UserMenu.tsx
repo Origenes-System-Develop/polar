@@ -3,7 +3,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
-import { iniciaisDe, rotuloDePapel } from "./iniciais";
+import { Avatar } from "../ui/Avatar";
+import { rotuloDePapel } from "./iniciais";
 import "./layout.css";
 
 export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) {
@@ -77,9 +78,7 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
         aria-expanded={aberto}
         aria-haspopup="menu"
       >
-        <span className="avatar" aria-hidden="true">
-          {iniciaisDe(user?.nome)}
-        </span>
+        <Avatar nome={user?.nome} avatar={user?.avatar} />
         <span className="user-menu__name" ref={nomeCaixa} title={nomeCompleto}>
           {curto ? nomeCompleto.split(" ")[0] : nomeCompleto}
           <span className="user-menu__medidor" ref={medidor} aria-hidden="true">
@@ -99,9 +98,7 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
           </header>
 
           <div className="user-menu__identity">
-            <span className="avatar avatar--lg" aria-hidden="true">
-              {iniciaisDe(user?.nome)}
-            </span>
+            <Avatar nome={user?.nome} avatar={user?.avatar} grande />
             <div>
               <strong>{user?.nome ?? "Usuário"}</strong>
               <span>{rotuloDePapel(user?.papel)}</span>

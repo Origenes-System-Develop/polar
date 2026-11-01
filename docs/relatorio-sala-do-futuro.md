@@ -276,3 +276,17 @@ Regras de processo do guia (fluxo de trabalho):
 - Teste posterior à publicação do #117 e deste PR: entrar com uma conta nova (troca obrigatória), registrar e tratar uma ocorrência, conferir o IP real nos contadores e abrir a tela de login em celular.
 - Plano de recuperação: reverter o deploy na Vercel. O #117 não muda o banco; o `alterar-senha` passou de `204` para `200 {token, user}`, e a web nova lê o novo formato, portanto é preciso publicar API e web juntas.
 - Limitações: o resultado vale para a versão e o escopo acima; não é afirmação de segurança absoluta nem de conformidade legal completa.
+
+## 11. Estúdio de avatar
+
+**O que a Sala do Futuro usa (observado no navegador):** o estúdio é uma página dentro de um iframe (`/avatar/index.html`) que usa uma cópia própria do Avataaars (`avataaars.js`, ~150 kB) e o seletor de cor Pickr. Oferece 52 miniaturas (7 acessórios, 36 cabelos, 9 blusas) e seletor livre de cor para pele, cabelo e blusa. O desenho salvo fica como SVG num armazenamento Azure Blob, com nome ligado à pessoa. Não vi API documentada nem acesso público; não copiei nada dali.
+
+**Escolha:** DiceBear 9.4.3 (`@dicebear/core` + `@dicebear/avataaars`), código MIT e desenho do Avataaars de uso livre, a mesma base da Sala do Futuro. Descartados: copiar arquivos da Sala do Futuro (arte e dados de terceiros), a biblioteca React `avataaars` (antiga), desenhar tudo à mão (caro) e o DiceBear 10 (API nova, ainda mudando).
+
+**Peso:** a biblioteca fica num pedaço à parte, só baixado ao abrir o estúdio (52 kB gzip). O resto do sistema mostra o SVG já salvo (~6 kB) dentro de `<img>`; o bundle principal não ganhou a biblioteca.
+
+**Variedade:** 269 escolhas contra 52 (5,2 vezes): 35 cabelos e chapéus, 6 barbas, 8 óculos, 9 roupas, 10 estampas, 12 olhos, 13 sobrancelhas, 12 bocas, 40 tons de pele, 40 cores de cabelo, 40 de roupa, 12 de barba, 8 de óculos e 24 de fundo, mais o seletor livre de cor. Limite: as texturas de cabelo são as do Avataaars (crespo, black power, dreads, cacheado, ondulado, liso, hijab, turbante); tranças e outros penteados exigiriam desenho novo.
+
+**Segurança:** a API (`PATCH /api/auth/avatar`) só aceita SVG sem script, evento, imagem ou link externo e até 40 kB, e a configuração só com valores simples; o desenho é exibido sempre dentro de `<img>`. Testes de integração cobrem os casos recusados. `users.avatar` (JSONB) precisa ser criada no Supabase antes do deploy (`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar JSONB NULL;`, já no `schema.sql`).
+
+**Pendências:** um personagem salvo por usuário (não vários); integração com a API da Sala do Futuro depende de acordo com a Secretaria.
