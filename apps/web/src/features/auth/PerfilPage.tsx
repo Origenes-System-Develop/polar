@@ -1,6 +1,6 @@
-import { Save } from "lucide-react";
+import { Palette, Save } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
@@ -8,8 +8,9 @@ import { rotuloDePapel } from "../../components/layout/iniciais";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
+import { Avatar } from "../../components/ui/Avatar";
 import { ApiError } from "../../services/api";
-import { alterarSenhaRequest } from "./auth.service";
+import { alterarSenhaRequest, salvarAvatarRequest } from "./auth.service";
 
 // Mesma regra da API (senhaSchema): 8 a 72 caracteres, sem espaço nas pontas.
 const schema = z
@@ -78,6 +79,35 @@ export function PerfilPage() {
           {rotuloDePapel(user?.papel)} · {user?.email}
         </p>
       </Card>
+      {obrigatoria ? null : (
+        <Card title="Imagem de perfil">
+          <div className="perfil-imagem">
+            <Avatar nome={user?.nome} avatar={user?.avatar} grande />
+            <div>
+              <p>{user?.avatar?.tipo === "avatar" ? "Você usa o seu avatar." : "Você usa as suas iniciais."}</p>
+              <div className="actions-row">
+                <Link to="/perfil/estudio">
+                  <Button variant="secondary" icon={<Palette size={18} />}>
+                    {user?.avatar?.tipo === "avatar" ? "Editar meu avatar" : "Montar meu avatar"}
+                  </Button>
+                </Link>
+                {user?.avatar?.tipo === "avatar" ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      void salvarAvatarRequest({ tipo: "iniciais" })
+                        .then(setAuthenticatedUser)
+                        .catch((err: unknown) => setApiError(err instanceof ApiError ? err.message : "Não foi possível trocar a imagem."))
+                    }
+                  >
+                    Usar iniciais
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
       <Card title="Trocar senha">
         {obrigatoria ? <p role="status">Sua senha é provisória. Defina uma senha só sua para usar o Polar.</p> : null}
         {apiError ? (

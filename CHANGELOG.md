@@ -31,6 +31,10 @@ tags nem releases no GitHub; por isso os links apontam para commits.
   (acentuação, aluno e concorrência), manual do usuário, plano de manutenção,
   `CODEOWNERS` e modelos de issue e Pull Request.
 
+### Adicionado
+
+- Estúdio de avatar (`/perfil/estudio`): o usuário monta um personagem ou fica com as iniciais, e o escolhido aparece no menu e no painel. São mais de 260 escolhas (52 na Sala do Futuro), com 40 tons de pele, 40 cores de cabelo e de roupa e seletor livre de cor. O desenho vem do estilo Avataaars via DiceBear 9.4.3, carregado só ao abrir o estúdio (52 kB gzip). Exige rodar `database/schema.sql` antes do deploy (coluna `users.avatar`).
+
 ### Alterado
 
 - Identidade visual da Sala do Futuro: Open Sans hospedada no projeto, botões em

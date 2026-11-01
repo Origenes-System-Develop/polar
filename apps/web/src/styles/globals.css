@@ -470,3 +470,27 @@ textarea:focus-visible {
   background: var(--color-primary-soft);
   color: var(--color-link);
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.perfil-imagem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.perfil-imagem p {
+  margin: 0 0 var(--space-3);
+  font-weight: 600;
+}

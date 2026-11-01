@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { PapelUsuario, Usuario } from "../../domain.js";
+import type { AvatarUsuario, PapelUsuario, Usuario } from "../../domain.js";
 import type { UserRepository } from "../repositories/user.repository.js";
 import { dbDateTime, isoFromDb, isoFromDbRequired, withTransaction } from "./postgres-client.js";
 
@@ -14,6 +14,7 @@ interface UserRow {
   tentativas_login_invalidas: number;
   bloqueado_ate: Date | null;
   ultimo_login_em: Date | null;
+  avatar: AvatarUsuario | null;
   criado_em: Date;
   atualizado_em: Date;
 }
@@ -30,13 +31,14 @@ function toUsuario(row: UserRow): Usuario {
     tentativasLoginInvalidas: row.tentativas_login_invalidas,
     bloqueadoAte: isoFromDb(row.bloqueado_ate),
     ultimoLoginEm: isoFromDb(row.ultimo_login_em),
+    avatar: row.avatar ?? null,
     criadoEm: isoFromDbRequired(row.criado_em),
     atualizadoEm: isoFromDbRequired(row.atualizado_em)
   };
 }
 
 const COLUNAS =
-  "id, nome, email, papel, senha_hash, ativo, precisa_trocar_senha, tentativas_login_invalidas, bloqueado_ate, ultimo_login_em, criado_em, atualizado_em";
+  "id, nome, email, papel, senha_hash, ativo, precisa_trocar_senha, tentativas_login_invalidas, bloqueado_ate, ultimo_login_em, avatar, criado_em, atualizado_em";
 
 export class PostgresUserRepository implements UserRepository {
   constructor(private readonly pool: Pool) {}
@@ -64,7 +66,7 @@ export class PostgresUserRepository implements UserRepository {
 
   async create(usuario: Usuario): Promise<Usuario> {
     await this.pool.query(
-      `INSERT INTO users (${COLUNAS}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      `INSERT INTO users (${COLUNAS}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12, $13)`,
       [
         usuario.id,
         usuario.nome,
@@ -76,6 +78,7 @@ export class PostgresUserRepository implements UserRepository {
         usuario.tentativasLoginInvalidas,
         dbDateTime(usuario.bloqueadoAte),
         dbDateTime(usuario.ultimoLoginEm),
+        usuario.avatar ? JSON.stringify(usuario.avatar) : null,
         dbDateTime(usuario.criadoEm),
         dbDateTime(usuario.atualizadoEm)
       ]
@@ -98,8 +101,9 @@ export class PostgresUserRepository implements UserRepository {
       await client.query(
         `UPDATE users
            SET nome = $1, email = $2, papel = $3, senha_hash = $4, ativo = $5, precisa_trocar_senha = $6,
-               tentativas_login_invalidas = $7, bloqueado_ate = $8, ultimo_login_em = $9, atualizado_em = $10
-         WHERE id = $11`,
+               tentativas_login_invalidas = $7, bloqueado_ate = $8, ultimo_login_em = $9, atualizado_em = $10,
+               avatar = $11::jsonb
+         WHERE id = $12`,
         [
           updated.nome,
           updated.email,
@@ -111,6 +115,7 @@ export class PostgresUserRepository implements UserRepository {
           dbDateTime(updated.bloqueadoAte),
           dbDateTime(updated.ultimoLoginEm),
           dbDateTime(updated.atualizadoEm),
+          updated.avatar ? JSON.stringify(updated.avatar) : null,
           id
         ]
       );
