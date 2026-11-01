@@ -1,20 +1,20 @@
 import { Save } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { Escolha } from "../../components/ui/Escolha";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
-import { listAlunosDetalhados, listTurmas } from "../../services/school.service";
+import { listAlunosDetalhados } from "../../services/school.service";
 import {
   CATEGORIAS_OCORRENCIA,
   PRIORIDADES_OCORRENCIA,
   type AlunoDetalhado,
   type Ocorrencia,
   type PrioridadeOcorrencia,
-  type Turma,
   type UpdateOcorrenciaPayload
 } from "../../services/domain";
 import { ApiError } from "../../services/api";
@@ -22,29 +22,45 @@ import { createOcorrencia, getOcorrencia, updateOcorrencia } from "./ocorrencias
 
 const camposEditaveis = ["categoria", "prioridade", "descricao", "local", "testemunhas"] as const;
 
+// Prioridade e bimestre nao tem valor inicial: quem registra escolhe. Um padrao
+// ("Media", "1º bimestre") seria aceito sem ninguem conferir e entraria errado no dado.
 const schema = z.object({
   alunoId: z.string().min(1, "Selecione um aluno."),
-  turmaId: z.string().min(1, "Selecione uma turma."),
   categoria: z.string().min(1, "Informe a categoria."),
-  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], { required_error: "Informe a prioridade." }),
-  bimestre: z.coerce.number().int().min(1).max(4),
+  prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"], {
+    errorMap: () => ({ message: "Informe a prioridade." })
+  }),
+  bimestre: z.coerce.number({ invalid_type_error: "Informe o bimestre." }).int().min(1, "Informe o bimestre.").max(4, "Informe o bimestre."),
   descricao: z.string().min(10, "Descreva a ocorrência com pelo menos 10 caracteres."),
   local: z.string().min(1, "Informe o local."),
   testemunhas: z.string().optional()
 });
 
-type FormState = z.infer<typeof schema>;
+interface FormState {
+  alunoId: string;
+  categoria: string;
+  prioridade: string;
+  bimestre: string;
+  descricao: string;
+  local: string;
+  testemunhas: string;
+}
 
 const initialState: FormState = {
   alunoId: "",
-  turmaId: "",
   categoria: "",
-  prioridade: "MEDIA",
-  bimestre: 1,
+  prioridade: "",
+  bimestre: "",
   descricao: "",
   local: "",
   testemunhas: ""
 };
+
+const BIMESTRES = [1, 2, 3, 4].map((numero) => ({ value: String(numero), label: `${numero}º bimestre` }));
+
+function normalizar(texto: string): string {
+  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
 
 // Mesma tela para registrar e para o autor editar (rota /ocorrencias/:id/editar).
 export function NovaOcorrenciaPage() {
@@ -53,7 +69,7 @@ export function NovaOcorrenciaPage() {
   const [original, setOriginal] = useState<Ocorrencia | null>(null);
   const [form, setForm] = useState<FormState>(initialState);
   const [alunos, setAlunos] = useState<AlunoDetalhado[]>([]);
-  const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -65,22 +81,16 @@ export function NovaOcorrenciaPage() {
 
     async function load() {
       try {
-        const [nextAlunos, nextTurmas, atual] = await Promise.all([
-          listAlunosDetalhados(),
-          listTurmas(),
-          id ? getOcorrencia(id) : Promise.resolve(null)
-        ]);
+        const [nextAlunos, atual] = await Promise.all([listAlunosDetalhados(), id ? getOcorrencia(id) : Promise.resolve(null)]);
         if (!active) return;
         setAlunos(nextAlunos);
-        setTurmas(nextTurmas);
         if (atual) {
           setOriginal(atual);
           setForm({
             alunoId: atual.alunoId,
-            turmaId: nextAlunos.find((aluno) => aluno.id === atual.alunoId)?.turmaId ?? "",
             categoria: atual.categoria,
             prioridade: atual.prioridade,
-            bimestre: atual.bimestre,
+            bimestre: String(atual.bimestre),
             descricao: atual.descricao,
             local: atual.local ?? "",
             testemunhas: atual.testemunhas ?? ""
@@ -89,7 +99,7 @@ export function NovaOcorrenciaPage() {
         setApiError("");
       } catch (err) {
         if (!active) return;
-        setApiError(err instanceof Error ? err.message : "Não foi possível carregar alunos e turmas. Recarregue a página.");
+        setApiError(err instanceof Error ? err.message : "Não foi possível carregar os alunos. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -108,17 +118,21 @@ export function NovaOcorrenciaPage() {
     if (field === "descricao") setModeracao(null);
   }
 
-  function setAluno(alunoId: string) {
-    const aluno = alunos.find((item) => item.id === alunoId);
-    setForm((current) => ({
-      ...current,
-      alunoId,
-      turmaId: aluno?.turmaId ?? current.turmaId
-    }));
-  }
-
   const editando = Boolean(id);
-  // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir do select.
+  const alunoEscolhido = alunos.find((aluno) => aluno.id === form.alunoId);
+
+  // Dois alunos com o mesmo nome na mesma turma: a matricula desempata na lista.
+  const opcoesAluno = useMemo(() => {
+    const termo = normalizar(busca.trim());
+    return alunos
+      .filter((aluno) => aluno.id === form.alunoId || !termo || normalizar(`${aluno.nome} ${aluno.turma} ${aluno.matricula}`).includes(termo))
+      .map((aluno) => {
+        const homonimo = alunos.some((outro) => outro.id !== aluno.id && outro.turma === aluno.turma && outro.nome === aluno.nome);
+        return { value: aluno.id, label: `${aluno.nome} · ${aluno.turma}${homonimo ? ` (matrícula ${aluno.matricula})` : ""}` };
+      });
+  }, [alunos, busca, form.alunoId]);
+
+  // Ocorrencia antiga pode ter categoria em texto livre: mantem como opcao para nao sumir.
   const categorias: string[] =
     original && !(CATEGORIAS_OCORRENCIA as readonly string[]).includes(original.categoria)
       ? [...CATEGORIAS_OCORRENCIA, original.categoria]
@@ -146,7 +160,7 @@ export function NovaOcorrenciaPage() {
         if (Object.keys(alteracoes).length > 0) {
           await updateOcorrencia(original.id, { ...alteracoes, ...(confirmarModeracao && { confirmarModeracao }) });
         }
-        navigate(`/ocorrencias/${original.id}`);
+        navigate(`/ocorrencias/${original.id}`, { state: { aviso: { texto: "Alterações salvas." } } });
         return;
       }
       const ocorrencia = await createOcorrencia({
@@ -159,7 +173,9 @@ export function NovaOcorrenciaPage() {
         testemunhas: result.data.testemunhas,
         ...(confirmarModeracao && { confirmarModeracao })
       });
-      navigate(`/ocorrencias/${ocorrencia.id}`);
+      navigate(`/ocorrencias/${ocorrencia.id}`, {
+        state: { aviso: { texto: "Ocorrência registrada.", acao: { rotulo: "Registrar outra", to: "/ocorrencias/nova" } } }
+      });
     } catch (err) {
       if (err instanceof ApiError && err.code === "CONTEUDO_INADEQUADO") {
         const sugestao = (err.details as { sugestao?: string | null } | null)?.sugestao ?? null;
@@ -186,55 +202,50 @@ export function NovaOcorrenciaPage() {
       <Card>
         {apiError ? <p className="text-danger">{apiError}</p> : null}
         <form className="form-grid" onSubmit={handleSubmit} noValidate>
+          {editando ? null : (
+            <Input
+              className="span-2"
+              label="Buscar aluno"
+              type="search"
+              value={busca}
+              onChange={(event) => setBusca(event.target.value)}
+              placeholder="Digite parte do nome, a turma ou a matrícula"
+              autoComplete="off"
+              disabled={loading}
+            />
+          )}
           <Select
+            className="span-2"
             label="Aluno"
+            size={editando ? 1 : 5}
             value={form.alunoId}
-            onChange={(event) => setAluno(event.target.value)}
+            onChange={(event) => setField("alunoId", event.target.value)}
             error={errors.alunoId}
             disabled={loading || editando}
-            options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...alunos.map((aluno) => ({ label: aluno.nome, value: aluno.id }))]}
-          />
-          <Select
-            label="Bimestre"
-            value={String(form.bimestre)}
-            disabled={editando}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                bimestre: Number(event.target.value)
-              }))
+            options={
+              loading
+                ? [{ label: "Carregando...", value: "" }]
+                : opcoesAluno.length > 0
+                  ? // A primeira entrada vazia casa com "ninguem escolhido": sem ela o navegador marca o
+                    // primeiro aluno sozinho e o clique nele nao dispara a escolha.
+                    [{ label: "Escolha um aluno da lista", value: "" }, ...opcoesAluno]
+                  : [{ label: "Nenhum aluno encontrado", value: "" }]
             }
-            options={[
-              { value: "1", label: "1º Bimestre" },
-              { value: "2", label: "2º Bimestre" },
-              { value: "3", label: "3º Bimestre" },
-              { value: "4", label: "4º Bimestre" }
-            ]}
           />
-          <Select
-            label="Turma"
-            value={form.turmaId}
-            onChange={(event) => setField("turmaId", event.target.value)}
-            error={errors.turmaId}
-            disabled={loading || editando}
-            options={[{ label: loading ? "Carregando..." : "Selecione", value: "" }, ...turmas.map((turma) => ({ label: turma.nome, value: turma.id }))]}
-          />
-          <Select
-            label="Categoria"
+          {alunoEscolhido ? (
+            <p className="muted span-2" aria-live="polite">
+              Turma: <strong>{alunoEscolhido.turma}</strong>
+            </p>
+          ) : null}
+          <Escolha
+            className="span-2"
+            legend="Categoria"
+            name="categoria"
             value={form.categoria}
-            onChange={(event) => setField("categoria", event.target.value)}
+            onChange={(valor) => setField("categoria", valor)}
             error={errors.categoria}
-            options={[{ label: "Selecione", value: "" }, ...categorias.map((categoria) => ({ label: categoria, value: categoria }))]}
+            options={categorias.map((categoria) => ({ label: categoria, value: categoria }))}
           />
-          <Select
-            label="Prioridade"
-            value={form.prioridade}
-            onChange={(event) => setField("prioridade", event.target.value)}
-            error={errors.prioridade}
-            options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))}
-          />
-          <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
-          <Input label="Testemunhas" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
           <label className="ui-field span-2" htmlFor="descricao">
             <span>Descrição</span>
             <textarea id="descricao" value={form.descricao} onChange={(event) => setField("descricao", event.target.value)} aria-invalid={Boolean(errors.descricao) || Boolean(moderacao)} />
@@ -263,6 +274,25 @@ export function NovaOcorrenciaPage() {
               </div>
             </div>
           ) : null}
+          <Escolha
+            legend="Prioridade"
+            name="prioridade"
+            value={form.prioridade}
+            onChange={(valor) => setField("prioridade", valor)}
+            error={errors.prioridade}
+            options={PRIORIDADES_OCORRENCIA.map(({ label, value }) => ({ label, value }))}
+          />
+          <Escolha
+            legend="Bimestre"
+            name="bimestre"
+            value={form.bimestre}
+            onChange={(valor) => setField("bimestre", valor)}
+            error={errors.bimestre}
+            disabled={editando}
+            options={BIMESTRES}
+          />
+          <Input label="Local" value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} />
+          <Input label="Testemunhas (opcional)" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
           <div className="actions-row span-2">
             <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
               {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}

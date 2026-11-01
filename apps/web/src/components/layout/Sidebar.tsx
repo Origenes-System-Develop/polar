@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, ChevronsLeft, ClipboardList, GraduationCap, Home, Settings, Users } from "lucide-react";
+import { BarChart3, BookOpen, ChevronsLeft, ClipboardList, ClipboardPlus, GraduationCap, Home, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
@@ -27,6 +27,13 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
           <span>Ocorrências escolares</span>
         </div>
       </div>
+
+      {canAccess(user?.papel, "ocorrencias:create") ? (
+        <NavLink to="/ocorrencias/nova" className="sidebar__cta" title={collapsed ? "Registrar ocorrência" : undefined}>
+          <ClipboardPlus size={20} aria-hidden="true" />
+          <span className="sidebar__label">Registrar ocorrência</span>
+        </NavLink>
+      ) : null}
 
       <nav className="sidebar__nav">
         {navItems

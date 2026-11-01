@@ -1,46 +1,65 @@
+/* Open Sans, a fonte da Sala do Futuro, hospedada aqui: um arquivo variavel
+   (400 a 800, so o alfabeto latino, que cobre o portugues) e nenhuma requisicao
+   a terceiros. Licenca OFL em public/fonts/OpenSans-OFL.txt. */
+@font-face {
+  font-family: "Open Sans";
+  src: url("/fonts/OpenSans-latin-var.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Superficies. O fundo do conteudo e cinza-claro e os cards sao brancos:
-     e o contraste que a Sala do Futuro usa para separar painel de conteudo. */
+  /* Superficies. Conteudo cinza-claro e cartoes brancos, como na Sala do Futuro. */
   --color-bg: #f4f5f7;
   --color-surface: #ffffff;
   --color-surface-muted: #f7fafc;
   --color-shell: #ffffff;
 
-  /* Azul institucional. O tom forte e o do texto ativo na navegacao. */
-  --color-primary: #1351b4;
-  --color-primary-strong: #0c3d8d;
-  --color-primary-soft: #e8f1fb;
+  /* Azul do botao e do menu. O botao e #3d77b7 (texto branco, 4,65:1). Texto
+     azul sobre fundo claro usa --color-link, que passa de 4,5:1 tambem no cinza. */
+  --color-primary: #3d77b7;
+  --color-primary-strong: #2f64a0;
+  --color-primary-soft: #e8f0fb;
+  --color-link: #1565d8;
 
-  --color-text: #1f2937;
-  --color-text-muted: #667085;
-  --color-text-soft: #98a2b3;
+  /* Texto e icones. Os cinzas da Sala do Futuro (#6b778c e #b3bac5) ficam abaixo
+     do minimo do WCAG; aqui estao escurecidos so o necessario. Conferidos por
+     script, ver docs/relatorio-sala-do-futuro.md. */
+  --color-text: #183b56;
+  --color-text-muted: #59647a;
+  --color-text-soft: #76829a;
+  --color-heading-table: #162f67;
   --color-border: #e4e7ec;
+  --color-border-input: #8a94a6;
 
-  --color-success: #16844a;
-  --color-success-soft: #e4f7ed;
-  --color-warning: #b86b00;
+  --color-success: #3b6649;
+  --color-success-soft: #d6f9e0;
+  --color-warning: #8a4f00;
   --color-warning-soft: #fff3d6;
-  --color-danger: #c73636;
+  --color-danger: #c80000;
   --color-danger-soft: #fde7e7;
   --color-critical: #15171a;
   --color-critical-soft: #e9eaec;
 
-  /* Faixas de destaque no topo dos cards de indicador. Cada numero do painel
-     recebe uma cor propria para ser localizavel de relance, sem depender do rotulo. */
-  --accent-blue: #2d9cdb;
-  --accent-orange: #f2a33c;
-  --accent-red: #eb5757;
-  --accent-green: #27ae60;
+  /* Linha de cor na base dos cartoes de indicador (padrao da Sala do Futuro).
+     Os tons foram escurecidos para chegar a 3:1 contra o cartao branco. */
+  --accent-blue: #3c9cc6;
+  --accent-orange: #c4802a;
+  --accent-red: #d8786b;
+  --accent-green: #2e9a5b;
 
-  --shadow-soft: 0 8px 24px rgba(31, 41, 55, 0.08);
-  --shadow-subtle: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-raised: 0 12px 32px rgba(16, 24, 40, 0.12);
+  /* Sombras do Material Design, como na Sala do Futuro: nivel 1, 3 e 8. */
+  --shadow-subtle: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  --shadow-soft: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12);
+  --shadow-raised: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
 
-  --radius-sm: 6px;
+  --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  --radius-xl: 20px;
+  --radius-xl: 16px;
   --radius-pill: 999px;
+  --radius-button: 30px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -51,8 +70,14 @@
   --space-8: 32px;
   --space-10: 40px;
 
-  --sidebar-width: 248px;
+  --sidebar-width: 240px;
   --sidebar-width-collapsed: 84px;
 
-  --font-family: "Public Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Movimento: so opacity e transform, tempos curtos. */
+  --dur-1: 120ms;
+  --dur-2: 225ms;
+  --dur-3: 300ms;
+  --ease-padrao: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

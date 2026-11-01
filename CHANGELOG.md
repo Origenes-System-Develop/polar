@@ -33,6 +33,17 @@ tags nem releases no GitHub; por isso os links apontam para commits.
 
 ### Alterado
 
+- Identidade visual da Sala do Futuro: Open Sans hospedada no projeto, botões em
+  pílula, cartões com linha colorida na base, menu lateral e topo no estilo dela,
+  contraste conferido por script (os cinzas dela foram escurecidos). Animações
+  curtas só com CSS e respeito a `prefers-reduced-motion`.
+- Registrar ocorrência: busca de aluno; categoria, prioridade e bimestre em botões
+  de toque (prioridade e bimestre sem valor inicial); turma mostrada em texto; aviso
+  "Ocorrência registrada" com atalho para registrar outra.
+- Painel e lista: o cartão de pendências abre a lista já filtrada, a linha inteira
+  abre a ocorrência, encerrar pede confirmação e, depois de mudar o status, o aviso
+  oferece a próxima pendência.
+
 - Marcas oficiais do Polar (menu, login, favicon) e da equipe Polaris (rodapé), com animação curta ao aparecer e no hover. Botão de recolher o menu dentro da barra lateral, com transição suave e preferência lembrada.
 - Revisão visual e de texto mantendo a identidade atual: login sem gradiente, fonte Public Sans carregada de verdade, nome Polar em todas as telas, status e perfis com nome legível em vez do valor interno, acentos em toda a interface e textos diretos. Guia em `docs/frontend/guia-de-voz.md`, com teste que barra travessão, exclamação e frases de folheto.
 - Função da API executada na região de São Paulo (`gru1`) na Vercel.

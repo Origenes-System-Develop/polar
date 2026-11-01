@@ -1,15 +1,20 @@
 .ui-button {
-  min-height: 40px;
+  min-height: 43px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  padding: 0 var(--space-4);
+  border: 1.6px solid transparent;
+  border-radius: var(--radius-button);
+  padding: 0 var(--space-6);
   cursor: pointer;
-  font-weight: 650;
-  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  font-weight: 700;
+  transition: background var(--dur-2) var(--ease-padrao), border-color var(--dur-2) var(--ease-padrao),
+    color var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao), transform var(--dur-1) var(--ease-padrao);
+}
+
+.ui-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .ui-button:disabled {
@@ -20,21 +25,31 @@
 .ui-button--primary {
   background: var(--color-primary);
   color: #fff;
+  box-shadow: var(--shadow-subtle);
 }
 
-.ui-button--primary:hover {
+.ui-button--primary:hover:not(:disabled) {
   background: var(--color-primary-strong);
+  box-shadow: var(--shadow-soft);
 }
 
 .ui-button--secondary {
-  background: var(--color-primary-soft);
+  background: transparent;
   color: var(--color-primary-strong);
-  border-color: #b8d8fb;
+  border-color: var(--color-primary);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--color-primary-soft);
 }
 
 .ui-button--ghost {
   background: transparent;
-  color: var(--color-primary);
+  color: var(--color-link);
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  background: var(--color-primary-soft);
 }
 
 .ui-button--danger {
@@ -48,7 +63,6 @@
 
 .ui-card {
   background: var(--color-surface);
-  border: 1px solid rgba(217, 226, 236, 0.9);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-subtle);
   padding: var(--space-5);
@@ -64,7 +78,8 @@
 
 .ui-card__header h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .ui-field {
@@ -82,12 +97,20 @@
 .ui-field select,
 .ui-field textarea {
   width: 100%;
-  min-height: 42px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 48px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
   background: #fff;
   color: var(--color-text);
   padding: 0 var(--space-3);
+  transition: border-color var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao);
+}
+
+.ui-field input:focus,
+.ui-field select:focus,
+.ui-field textarea:focus {
+  border-color: var(--color-link);
+  box-shadow: 0 0 0 1px var(--color-link);
 }
 
 .ui-field textarea {
@@ -154,14 +177,23 @@
 .ui-table td {
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-3);
+  height: 50px;
   text-align: left;
   vertical-align: middle;
 }
 
 .ui-table th {
-  color: var(--color-text-muted);
-  font-size: 0.84rem;
-  font-weight: 750;
+  color: var(--color-heading-table);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.ui-table tbody tr {
+  transition: background var(--dur-1) var(--ease-padrao);
+}
+
+.ui-table tbody tr:hover {
+  background: var(--color-primary-soft);
 }
 
 .ui-modal-backdrop {
@@ -224,18 +256,36 @@
 }
 
 .ui-tabs__list button {
+  position: relative;
   border: 0;
   background: transparent;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
   color: var(--color-text-muted);
-  border-bottom: 3px solid transparent;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 400;
+  transition: color var(--dur-2) var(--ease-padrao);
+}
+
+.ui-tabs__list button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--color-link);
+  transform: scaleX(0);
+  transition: transform var(--dur-3) var(--ease-padrao);
 }
 
 .ui-tabs__list button.is-active {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.ui-tabs__list button.is-active::after {
+  transform: scaleX(1);
 }
 
 .ui-breadcrumb {
@@ -249,7 +299,7 @@
 .ui-breadcrumb span + span::before {
   content: "/";
   margin-right: var(--space-2);
-  color: #98a2b3;
+  color: var(--color-text-soft);
 }
 
 @media (max-width: 720px) {
@@ -380,5 +430,227 @@
     animation: none;
     transition: none;
     stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- Escolha em botoes (categoria, prioridade, bimestre) ---------- */
+
+.ui-choice {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ui-choice legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.ui-choice__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ui-choice__option {
+  position: relative;
+}
+
+/* O radio fica no lugar, invisivel: continua recebendo foco e teclado. */
+.ui-choice__option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ui-choice__option span {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1.6px solid var(--color-border-input);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-4);
+  background: #fff;
+  color: var(--color-text);
+  transition: background var(--dur-2) var(--ease-padrao), border-color var(--dur-2) var(--ease-padrao), color var(--dur-2) var(--ease-padrao);
+}
+
+.ui-choice__option:hover span {
+  background: var(--color-primary-soft);
+}
+
+.ui-choice__option input:checked + span {
+  background: var(--color-primary-soft);
+  border-color: var(--color-link);
+  color: var(--color-link);
+  font-weight: 700;
+}
+
+.ui-choice__option input:checked + span::before {
+  content: "\2713";
+  animation: marca-pop var(--dur-2) var(--ease-padrao);
+}
+
+.ui-choice__option input:focus-visible + span {
+  outline: 3px solid rgba(21, 101, 216, 0.4);
+  outline-offset: 2px;
+}
+
+.ui-choice:disabled .ui-choice__option span {
+  opacity: 0.6;
+}
+
+/* ---------- Aviso (confirmacao curta depois de uma acao) ---------- */
+
+.aviso {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-6);
+  z-index: 50;
+  width: max-content;
+  max-width: calc(100vw - var(--space-8));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.aviso__texto {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  border-radius: var(--radius-button);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-text);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--shadow-raised);
+  pointer-events: auto;
+  animation: aviso-entra var(--dur-3) var(--ease-padrao);
+}
+
+.aviso__texto a {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+/* ---------- Linha de tabela que abre o detalhe ----------
+   O link fica na celula principal (teclado e leitor de tela funcionam) e a area
+   de clique se estica sobre a linha inteira. */
+
+.ui-table tbody tr {
+  position: relative;
+}
+
+.row-link {
+  color: var(--color-link);
+  font-weight: 700;
+}
+
+.row-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.row-link:focus-visible {
+  outline: none;
+}
+
+.row-link:focus-visible::after {
+  outline: 3px solid rgba(21, 101, 216, 0.4);
+  outline-offset: -3px;
+  border-radius: var(--radius-md);
+}
+
+.filtro-ativo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  font-weight: 600;
+}
+
+/* ---------- Movimento ---------- */
+
+@keyframes aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marca-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* A tela inteira entra com um fade curto; so opacity e transform. */
+.app-shell__main > * {
+  animation: pagina-entra var(--dur-2) var(--ease-padrao) backwards;
+}
+
+/* Indicadores entram em sequencia, so na primeira vez da sessao (DashboardPage). */
+.stat-card--entra {
+  animation: pagina-entra var(--dur-3) var(--ease-padrao) backwards;
+}
+
+.stat-card--entra:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.stat-card--entra:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.stat-card--entra:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+/* Sem movimento para quem pede: nada anima nem faz transicao. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

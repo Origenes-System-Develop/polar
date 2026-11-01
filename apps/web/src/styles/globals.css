@@ -30,7 +30,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(19, 81, 180, 0.35);
+  outline: 3px solid rgba(21, 101, 216, 0.4);
   outline-offset: 2px;
 }
 
@@ -114,12 +114,13 @@ textarea:focus-visible {
   background: var(--color-bg);
 }
 
-/* Painel de apresentacao em azul chapado, sem gradiente. Rola por dentro para
-   nunca esticar a pagina: o formulario ao lado fica sempre visivel. */
+/* Painel de apresentacao no gradiente azul-ciano da Sala do Futuro (as duas pontas
+   dao mais de 5,5:1 com texto branco). Rola por dentro para nunca esticar a pagina:
+   o formulario ao lado fica sempre visivel. */
 .login-about {
   border-radius: var(--radius-xl);
   padding: var(--space-10);
-  background: var(--color-primary-strong);
+  background: linear-gradient(109.77deg, #1d6f9a 0.36%, #0b5276 99.64%);
   color: #fff;
   overflow-y: auto;
   max-height: calc(100vh - var(--space-6) * 2);
@@ -241,16 +242,21 @@ textarea:focus-visible {
 
 /* ---------- Cartoes de indicador ---------- */
 
-/* A faixa colorida no topo faz cada indicador ser localizavel de relance,
+/* A linha colorida na base faz cada indicador ser localizavel de relance,
    antes mesmo de ler o rotulo. E o padrao visual da Sala do Futuro. */
 .stat-card {
-  border-top: 4px solid var(--stat-accent, var(--accent-blue));
+  border-bottom: 3px solid var(--stat-accent, var(--accent-blue));
+  transition: box-shadow var(--dur-3) var(--ease-padrao);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-soft);
 }
 
 .stat-card__value {
   display: block;
-  font-size: 2.4rem;
-  font-weight: 700;
+  font-size: 2.6rem;
+  font-weight: 800;
   line-height: 1.1;
   color: var(--color-text);
 }
@@ -259,7 +265,7 @@ textarea:focus-visible {
   display: block;
   margin-top: var(--space-1);
   color: var(--color-text-muted);
-  font-size: 0.94rem;
+  font-size: 1rem;
 }
 
 .stat-card--blue {
@@ -284,7 +290,7 @@ textarea:focus-visible {
   width: 100%;
   text-align: left;
   cursor: pointer;
-  transition: box-shadow 0.16s ease, transform 0.16s ease;
+  transition: box-shadow var(--dur-3) var(--ease-padrao), transform var(--dur-2) var(--ease-padrao);
 }
 
 .pendencias-card:hover {
@@ -340,8 +346,8 @@ textarea:focus-visible {
   display: block;
   margin-top: var(--space-2);
   font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-primary);
+  font-weight: 800;
+  color: var(--color-link);
 }
 
 .timeline {
@@ -353,7 +359,7 @@ textarea:focus-visible {
 }
 
 .timeline li {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-link);
   padding-left: var(--space-4);
 }
 
@@ -456,4 +462,16 @@ textarea:focus-visible {
 .status-dot--vermelho {
   background: var(--color-danger-soft);
   color: var(--color-danger);
+}
+
+/* Estado vazio no padrao da Sala do Futuro: icone grande em quadrado arredondado. */
+.empty-state__icon {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  color: var(--color-link);
 }

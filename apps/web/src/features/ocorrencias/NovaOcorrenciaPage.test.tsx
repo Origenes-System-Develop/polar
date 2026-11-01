@@ -12,18 +12,54 @@ describe("NovaOcorrenciaPage", () => {
 
     expect(await screen.findByText("Selecione um aluno.")).toBeInTheDocument();
     expect(screen.getByText("Informe a categoria.")).toBeInTheDocument();
+    expect(screen.getByText("Informe a prioridade.")).toBeInTheDocument();
+    expect(screen.getByText("Informe o bimestre.")).toBeInTheDocument();
     expect(screen.getByText("Descreva a ocorrência com pelo menos 10 caracteres.")).toBeInTheDocument();
   });
 
   it("oferece todos os niveis de prioridade validos com texto visivel", () => {
     renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
 
-    const prioridade = screen.getByLabelText("Prioridade");
-    expect(prioridade).toHaveValue("MEDIA");
-    expect(screen.getByRole("option", { name: "Baixa" })).toHaveValue("BAIXA");
-    expect(screen.getByRole("option", { name: "Média" })).toHaveValue("MEDIA");
-    expect(screen.getByRole("option", { name: "Alta" })).toHaveValue("ALTA");
-    expect(screen.getByRole("option", { name: "Urgente" })).toHaveValue("URGENTE");
+    const prioridade = screen.getByRole("group", { name: "Prioridade" });
+    expect(prioridade).toBeInTheDocument();
+    // Sem valor inicial: quem registra escolhe, para o dado nao nascer de um padrao nao conferido.
+    expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Baixa" })).toHaveAttribute("value", "BAIXA");
+    expect(screen.getByRole("radio", { name: "Média" })).toHaveAttribute("value", "MEDIA");
+    expect(screen.getByRole("radio", { name: "Alta" })).toHaveAttribute("value", "ALTA");
+    expect(screen.getByRole("radio", { name: "Urgente" })).toHaveAttribute("value", "URGENTE");
+  });
+
+  it("o bimestre tambem comeca sem escolha", () => {
+    renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
+
+    expect(screen.getByRole("group", { name: "Bimestre" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "1º bimestre" })).not.toBeChecked();
+  });
+
+  it("a busca filtra a lista de alunos sem acento nem caixa", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
+    await screen.findByRole("option", { name: /Estudante 01/ });
+    const antes = screen.getAllByRole("option").length;
+
+    await user.type(screen.getByLabelText("Buscar aluno"), "ESTUDANTE 01");
+
+    expect(screen.getByRole("option", { name: /Estudante 01/ })).toBeInTheDocument();
+    expect(screen.getAllByRole("option").length).toBeLessThan(antes);
+
+    await user.clear(screen.getByLabelText("Buscar aluno"));
+    await user.type(screen.getByLabelText("Buscar aluno"), "zzz");
+    expect(screen.getByRole("option", { name: "Nenhum aluno encontrado" })).toBeInTheDocument();
+  });
+
+  it("mostra a turma do aluno escolhido", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
+    await screen.findByRole("option", { name: /Estudante 01/ });
+    await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
+
+    expect(screen.getByText(/^Turma:/)).toBeInTheDocument();
   });
 
   describe("moderacao da descricao", () => {
@@ -40,9 +76,11 @@ describe("NovaOcorrenciaPage", () => {
 
     async function preencherEEnviar(user: ReturnType<typeof userEvent.setup>, resposta: Response) {
       renderWithProviders(<NovaOcorrenciaPage />, ["/ocorrencias/nova"]);
-      await screen.findByRole("option", { name: "Estudante 01" });
+      await screen.findByRole("option", { name: /Estudante 01/ });
       await user.selectOptions(screen.getByLabelText("Aluno"), "a1");
-      await user.selectOptions(screen.getByLabelText("Categoria"), "Desrespeito");
+      await user.click(screen.getByRole("radio", { name: "Desrespeito" }));
+      await user.click(screen.getByRole("radio", { name: "Média" }));
+      await user.click(screen.getByRole("radio", { name: "2º bimestre" }));
       await user.type(screen.getByLabelText("Local"), "Sala de aula");
       await user.type(screen.getByLabelText("Descrição"), original);
       vi.mocked(fetch).mockResolvedValueOnce(resposta);
