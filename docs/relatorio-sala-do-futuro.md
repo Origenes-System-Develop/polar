@@ -118,9 +118,9 @@ As demais linhas do script (selos, perigo, aviso, painel do login) passam. As 5 
 | | CSS | JS | Fonte |
 |---|---|---|---|
 | `develop` | 19,69 kB (gzip 4,43) | 302,00 kB (gzip 88,84) | Public Sans por requisição ao Google |
-| Este PR | 25,63 kB (gzip 5,47) | 306,04 kB (gzip 90,30) | 48 kB local, mesma origem |
+| Este PR | 30,56 kB (gzip 6,22) | 313,99 kB (gzip 92,34) | 48 kB local, mesma origem |
 
-CSS +1,04 kB gzip e JS +1,46 kB gzip. A meta que fixei para o JS era +1 kB e passou 0,5 kB (componentes `Escolha`, `Aviso` e a lógica de busca e pendências). Aceito: nenhuma biblioteca de animação entrou, e `motion` ficou de fora porque a necessidade é só `opacity` e `transform`.
+CSS +1,79 kB gzip e JS +3,50 kB gzip. A meta que fixei para o JS era +1 kB e passou: o painel próprio do Select, o menu com perfil e o rodapé novos entraram depois da primeira medição. Nenhuma biblioteca de animação entrou; o painel do Select e os ícones usam o `lucide-react` que já estava no projeto.
 
 ## 6. Verificação executada
 
