@@ -21,7 +21,15 @@ const configSchema = z.object({
     .optional()
     .transform((value) => value === "true" || value === "1"),
   bootstrapAdminEmail: z.string().email().default("admin@pola.local"),
-  bootstrapAdminPassword: z.string().optional()
+  bootstrapAdminPassword: z.string().optional(),
+  // E-mail (ex.: Gmail com senha de app). Sem SMTP_HOST o envio fica desligado.
+  smtpHost: z.string().optional(),
+  smtpPort: z.coerce.number().int().positive().default(465),
+  smtpUser: z.string().optional(),
+  smtpPass: z.string().optional(),
+  smtpFrom: z.string().optional(),
+  // Endereco publico do sistema, usado nos links dos e-mails para a equipe.
+  appUrl: z.string().url().optional()
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -38,7 +46,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     databaseUrl: env.DATABASE_URL,
     databaseSsl: env.DATABASE_SSL,
     bootstrapAdminEmail: env.BOOTSTRAP_ADMIN_EMAIL,
-    bootstrapAdminPassword: env.BOOTSTRAP_ADMIN_PASSWORD
+    bootstrapAdminPassword: env.BOOTSTRAP_ADMIN_PASSWORD,
+    smtpHost: env.SMTP_HOST || undefined,
+    smtpPort: env.SMTP_PORT || undefined,
+    smtpUser: env.SMTP_USER || undefined,
+    smtpPass: env.SMTP_PASS || undefined,
+    smtpFrom: env.SMTP_FROM || undefined,
+    appUrl: env.APP_URL || undefined
   });
 
   if (parsed.databaseProvider === "postgres" && !parsed.databaseUrl) {

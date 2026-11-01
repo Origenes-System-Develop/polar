@@ -1,6 +1,6 @@
 // Reset das contas de controle do POLAR.
 //
-// Apaga TODOS os usuarios e recria apenas as cinco contas fixas (uma por papel).
+// Apaga TODOS os usuarios e recria apenas as quatro contas fixas (uma por papel).
 // Usa SQL direto, e nao a camada de repositorios, porque a interface compartilhada
 // nao expoe delete de usuario de proposito -- e o sistema nunca deve apagar usuario
 // pela API. Este script e uma ferramenta de operacao, nao um caminho da aplicacao.
@@ -90,8 +90,7 @@ async function main(): Promise<void> {
       [CONTAS.professor, PapelUsuario.PROFESSOR],
       [CONTAS.coordenacao, PapelUsuario.COORDENADOR],
       [CONTAS.direcao, PapelUsuario.DIRETOR],
-      [CONTAS.adm, PapelUsuario.ADM],
-      [CONTAS.aluno, PapelUsuario.ALUNO]
+      [CONTAS.adm, PapelUsuario.ADM]
     ];
 
     for (const [conta, papel] of contas) {

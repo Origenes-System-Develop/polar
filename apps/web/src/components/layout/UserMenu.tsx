@@ -52,7 +52,7 @@ export function UserMenu() {
         <span className="avatar" aria-hidden="true">
           {iniciaisDe(user?.nome)}
         </span>
-        <span className="user-menu__name">{user?.nome ?? "Usuario"}</span>
+        <span className="user-menu__name">{user?.nome ?? "Usuário"}</span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
 
@@ -70,7 +70,7 @@ export function UserMenu() {
               {iniciaisDe(user?.nome)}
             </span>
             <div>
-              <strong>{user?.nome ?? "Usuario"}</strong>
+              <strong>{user?.nome ?? "Usuário"}</strong>
               <span>{rotuloDePapel(user?.papel)}</span>
               <span className="user-menu__email">{user?.email}</span>
             </div>
@@ -80,12 +80,12 @@ export function UserMenu() {
             {canAccess(user?.papel, "configuracoes:manage") ? (
               <Link to="/configuracoes" role="menuitem" onClick={() => setAberto(false)}>
                 <Settings size={18} aria-hidden="true" />
-                <span>Configuracoes</span>
+                <span>Configurações</span>
               </Link>
             ) : null}
             <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
               <User size={18} aria-hidden="true" />
-              <span>Minhas ocorrencias</span>
+              <span>Minhas ocorrências</span>
             </Link>
             <button type="button" role="menuitem" className="user-menu__logout" onClick={handleLogout}>
               <LogOut size={18} aria-hidden="true" />

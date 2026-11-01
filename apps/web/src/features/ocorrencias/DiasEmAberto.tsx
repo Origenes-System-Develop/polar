@@ -20,7 +20,7 @@ export function diasDesde(iso: string, agora = new Date()): number {
  */
 export function DiasEmAberto({ desde, status }: { desde: string; status: StatusOcorrencia }) {
   if (status === "ENCERRADA") {
-    return <span className="muted">—</span>;
+    return <span className="muted">encerrada</span>;
   }
 
   const dias = diasDesde(desde);
@@ -28,7 +28,7 @@ export function DiasEmAberto({ desde, status }: { desde: string; status: StatusO
   const texto = dias === 0 ? "hoje" : dias === 1 ? "1 dia" : `${dias} dias`;
 
   return (
-    <span className={`aging aging--${severidade}`} title={`Aberta ha ${texto}`}>
+    <span className={`aging aging--${severidade}`} title={`Aberta há ${texto}`}>
       <Clock size={14} aria-hidden="true" />
       {texto}
     </span>

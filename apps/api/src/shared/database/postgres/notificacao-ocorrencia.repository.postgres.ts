@@ -7,7 +7,7 @@ interface NotificacaoRow {
   id: string;
   ocorrencia_id: string;
   destinatario: NotificacaoOcorrencia["destinatario"];
-  resultado: "ENVIADO";
+  resultado: NotificacaoOcorrencia["resultado"];
   criado_em: Date;
 }
 

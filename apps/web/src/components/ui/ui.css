@@ -194,6 +194,23 @@
   font-size: 1.1rem;
 }
 
+.ui-modal__body p {
+  margin: 0 0 var(--space-4);
+  line-height: 1.55;
+}
+
+.ui-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.ui-tabs__panel {
+  min-width: 0;
+}
+
 .ui-tabs {
   display: grid;
   gap: var(--space-4);
@@ -286,3 +303,82 @@
 .report-chart__point { fill: #16a34a; }
 .report-chart__value { fill: #344054; font-size: 12px; font-weight: 700; }
 .report-chart__label { fill: #475467; font-size: 11px; }
+
+/* ---------- Marcas (Polar e Polaris) ----------
+   Ao aparecer, os arcos se desenham e a estrela acende girando. No hover a
+   estrela da uma volta de 60 graus (a estrela tem seis pontas: volta no mesmo
+   desenho). Nada fica se mexendo sozinho na tela de trabalho. */
+
+.marca {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.marca-polar {
+  color: var(--color-primary);
+}
+
+.marca-polar__arco {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: marca-desenha 0.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.marca-polar__arco + .marca-polar__arco {
+  animation-delay: 0.12s;
+}
+
+.marca-polar__estrela,
+.marca-polaris__estrela {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: marca-acende 0.65s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.marca-polaris__linha {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+:hover > .marca-polar .marca-polar__estrela,
+.marca-polar:hover .marca-polar__estrela,
+:hover > .marca-polaris .marca-polaris__estrela {
+  transform: rotate(60deg) scale(1.08);
+}
+
+:hover > .marca-polaris .marca-polaris__linha {
+  animation: marca-desenha 0.7s ease;
+}
+
+@keyframes marca-desenha {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes marca-acende {
+  from {
+    opacity: 0;
+    transform: rotate(-60deg) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marca-polar__arco,
+  .marca-polar__estrela,
+  .marca-polaris__estrela,
+  .marca-polaris__linha {
+    animation: none;
+    transition: none;
+    stroke-dashoffset: 0;
+  }
+}

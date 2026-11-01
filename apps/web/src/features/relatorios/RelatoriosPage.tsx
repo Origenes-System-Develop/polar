@@ -8,6 +8,7 @@ import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { RelatorioOcorrencias, Turma } from "../../services/domain";
 import { getRelatorioOcorrencias, listTurmas } from "../../services/school.service";
+import { baixarCsv, ocorrenciasParaCsv } from "./csv";
 
 interface DadoGrafico {
   nome: string;
@@ -76,7 +77,7 @@ export function RelatoriosPage() {
         const data = await listTurmas();
         if (active) setTurmas(data);
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : "Nao foi possivel carregar as turmas.");
+        if (active) setError(err instanceof Error ? err.message : "Não foi possível carregar as turmas. Recarregue a página.");
       }
     }
     void loadTurmas();
@@ -98,7 +99,7 @@ export function RelatoriosPage() {
         setRelatorio(data);
         setError("");
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : "Nao foi possivel carregar relatorios.");
+        if (active) setError(err instanceof Error ? err.message : "Não foi possível carregar o relatório. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -120,9 +121,18 @@ export function RelatoriosPage() {
   return (
     <>
       <PageHeader
-        title="Relatorios"
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Relatorios" }]}
-        actions={<Button variant="secondary" icon={<Download size={18} />} disabled>Exportacao futura</Button>}
+        title="Relatórios"
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Relatórios" }]}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Download size={18} />}
+            disabled={loading || total === 0}
+            onClick={() => relatorio && baixarCsv(ocorrenciasParaCsv(relatorio.ocorrencias), "ocorrencias.csv")}
+          >
+            Baixar planilha (CSV)
+          </Button>
+        }
       />
       <div className="page-grid">
         <Card title="Filtros">
@@ -157,13 +167,13 @@ export function RelatoriosPage() {
           <Card className="stat-card"><span className="stat-card__value">{loading ? "..." : categorias}</span><span className="stat-card__label">Categorias</span></Card>
         </div>
         <div className="grid-2">
-          <Card title="Distribuicao por turma">
-            {dadosTurma.length > 0 ? <GraficoBarras dados={dadosTurma} /> : <p className="muted">Sem ocorrencias para os filtros selecionados.</p>}
-            <Table data={dadosTurma} columns={[{ key: "nome", header: "Turma", render: (item) => item.nome }, { key: "total", header: "Ocorrencias", render: (item) => item.total }]} empty="Sem dados por turma." />
+          <Card title="Por turma">
+            {dadosTurma.length > 0 ? <GraficoBarras dados={dadosTurma} /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
+            <Table data={dadosTurma} columns={[{ key: "nome", header: "Turma", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados por turma." />
           </Card>
-          <Card title="Evolucao por periodo">
-            {dadosPeriodo.length > 0 ? <GraficoLinha dados={dadosPeriodo} /> : <p className="muted">Sem ocorrencias para os filtros selecionados.</p>}
-            <Table data={dadosPeriodo} columns={[{ key: "nome", header: "Periodo", render: (item) => item.nome }, { key: "total", header: "Ocorrencias", render: (item) => item.total }]} empty="Sem dados por periodo." />
+          <Card title="Mês a mês">
+            {dadosPeriodo.length > 0 ? <GraficoLinha dados={dadosPeriodo} /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
+            <Table data={dadosPeriodo} columns={[{ key: "nome", header: "Período", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados no período." />
           </Card>
         </div>
       </div>

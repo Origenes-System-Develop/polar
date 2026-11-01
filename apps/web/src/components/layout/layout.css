@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  transition: grid-template-columns 0.18s ease;
+  transition: grid-template-columns 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-shell.is-collapsed {
@@ -43,10 +43,16 @@
   min-height: 48px;
 }
 
-.sidebar__brand img {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
+
+/* Rotulos somem por largura e opacidade, nao por display:none: o icone fica
+   parado no lugar e o texto desliza, sem o salto de antes. */
+.sidebar__brand-text,
+.sidebar__label {
+  max-width: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  transition: max-width 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease 0.08s;
 }
 
 .sidebar__brand-text strong {
@@ -93,29 +99,53 @@
   font-weight: 700;
 }
 
-.sidebar__footer {
+.sidebar__toggle {
   margin-top: auto;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-4);
-  color: var(--color-text-soft);
-  font-size: 0.84rem;
-  white-space: nowrap;
+  gap: var(--space-4);
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-3) var(--space-4) 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* Recolhida: some o texto e centraliza os icones. O title nos links garante
-   que o destino continue identificavel sem o rotulo visivel. */
+.sidebar__toggle:hover {
+  color: var(--color-primary);
+}
+
+.sidebar__toggle svg {
+  flex-shrink: 0;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Recolhida: os rotulos encolhem e os icones ficam onde estavam. A largura
+   recolhida centraliza o icone (16 de borda + 16 de recuo + 10 = 42 = 84/2).
+   O title nos links mantem o destino identificavel sem o rotulo. */
 .app-shell.is-collapsed .sidebar__label,
 .app-shell.is-collapsed .sidebar__brand-text {
-  display: none;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease;
 }
 
 .app-shell.is-collapsed .sidebar__nav a,
-.app-shell.is-collapsed .sidebar__brand,
-.app-shell.is-collapsed .sidebar__footer {
-  justify-content: center;
-  padding: 0;
+.app-shell.is-collapsed .sidebar__toggle {
+  gap: 0;
+}
+
+.app-shell.is-collapsed .sidebar__brand {
+  gap: 0;
+}
+
+.app-shell.is-collapsed .sidebar__toggle svg {
+  transform: rotate(180deg);
 }
 
 /* ---------- Barra superior ---------- */
@@ -145,26 +175,8 @@
   cursor: pointer;
 }
 
-.topbar__collapse {
-  width: 30px;
-  height: 30px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: transform 0.18s ease, color 0.14s ease;
-}
 
-.topbar__collapse:hover {
-  color: var(--color-primary);
-}
 
-.topbar__collapse.is-collapsed {
-  transform: rotate(180deg);
-}
 
 /* ---------- Avatar e menu de perfil ---------- */
 
@@ -395,9 +407,19 @@
   margin-right: auto;
 }
 
-.app-footer__brand img {
-  width: 36px;
-  height: 36px;
+.app-footer__equipe {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.app-footer__equipe:hover {
+  cursor: default;
+  color: var(--color-text);
 }
 
 .app-footer__column {
@@ -430,10 +452,16 @@
     transform: translateX(0);
   }
 
-  /* No mobile a lateral vira gaveta: recolher perde o sentido e o botao sai. */
-  .topbar__collapse {
+  .sidebar__toggle {
     display: none;
   }
+
+  .app-shell.is-collapsed .sidebar__label,
+  .app-shell.is-collapsed .sidebar__brand-text {
+    max-width: 180px;
+    opacity: 1;
+  }
+
 
   .topbar__menu {
     display: inline-flex;

@@ -8,6 +8,7 @@ import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import {
+  CATEGORIAS_OCORRENCIA,
   PRIORIDADES_OCORRENCIA,
   PRIORIDADE_PESO,
   type OcorrenciaDetalhada
@@ -40,7 +41,7 @@ export function OcorrenciasListPage() {
         setError("");
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar as ocorrencias.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar as ocorrências. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -53,6 +54,12 @@ export function OcorrenciasListPage() {
     };
   }, []);
 
+  // Inclui categorias antigas (texto livre) que ainda existam nos registros.
+  const categorias = useMemo(
+    () => [...new Set<string>([...CATEGORIAS_OCORRENCIA, ...ocorrencias.map((item) => item.categoria)])],
+    [ocorrencias]
+  );
+
   const filtered = useMemo(
     () =>
       ocorrencias
@@ -61,7 +68,7 @@ export function OcorrenciasListPage() {
             item.aluno.toLowerCase().includes(aluno.toLowerCase()) &&
             (!status || item.status === status) &&
             (!prioridade || item.prioridade === prioridade) &&
-            (!categoria || item.categoria.toLowerCase().includes(categoria.toLowerCase())) &&
+            (!categoria || item.categoria === categoria) &&
             (!bimestre || item.bimestre === Number(bimestre))
         )
         .sort((a, b) => {
@@ -74,11 +81,11 @@ export function OcorrenciasListPage() {
   return (
     <>
       <PageHeader
-        title={user?.papel === "PROFESSOR" ? "Minhas ocorrencias" : "Ocorrencias"}
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Ocorrencias" }]}
+        title={user?.papel === "PROFESSOR" ? "Minhas ocorrências" : "Ocorrências"}
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências" }]}
         actions={
           <Link to="/ocorrencias/nova">
-            <Button icon={<Plus size={18} />}>Nova ocorrencia</Button>
+            <Button icon={<Plus size={18} />}>Registrar ocorrência</Button>
           </Link>
         }
       />
@@ -104,10 +111,10 @@ export function OcorrenciasListPage() {
               onChange={(event) => setStatus(event.target.value)}
               options={[
                 { label: "Todos", value: "" },
-                { label: "REGISTRADA", value: "REGISTRADA" },
-                { label: "EM_ANALISE", value: "EM_ANALISE" },
-                { label: "RESOLVIDA", value: "RESOLVIDA" },
-                { label: "ENCERRADA", value: "ENCERRADA" }
+                { label: "Registrada", value: "REGISTRADA" },
+                { label: "Em análise", value: "EM_ANALISE" },
+                { label: "Resolvida", value: "RESOLVIDA" },
+                { label: "Encerrada", value: "ENCERRADA" }
               ]}
             />
             <Select
@@ -129,20 +136,25 @@ export function OcorrenciasListPage() {
                 { label: "Baixa para alta", value: "MENOR" }
               ]}
             />
-            <Input label="Categoria" value={categoria} onChange={(event) => setCategoria(event.target.value)} />
+            <Select
+              label="Categoria"
+              value={categoria}
+              onChange={(event) => setCategoria(event.target.value)}
+              options={[{ label: "Todas", value: "" }, ...categorias.map((item) => ({ label: item, value: item }))]}
+            />
           </div>
         </Card>
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
         <Card title="Lista">
           {loading ? (
-            <p className="muted">Carregando ocorrencias...</p>
+            <p className="muted">Carregando ocorrências...</p>
           ) : filtered.length === 0 ? (
             <div className="empty-state">
-              <strong>{ocorrencias.length === 0 ? "Nenhuma ocorrencia no seu escopo." : "Nenhum resultado para estes filtros."}</strong>
+              <strong>{ocorrencias.length === 0 ? "Nenhuma ocorrência para você ainda." : "Nada encontrado com esses filtros."}</strong>
               <span>
                 {ocorrencias.length === 0
-                  ? "Assim que houver registros visiveis para o seu perfil, eles aparecem aqui."
-                  : "Ajuste ou limpe os filtros acima para ver mais registros."}
+                  ? "Quando houver uma ocorrência que você pode ver, ela aparece aqui."
+                  : "Mude ou limpe os filtros para ver mais."}
               </span>
             </div>
           ) : (
@@ -156,7 +168,7 @@ export function OcorrenciasListPage() {
                 {
                   key: "bimestre",
                   header: "Bimestre",
-                  render: (item) => `${item.bimestre}º Bimestre`
+                  render: (item) => (item.bimestre ? `${item.bimestre}º` : "Não informado")
                 },
                 {
                   key: "aberta",
@@ -165,11 +177,11 @@ export function OcorrenciasListPage() {
                 },
                 {
                   key: "acao",
-                  header: "Acao",
+                  header: "Ação",
                   render: (item) => (
-                    <Link to={`/ocorrencias/${item.id}`} aria-label={`Visualizar ocorrencia de ${item.aluno}`}>
+                    <Link to={`/ocorrencias/${item.id}`} aria-label={`Abrir ocorrência de ${item.aluno}`}>
                       <Button variant="ghost" icon={<Eye size={18} />}>
-                        Visualizar
+                        Abrir
                       </Button>
                     </Link>
                   )

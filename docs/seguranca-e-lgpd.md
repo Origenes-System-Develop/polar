@@ -56,6 +56,6 @@ Recomendação ao cliente: manter registros pelo período de vida escolar do alu
 ### O que o sistema deliberadamente NÃO faz (redução de risco)
 
 - Não expõe dados a alunos nem responsáveis (não são usuários).
-- Não envia dados para fora (sem e-mail/SMS/push externos, sem APIs de terceiros).
+- A única saída de dados é o e-mail de encaminhamento de ocorrência (SMTP configurado pela escola, desligado sem `SMTP_HOST`). Vai para coordenação, direção e o e-mail do responsável cadastrado no aluno. O e-mail ao responsável traz só nome do aluno, data e categoria, nunca a descrição; a equipe recebe também a prioridade e o link. Não há SMS, push nem outras APIs de terceiros.
 - Não usa IA sobre dados de alunos.
 - Não publica ranking ou comparação entre alunos.

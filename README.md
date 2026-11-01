@@ -130,7 +130,7 @@ pnpm dev
 ```
 
 - Web: <http://localhost:5173> — API: <http://localhost:3000/health>
-- Contas de controle (uma por papel): `professor@`, `coordenacao@`, `direcao@`, `adm@` e `aluno@escola.polar` — senha = `SEED_SENHA_PADRAO`.
+- Contas de controle (uma por papel): `professor@`, `coordenacao@`, `direcao@` e `adm@escola.polar` — senha = `SEED_SENHA_PADRAO`.
 
 > Sem Docker? `DATABASE_PROVIDER=json` roda a API com persistência em arquivo — **apenas** para desenvolvimento; produção exige PostgreSQL (o boot falha sem ele).
 

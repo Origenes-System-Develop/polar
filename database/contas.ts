@@ -13,8 +13,7 @@ export const CONTAS = {
   professor: { nome: "Professor POLAR", email: "professor@escola.polar" },
   coordenacao: { nome: "Coordenação POLAR", email: "coordenacao@escola.polar" },
   direcao: { nome: "Direção POLAR", email: "direcao@escola.polar" },
-  adm: { nome: "Administração POLAR", email: "adm@escola.polar" },
-  aluno: { nome: "Aluno POLAR", email: "aluno@escola.polar" }
+  adm: { nome: "Administração POLAR", email: "adm@escola.polar" }
 } as const;
 
 export type Conta = (typeof CONTAS)[keyof typeof CONTAS];

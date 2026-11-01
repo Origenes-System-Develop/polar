@@ -35,11 +35,10 @@ Os menus e ações dependem do papel da conta. As permissões também são verif
 | Coordenação (`COORDENADOR`) | Consultar todas as ocorrências; colocar em análise e marcar como resolvida; consultar relatórios | Não encerra ocorrências nem edita o histórico |
 | Direção (`DIRETOR`) | Consultar todas as ocorrências e relatórios; encerrar ocorrências resolvidas | Não executa as etapas de análise e resolução |
 | Administrador (`ADM`) | Gerenciar usuários, alunos, turmas e configurações; consultar ocorrências e relatórios; registrar ocorrências pela interface atual | Não muda status nem edita ocorrências de terceiros |
-| Aluno (`ALUNO`) | Autenticar e acessar uma conta somente leitura | A lista de ocorrências permanece vazia e o painel zerado; o vínculo entre conta e cadastro de aluno ainda não existe |
 
-> **Limitação atual:** o histórico institucional por aluno é uma ferramenta da equipe escolar. A conta `ALUNO` ainda não permite consultar o próprio histórico. O sistema também não oferece portal de responsáveis.
+> O histórico institucional por aluno é uma ferramenta da equipe escolar. Alunos não têm conta de acesso ao sistema, e não há portal de responsáveis.
 
-A interface atual não oferece edição de ocorrências. A regra de edição existente no backend permite alteração somente pelo autor enquanto a ocorrência estiver `REGISTRADA`; não há regra de prazo de 24 horas. Não há ação de exclusão de ocorrência na interface descrita neste manual.
+O autor pode editar a ocorrência pelo botão **Editar** na tela de detalhe enquanto ela estiver `REGISTRADA` (categoria, prioridade, descrição, local e testemunhas; aluno, turma e bimestre ficam travados). Depois que a coordenação a coloca em análise, o botão some. Não há regra de prazo de 24 horas. Não há ação de exclusão de ocorrência na interface descrita neste manual.
 
 ## 3. Painel inicial
 
@@ -167,7 +166,6 @@ Coordenação, direção e administrador podem abrir **Relatórios** para consul
 | Falha ao carregar dados | Confira a conexão, atualize a página e informe a equipe responsável se persistir |
 | Registro duplicado | Consulte a lista antes de reenviar; pode existir ocorrência equivalente criada nos últimos cinco minutos |
 | Menu ou ação ausente | Confira o papel da conta e o status da ocorrência; a ação pode não estar autorizada |
-| Aluno vê lista vazia | É a limitação atual da conta `ALUNO`, que ainda não está vinculada ao cadastro do estudante |
 | Impossibilidade de alterar ocorrência encerrada | Comportamento esperado: o encerramento torna o registro somente leitura |
 
 ## 9. Dados fictícios e demonstração
@@ -182,7 +180,6 @@ Use somente dados fictícios em apresentações do TCC. As contas abaixo são re
 | Coordenação | `coordenacao@escola.polar` | Mesma configuração do ambiente de demonstração |
 | Direção | `direcao@escola.polar` | Mesma configuração do ambiente de demonstração |
 | Administrador | `adm@escola.polar` | Mesma configuração do ambiente de demonstração |
-| Aluno | `aluno@escola.polar` | Mesma configuração do ambiente de demonstração |
 
 ### 9.2. Exemplo de preenchimento
 

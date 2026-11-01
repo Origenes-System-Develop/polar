@@ -53,7 +53,7 @@ SEED_SENHA_PADRAO='<senha das contas de teste>' \
 pnpm seed
 ```
 
-O seed cria as cinco contas de controle, 3 turmas, 15 alunos e 12 ocorrências distribuídas nos quatro estados, com histórico coerente, notas e faltas. Ele é idempotente: se `adm@escola.polar` já existir, não faz nada.
+O seed cria as quatro contas de controle, 3 turmas, 15 alunos e 12 ocorrências distribuídas nos quatro estados, com histórico coerente, notas e faltas. Ele é idempotente: se `adm@escola.polar` já existir, não faz nada.
 
 As 12 ocorrências ficam divididas entre dois autores — 6 do professor e 6 do ADM. É de propósito: permite demonstrar ao vivo que o professor enxerga 6 e a coordenação enxerga 12, na listagem **e** no dashboard.
 
@@ -65,15 +65,12 @@ As 12 ocorrências ficam divididas entre dois autores — 6 do professor e 6 do 
 | `coordenacao@escola.polar` | COORDENADOR | tudo; analisa e resolve |
 | `direcao@escola.polar` | DIRETOR | tudo; encerra |
 | `adm@escola.polar` | ADM | tudo; gerencia usuários, turmas e alunos |
-| `aluno@escola.polar` | ALUNO | nada, por ora — ver observação abaixo |
 
 Todas compartilham a senha de `SEED_SENHA_PADRAO` e entram direto, sem tela de troca de senha.
 
-> **Sobre o papel ALUNO.** Ele existe e loga, mas o modelo de dados ainda não liga um `Usuario` a um registro de `Aluno`. Sem esse vínculo não há como decidir *quais* ocorrências são "as dele", e a regra do sistema é negar por padrão: a listagem volta vazia e o dashboard zerado. Quando o vínculo existir, o único ponto a mudar é `escopoDeOcorrencias()` em `apps/api/src/modules/ocorrencias/ocorrencias.service.ts`.
-
 ## 5. Reset das contas
 
-Para apagar todos os usuários e recriar apenas as cinco contas fixas:
+Para apagar todos os usuários e recriar apenas as quatro contas fixas:
 
 ```bash
 DATABASE_URL='...' DATABASE_SSL=true SEED_SENHA_PADRAO='...' pnpm reset:usuarios

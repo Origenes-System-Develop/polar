@@ -31,6 +31,30 @@ describe("Ocorrencias", () => {
       .expect(400);
   });
 
+  it("aceita so categorias da lista, no registro e na edicao", async () => {
+    const { app, ids } = await buildTestContext();
+    const auth = await tokens(app);
+    const base = { alunoId: ids.aluno, prioridade: "BAIXA", bimestre: 1, descricao: "Aluno chegou depois do sinal." };
+
+    await request(app)
+      .post("/api/ocorrencias")
+      .set("Authorization", `Bearer ${auth.professor}`)
+      .send({ ...base, categoria: "Inventada pelo professor" })
+      .expect(400);
+
+    const criada = await request(app)
+      .post("/api/ocorrencias")
+      .set("Authorization", `Bearer ${auth.professor}`)
+      .send({ ...base, categoria: "Atraso" })
+      .expect(201);
+
+    await request(app)
+      .patch(`/api/ocorrencias/${criada.body.data.id}`)
+      .set("Authorization", `Bearer ${auth.professor}`)
+      .send({ categoria: "atraso" })
+      .expect(400);
+  });
+
   it("aceita urgencia e rejeita prioridade fora dos niveis permitidos", async () => {
     const { app, ids } = await buildTestContext();
     const auth = await tokens(app);

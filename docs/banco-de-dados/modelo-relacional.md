@@ -22,7 +22,7 @@ erDiagram
         char36 id PK
         varchar nome
         varchar email UK
-        enum papel "PROFESSOR|COORDENADOR|DIRETOR|ADM|ALUNO"
+        enum papel "PROFESSOR|COORDENADOR|DIRETOR|ADM"
         varchar senha_hash "bcrypt"
         tinyint ativo
         tinyint precisa_trocar_senha

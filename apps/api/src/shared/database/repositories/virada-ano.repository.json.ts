@@ -78,6 +78,7 @@ export class JsonViradaAnoRepository implements ViradaAnoRepository {
             turmaId: turmaInput.turmaDestino.id,
             responsavelNome: atual.responsavelNome,
             responsavelContato: atual.responsavelContato,
+            responsavelEmail: atual.responsavelEmail,
             ativo: atual.ativo,
             criadoEm: atual.criadoEm,
             atualizadoEm: agora

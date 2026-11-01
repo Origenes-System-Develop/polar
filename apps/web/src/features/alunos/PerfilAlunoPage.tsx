@@ -44,7 +44,7 @@ export function PerfilAlunoPage() {
         setError("");
       } catch (err) {
         if (!activeRequest) return;
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar o historico do aluno.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar o histórico do aluno. Recarregue a página.");
       } finally {
         if (activeRequest) setLoading(false);
       }
@@ -60,9 +60,9 @@ export function PerfilAlunoPage() {
   if (loading && !aluno) {
     return (
       <>
-        <PageHeader title="Historico do aluno" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: "Carregando" }]} />
+        <PageHeader title="Histórico do aluno" breadcrumb={[{ label: "Início", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: "Carregando" }]} />
         <Card>
-          <p className="muted">Carregando historico...</p>
+          <p className="muted">Carregando histórico...</p>
         </Card>
       </>
     );
@@ -71,8 +71,8 @@ export function PerfilAlunoPage() {
   if (!aluno) {
     return (
       <>
-        <PageHeader title="Historico do aluno" breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: "Nao encontrado" }]} />
-        <Card className="state-message state-message--danger">{error || "Aluno nao encontrado."}</Card>
+        <PageHeader title="Histórico do aluno" breadcrumb={[{ label: "Início", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: "Não encontrado" }]} />
+        <Card className="state-message state-message--danger">{error || "Aluno não encontrado."}</Card>
       </>
     );
   }
@@ -80,18 +80,18 @@ export function PerfilAlunoPage() {
   const turmasPorId = new Map(turmas.map((turma) => [turma.id, turma]));
   const historicoTurmasDetalhado = historicoTurmas.map((item) => ({
     ...item,
-    turma: turmasPorId.get(item.turmaId)?.nome ?? "Turma nao encontrada"
+    turma: turmasPorId.get(item.turmaId)?.nome ?? "Turma não encontrada"
   }));
 
   return (
     <>
-      <PageHeader title={aluno.nome} breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: aluno.nome }]} />
+      <PageHeader title={aluno.nome} breadcrumb={[{ label: "Início", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: aluno.nome }]} />
       <div className="page-grid">
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
         <Card title="Dados do aluno">
           <div className="grid-3">
             <p>
-              <strong>Matricula:</strong> {aluno.matricula}
+              <strong>Matrícula:</strong> {aluno.matricula}
             </p>
             <p>
               <strong>Turma:</strong> {aluno.turma}
@@ -108,7 +108,7 @@ export function PerfilAlunoPage() {
             items={[
               {
                 id: "ocorrencias",
-                label: "Ocorrencias",
+                label: "Ocorrências",
                 content: (
                   <Table
                     data={ocorrencias}

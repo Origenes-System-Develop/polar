@@ -7,6 +7,7 @@ import type { AppConfig } from "./shared/config.js";
 import { loadConfig } from "./shared/config.js";
 import type { DatabaseClient } from "./shared/database/database.js";
 import { createServiceContainer } from "./shared/services.js";
+import type { EnviarEmail } from "./shared/email.js";
 import { errorMiddleware } from "./shared/errors/error.middleware.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { usersRoutes } from "./modules/users/users.routes.js";
@@ -22,11 +23,12 @@ import { auditoriaRoutes } from "./modules/auditoria/auditoria.routes.js";
 export interface CreateAppOptions {
   config?: AppConfig;
   database?: DatabaseClient;
+  enviarEmail?: EnviarEmail | null;
 }
 
 export async function createApp(options: CreateAppOptions = {}) {
   const config = options.config ?? loadConfig();
-  const container = await createServiceContainer(config, options.database);
+  const container = await createServiceContainer(config, options.database, options.enviarEmail);
   const app = express();
   app.locals.close = container.close;
 

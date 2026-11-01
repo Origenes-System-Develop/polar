@@ -53,6 +53,8 @@ export class RelatoriosService {
     const byCategory: Record<string, number> = {};
     const byTurma = new Map<string, number>();
     const byPeriodo = new Map<string, number>();
+    // Lista completa ja filtrada, com nomes resolvidos: base da exportacao CSV da web.
+    const linhas: Array<(typeof ocorrencias)[number] & { aluno: string; turma: string }> = [];
 
     for (const ocorrencia of ocorrencias) {
       byStatus[ocorrencia.status] = (byStatus[ocorrencia.status] ?? 0) + 1;
@@ -64,6 +66,7 @@ export class RelatoriosService {
       const turma = turmaId ? turmaPorId.get(turmaId) : undefined;
       const nomeTurma = turma?.nome ?? "Turma nao encontrada";
       byTurma.set(nomeTurma, (byTurma.get(nomeTurma) ?? 0) + 1);
+      linhas.push({ ...ocorrencia, aluno: aluno?.nome ?? "Aluno nao encontrado", turma: nomeTurma });
       const data = new Date(ocorrencia.criadoEm);
       const periodo = `${data.getUTCFullYear()}-${String(data.getUTCMonth() + 1).padStart(2, "0")}`;
       byPeriodo.set(periodo, (byPeriodo.get(periodo) ?? 0) + 1);
@@ -80,7 +83,8 @@ export class RelatoriosService {
         .sort((a, b) => a.nome.localeCompare(b.nome)),
       byPeriodo: [...byPeriodo.entries()]
         .map(([periodo, total]) => ({ periodo, total }))
-        .sort((a, b) => a.periodo.localeCompare(b.periodo))
+        .sort((a, b) => a.periodo.localeCompare(b.periodo)),
+      ocorrencias: linhas.sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
     };
   }
 

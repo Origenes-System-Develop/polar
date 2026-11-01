@@ -7,7 +7,7 @@
 
 -- Tipos enumerados. DO $$ ... $$ porque o Postgres nao tem CREATE TYPE IF NOT EXISTS.
 DO $$ BEGIN
-  CREATE TYPE papel_usuario AS ENUM ('PROFESSOR', 'COORDENADOR', 'DIRETOR', 'ADM', 'ALUNO');
+  CREATE TYPE papel_usuario AS ENUM ('PROFESSOR', 'COORDENADOR', 'DIRETOR', 'ADM');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS alunos (
   turma_id CHAR(36) NOT NULL,
   responsavel_nome VARCHAR(120) NOT NULL DEFAULT '',
   responsavel_contato VARCHAR(80) NOT NULL DEFAULT '',
+  responsavel_email VARCHAR(160) NOT NULL DEFAULT '',
   ativo BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
@@ -75,6 +76,9 @@ CREATE TABLE IF NOT EXISTS alunos (
 );
 
 CREATE INDEX IF NOT EXISTS idx_alunos_turma_id ON alunos (turma_id);
+
+-- E-mail do responsavel (encaminhamento automatico de ocorrencias). Idempotente.
+ALTER TABLE alunos ADD COLUMN IF NOT EXISTS responsavel_email VARCHAR(160) NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS categorias_ocorrencia (
   id VARCHAR(64) NOT NULL,
@@ -178,9 +182,28 @@ CREATE TABLE IF NOT EXISTS notificacoes_ocorrencia (
   criado_em TIMESTAMPTZ(3) NOT NULL,
   CONSTRAINT pk_notificacoes_ocorrencia PRIMARY KEY (id),
   CONSTRAINT fk_notificacoes_ocorrencia FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias (id),
-  CONSTRAINT ck_notificacoes_destinatario CHECK (destinatario IN ('PAET', 'COORDENACAO', 'DIRECAO')),
-  CONSTRAINT ck_notificacoes_resultado CHECK (resultado = 'ENVIADO')
+  CONSTRAINT ck_notificacoes_destinatario CHECK (destinatario IN ('PAET', 'COORDENACAO', 'DIRECAO', 'RESPONSAVEL')),
+  CONSTRAINT ck_notificacoes_resultado CHECK (resultado IN ('ENVIADO', 'FALHOU', 'NAO_ENVIADO'))
 );
+
+-- Bancos existentes: notificacao passou a ter o responsavel e o resultado real do e-mail.
+ALTER TABLE notificacoes_ocorrencia DROP CONSTRAINT IF EXISTS ck_notificacoes_destinatario;
+ALTER TABLE notificacoes_ocorrencia ADD CONSTRAINT ck_notificacoes_destinatario
+  CHECK (destinatario IN ('PAET', 'COORDENACAO', 'DIRECAO', 'RESPONSAVEL'));
+-- Roda uma vez so (enquanto a regra antiga existir): os registros antigos diziam
+-- ENVIADO, mas nenhum e-mail saia do sistema; passam a dizer NAO_ENVIADO.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'ck_notificacoes_resultado'
+      AND pg_get_constraintdef(oid) NOT LIKE '%NAO_ENVIADO%'
+  ) THEN
+    ALTER TABLE notificacoes_ocorrencia DROP CONSTRAINT ck_notificacoes_resultado;
+    UPDATE notificacoes_ocorrencia SET resultado = 'NAO_ENVIADO' WHERE resultado = 'ENVIADO';
+    ALTER TABLE notificacoes_ocorrencia ADD CONSTRAINT ck_notificacoes_resultado
+      CHECK (resultado IN ('ENVIADO', 'FALHOU', 'NAO_ENVIADO'));
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_notificacoes_ocorrencia_id ON notificacoes_ocorrencia (ocorrencia_id);
 
@@ -228,6 +251,25 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entidade ON audit_logs (entidade, entidade_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_criado_em ON audit_logs (criado_em);
+
+-- Remocao do papel ALUNO em bancos ja existentes: o perfil de login de estudante
+-- foi retirado do sistema. Apaga essas contas (a auditoria fica, sem autor) e
+-- recria o enum sem o valor, porque o Postgres nao tem ALTER TYPE ... DROP VALUE.
+-- Idempotente: so roda enquanto o enum ainda tiver 'ALUNO'.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+    WHERE t.typname = 'papel_usuario' AND e.enumlabel = 'ALUNO'
+  ) THEN
+    UPDATE audit_logs SET usuario_id = NULL
+      WHERE usuario_id IN (SELECT id FROM users WHERE papel::text = 'ALUNO');
+    DELETE FROM users WHERE papel::text = 'ALUNO';
+    ALTER TYPE papel_usuario RENAME TO papel_usuario_antigo;
+    CREATE TYPE papel_usuario AS ENUM ('PROFESSOR', 'COORDENADOR', 'DIRETOR', 'ADM');
+    ALTER TABLE users ALTER COLUMN papel TYPE papel_usuario USING papel::text::papel_usuario;
+    DROP TYPE papel_usuario_antigo;
+  END IF;
+END $$;
 
 -- Indices funcionais: no Postgres a comparacao e sensivel a caixa, entao o LOWER()
 -- das queries e obrigatorio -- e sem estes indices as buscas viram seq scan.

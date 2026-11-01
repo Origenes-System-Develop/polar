@@ -29,7 +29,7 @@ describe("apiRequest com 401", () => {
 
     const erro = await apiRequest("/ocorrencias").catch((e: unknown) => e);
 
-    expect(erro).toMatchObject({ message: "Sessao expirada. Acesse novamente.", status: 401 });
+    expect(erro).toMatchObject({ message: "Sua sessão expirou. Entre de novo.", status: 401 });
     expect(getToken()).toBe("");
   });
 });

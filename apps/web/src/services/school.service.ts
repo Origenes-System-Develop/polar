@@ -23,6 +23,7 @@ import type {
   StatusOcorrencia,
   Turma,
   UpdateAlunoPayload,
+  UpdateOcorrenciaPayload,
   UpdateTurmaPayload,
   UpdateUsuarioPayload,
   Usuario
@@ -175,6 +176,14 @@ export async function listNotificacoesOcorrencia(id: string): Promise<Notificaca
 export async function createOcorrencia(payload: CreateOcorrenciaPayload): Promise<Ocorrencia> {
   const response = await apiRequest<ApiData<Ocorrencia>>("/ocorrencias", {
     method: "POST",
+    body: JSON.stringify(payload)
+  });
+  return response.data;
+}
+
+export async function updateOcorrencia(id: string, payload: UpdateOcorrenciaPayload): Promise<Ocorrencia> {
+  const response = await apiRequest<ApiData<Ocorrencia>>(`/ocorrencias/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(payload)
   });
   return response.data;

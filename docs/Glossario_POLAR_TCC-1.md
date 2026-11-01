@@ -23,7 +23,7 @@ O POLAR foi concebido para substituir registros informais e dispersos de ocorrê
 ## 2. Glossário de termos
 
 ### Aluno
-Entidade que representa o estudante cadastrado no sistema. O registro de Aluno é independente da conta de usuário com papel ALUNO. Enquanto não houver vínculo entre essas duas entidades, a conta ALUNO permanece sem acesso a ocorrências, seguindo a regra de negar por padrão.
+Entidade que representa o estudante cadastrado no sistema.
 
 ### Ocorrência
 Registro institucional de um fato disciplinar ou pedagógico relacionado a um aluno. É criada pelo professor e contém, entre outras informações, aluno, categoria, prioridade, descrição, autor, data e status. O termo oficial é “ocorrência”; não devem ser utilizados “chamado”, “ticket” ou “tarefa”.
@@ -112,11 +112,8 @@ Papel responsável pelo encerramento institucional. Pode visualizar todas as oco
 ### ADM
 Papel administrativo responsável por gerenciar usuários, turmas, alunos, configurações e auditoria. Não pode alterar o status de ocorrências nem editar ocorrências de terceiros.
 
-### ALUNO (papel de usuário)
-Conta que pode autenticar no sistema, mas possui acesso somente leitura. Como ainda não existe vínculo entre Usuario e Aluno, a regra é negar por padrão: a listagem de ocorrências fica vazia e o dashboard permanece zerado.
-
 ### Usuário
-Conta utilizada para autenticação e controle de acesso ao sistema. O usuário possui um papel, como PROFESSOR, COORDENADOR, DIRETOR, ADM ou ALUNO.
+Conta utilizada para autenticação e controle de acesso ao sistema. O usuário possui um papel, como PROFESSOR, COORDENADOR, DIRETOR ou ADM. Alunos não têm conta de acesso.
 
 ### Autor da ocorrência
 Usuário responsável pelo registro da ocorrência. O autor não é informado livremente pelo cliente; ele é derivado pelo backend a partir do usuário autenticado.
@@ -171,7 +168,7 @@ Operação de inclusão de usuários, turmas e alunos no sistema. O cadastro é 
 Regra segundo a qual usuários não criam suas próprias contas. O gerenciamento das contas ocorre de forma institucional por meio de usuários autorizados.
 
 ### Segurança por padrão
-Princípio segundo o qual acessos não explicitamente permitidos devem ser negados. No papel ALUNO, por exemplo, a ausência de vínculo com um registro de Aluno resulta em nenhuma ocorrência exibida.
+Princípio segundo o qual acessos não explicitamente permitidos devem ser negados. Um papel novo, por exemplo, não vê ocorrência alguma até que seu escopo seja definido.
 
 ### Sistema institucional
 Característica do POLAR que o diferencia de sistemas de suporte ou help desk. O sistema representa um processo formal da escola, com responsabilidades, etapas, registros e encerramento institucional.
@@ -188,7 +185,6 @@ Conjunto fechado de estados permitidos para uma ocorrência. São apenas: **REGI
 | **COORDENADOR** | Visualizar todas; REGISTRADA → EM_ANALISE; EM_ANALISE → RESOLVIDA com observação; relatórios operacionais. | Não encerra; não pula etapas; não edita histórico. |
 | **DIRETOR** | Visualizar todas; RESOLVIDA → ENCERRADA com observação; relatórios gerais. | Não analisa; não resolve; não edita histórico. |
 | **ADM** | Gerenciar usuários, turmas, alunos, configurações e auditoria. | Não altera status de ocorrência; não edita ocorrência de terceiros. |
-| **ALUNO** | Autenticar; acesso somente leitura. | Sem vínculo Usuario–Aluno: nenhuma ocorrência é exibida; não registra nem altera ocorrências. |
 
 ## 4. Máquina de estados
 

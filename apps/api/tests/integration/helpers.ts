@@ -4,6 +4,7 @@ import request from "supertest";
 import type { Express } from "express";
 import { createApp } from "../../src/app.js";
 import type { AppConfig } from "../../src/shared/config.js";
+import type { EnviarEmail } from "../../src/shared/email.js";
 import { createInitialState, createMemoryDatabase, type DatabaseClient } from "../../src/shared/database/database.js";
 import { PapelUsuario, TipoEnsino, type DatabaseState, type Usuario } from "../../src/shared/domain.js";
 import { agoraIso, novoId } from "../../src/shared/utils/ids.js";
@@ -14,8 +15,7 @@ export const SENHAS_TESTE = {
   adm: valorAleatorioDeTeste(),
   professor: valorAleatorioDeTeste(),
   coordenador: valorAleatorioDeTeste(),
-  diretor: valorAleatorioDeTeste(),
-  estudante: valorAleatorioDeTeste()
+  diretor: valorAleatorioDeTeste()
 } as const;
 
 const segredoJwtDeTeste = randomBytes(48).toString("base64url");
@@ -28,7 +28,6 @@ export interface TestContext {
     professor: string;
     coordenador: string;
     diretor: string;
-    estudante: string;
     turma: string;
     aluno: string;
   };
@@ -43,7 +42,8 @@ export const testConfig: AppConfig = {
   databaseProvider: "json",
   databaseJsonPath: "apps/api/data/test.json",
   databaseSsl: false,
-  bootstrapAdminEmail: "admin@pola.local"
+  bootstrapAdminEmail: "admin@pola.local",
+  smtpPort: 465
 };
 
 function usuario(nome: string, email: string, papel: PapelUsuario, senhaHash: string): Usuario {
@@ -64,23 +64,21 @@ function usuario(nome: string, email: string, papel: PapelUsuario, senhaHash: st
   };
 }
 
-export async function buildTestContext(): Promise<TestContext> {
+// Sem enviarEmail o e-mail fica desligado, como sem SMTP configurado.
+export async function buildTestContext(options: { enviarEmail?: EnviarEmail } = {}): Promise<TestContext> {
   const state = createInitialState();
-  const [admHash, professorHash, coordenadorHash, diretorHash, estudanteHash] = await Promise.all([
+  const [admHash, professorHash, coordenadorHash, diretorHash] = await Promise.all([
     bcrypt.hash(SENHAS_TESTE.adm, 10),
     bcrypt.hash(SENHAS_TESTE.professor, 10),
     bcrypt.hash(SENHAS_TESTE.coordenador, 10),
-    bcrypt.hash(SENHAS_TESTE.diretor, 10),
-    bcrypt.hash(SENHAS_TESTE.estudante, 10)
+    bcrypt.hash(SENHAS_TESTE.diretor, 10)
   ]);
 
   const adm = usuario("Admin", "adm@pola.test", PapelUsuario.ADM, admHash);
   const professor = usuario("Professor", "professor@pola.test", PapelUsuario.PROFESSOR, professorHash);
   const coordenador = usuario("Coordenador", "coordenador@pola.test", PapelUsuario.COORDENADOR, coordenadorHash);
   const diretor = usuario("Diretor", "diretor@pola.test", PapelUsuario.DIRETOR, diretorHash);
-  // Conta com papel ALUNO. "estudante" para nao colidir com o registro de Aluno abaixo.
-  const estudante = usuario("Estudante", "estudante@pola.test", PapelUsuario.ALUNO, estudanteHash);
-  state.usuarios.push(adm, professor, coordenador, diretor, estudante);
+  state.usuarios.push(adm, professor, coordenador, diretor);
 
   const now = agoraIso();
   const turma = {
@@ -102,6 +100,7 @@ export async function buildTestContext(): Promise<TestContext> {
     turmaId: turma.id,
     responsavelNome: "Responsavel de teste",
     responsavelContato: "nao-informado",
+    responsavelEmail: "responsavel@pola.test",
     ativo: true,
     criadoEm: now,
     atualizadoEm: now
@@ -109,7 +108,7 @@ export async function buildTestContext(): Promise<TestContext> {
   state.alunos.push(aluno);
 
   const db = createMemoryDatabase(state);
-  const app = await createApp({ config: testConfig, database: db });
+  const app = await createApp({ config: testConfig, database: db, enviarEmail: options.enviarEmail ?? null });
   return {
     app,
     db,
@@ -118,7 +117,6 @@ export async function buildTestContext(): Promise<TestContext> {
       professor: professor.id,
       coordenador: coordenador.id,
       diretor: diretor.id,
-      estudante: estudante.id,
       turma: turma.id,
       aluno: aluno.id
     }
@@ -135,8 +133,7 @@ export async function tokens(app: Express) {
     adm: await login(app, "adm@pola.test", SENHAS_TESTE.adm),
     professor: await login(app, "professor@pola.test", SENHAS_TESTE.professor),
     coordenador: await login(app, "coordenador@pola.test", SENHAS_TESTE.coordenador),
-    diretor: await login(app, "diretor@pola.test", SENHAS_TESTE.diretor),
-    estudante: await login(app, "estudante@pola.test", SENHAS_TESTE.estudante)
+    diretor: await login(app, "diretor@pola.test", SENHAS_TESTE.diretor)
   };
 }
 

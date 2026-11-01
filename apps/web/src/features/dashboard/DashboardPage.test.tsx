@@ -7,10 +7,10 @@ describe("DashboardPage", () => {
   it("renderiza saudacao, indicadores e ultimas ocorrencias", async () => {
     renderWithProviders(<DashboardPage />);
 
-    expect(screen.getByRole("heading", { name: /^ola,/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^(bom dia|boa tarde|boa noite),/i })).toBeInTheDocument();
     expect(screen.getByText("Graves ou urgentes")).toBeInTheDocument();
-    expect(screen.getByText("Em analise")).toBeInTheDocument();
-    expect(screen.getByText("Ultimas ocorrencias")).toBeInTheDocument();
+    expect(screen.getByText("Em análise")).toBeInTheDocument();
+    expect(screen.getByText("Últimas ocorrências")).toBeInTheDocument();
     expect(await screen.findByText("Estudante 01")).toBeInTheDocument();
   });
 

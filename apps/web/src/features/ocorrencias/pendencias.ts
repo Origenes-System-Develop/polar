@@ -29,13 +29,13 @@ export function contarPendencias(papel: PapelUsuario | undefined, resumo: Dashbo
 
 export function descricaoPendencias(papel: PapelUsuario | undefined, total: number): string {
   if (statusPendentes(papel).length === 0) {
-    return "Seu perfil nao executa mudancas de status.";
+    return "Seu perfil não muda o status das ocorrências.";
   }
   if (total === 0) {
-    return "Nada aguardando voce. Continue assim!";
+    return "Nenhuma ocorrência espera por você agora.";
   }
   if (papel === "DIRETOR") {
-    return total === 1 ? "1 ocorrencia resolvida aguarda encerramento." : `${total} ocorrencias resolvidas aguardam encerramento.`;
+    return total === 1 ? "1 ocorrência resolvida espera o encerramento." : `${total} ocorrências resolvidas esperam o encerramento.`;
   }
-  return total === 1 ? "1 ocorrencia aguarda sua analise." : `${total} ocorrencias aguardam sua analise.`;
+  return total === 1 ? "1 ocorrência espera sua análise." : `${total} ocorrências esperam sua análise.`;
 }

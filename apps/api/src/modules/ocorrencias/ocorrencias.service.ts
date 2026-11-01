@@ -4,16 +4,20 @@ import {
   PrioridadeOcorrencia,
   StatusOcorrencia,
   TipoEnsino,
+  type Aluno,
   type DestinatarioNotificacao,
   type NotificacaoOcorrencia,
   type Ocorrencia,
-  type OcorrenciaHistorico
+  type OcorrenciaHistorico,
+  type ResultadoNotificacao
 } from "../../shared/domain.js";
 import type { AlunoRepository } from "../../shared/database/repositories/aluno.repository.js";
 import type { TurmaRepository } from "../../shared/database/repositories/turma.repository.js";
 import type { OcorrenciaRepository } from "../../shared/database/repositories/ocorrencia.repository.js";
 import type { NotificacaoOcorrenciaRepository } from "../../shared/database/repositories/notificacao-ocorrencia.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
+import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
+import type { EnviarEmail } from "../../shared/email.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
 import { analisarDescricao, sugerirRedacao } from "./moderacao/moderacao-descricao.js";
@@ -83,9 +87,8 @@ export interface OcorrenciaUpdateInput {
  *
  * - `global`: coordenacao, direcao e ADM leem a escola inteira.
  * - `autor`:  professor le apenas o que ele mesmo registrou.
- * - `nenhum`: nega por padrao. O ALUNO cai aqui porque o modelo ainda nao vincula
- *   Usuario a Aluno; enquanto esse vinculo nao existir, ele nao pode ler ocorrencia
- *   nenhuma. Qualquer papel novo tambem cai aqui ate ser decidido explicitamente.
+ * - `nenhum`: nega por padrao. Qualquer papel novo cai aqui ate ser decidido
+ *   explicitamente.
  */
 export type EscopoOcorrencias = { tipo: "global" } | { tipo: "autor"; usuarioId: string } | { tipo: "nenhum" };
 
@@ -108,7 +111,10 @@ export class OcorrenciasService {
     private readonly alunos: AlunoRepository,
     private readonly turmas: TurmaRepository,
     private readonly notificacoes: NotificacaoOcorrenciaRepository,
-    private readonly audit: AuditRepository
+    private readonly audit: AuditRepository,
+    private readonly users: UserRepository,
+    private readonly enviarEmail: EnviarEmail | null = null,
+    private readonly appUrl?: string
   ) { }
 
   async list(actor: AuthenticatedUser, bimestre?: number): Promise<Ocorrencia[]> {
@@ -219,15 +225,16 @@ export class OcorrenciasService {
 
     const destinatarios: DestinatarioNotificacao[] =
       turma.tipoEnsino === TipoEnsino.TECNICO
-        ? ["PAET", "COORDENACAO", "DIRECAO"]
-        : ["COORDENACAO", "DIRECAO"];
+        ? ["PAET", "COORDENACAO", "DIRECAO", "RESPONSAVEL"]
+        : ["COORDENACAO", "DIRECAO", "RESPONSAVEL"];
+    const resultados = await this.enviarEncaminhamentos(ocorrencia, aluno, destinatarios);
 
     await this.notificacoes.createMany(
-      destinatarios.map((destinatario) => ({
+      resultados.map(([destinatario, resultado]) => ({
         id: novoId(),
         ocorrenciaId: ocorrencia.id,
         destinatario,
-        resultado: "ENVIADO" as const,
+        resultado,
         criadoEm: now
       }))
     );
@@ -242,6 +249,56 @@ export class OcorrenciasService {
     });
 
     return ocorrencia;
+  }
+
+  // E-mail de encaminhamento para equipe e responsavel. Falha de envio nunca desfaz o
+  // registro: fica gravada so como resultado da notificacao. Cada pessoa recebe um
+  // e-mail separado, para ninguem ver o endereco dos outros.
+  private async enviarEncaminhamentos(
+    ocorrencia: Ocorrencia,
+    aluno: Aluno,
+    destinatarios: DestinatarioNotificacao[]
+  ): Promise<Array<[DestinatarioNotificacao, ResultadoNotificacao]>> {
+    const enviar = this.enviarEmail;
+    const usuarios = enviar ? await this.users.list() : [];
+    const emailsDe = (papel: PapelUsuario) => usuarios.filter((u) => u.ativo && u.papel === papel).map((u) => u.email);
+    const data = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" }).format(
+      new Date(ocorrencia.criadoEm)
+    );
+    const link = this.appUrl ? `\n\nAbrir no POLAR: ${this.appUrl.replace(/\/$/, "")}/ocorrencias/${ocorrencia.id}` : "";
+    const paraEquipe = {
+      assunto: `Nova ocorrência: ${aluno.nome}`,
+      texto:
+        `Uma ocorrência foi registrada no POLAR.\n\nAluno: ${aluno.nome}\nData: ${data}\n` +
+        `Categoria: ${ocorrencia.categoria}\nPrioridade: ${ocorrencia.prioridade}${link}`
+    };
+    const mensagens: Record<DestinatarioNotificacao, { para: string[]; assunto: string; texto: string }> = {
+      COORDENACAO: { para: emailsDe(PapelUsuario.COORDENADOR), ...paraEquipe },
+      DIRECAO: { para: emailsDe(PapelUsuario.DIRETOR), ...paraEquipe },
+      // O PAET nao tem conta no sistema: o encaminhamento fica so registrado.
+      PAET: { para: [], ...paraEquipe },
+      RESPONSAVEL: {
+        para: aluno.responsavelEmail ? [aluno.responsavelEmail] : [],
+        assunto: "Ocorrência escolar registrada",
+        texto:
+          `Olá${aluno.responsavelNome ? `, ${aluno.responsavelNome}` : ""}.\n\n` +
+          `A escola registrou uma ocorrência envolvendo ${aluno.nome} em ${data} (categoria: ${ocorrencia.categoria}).\n` +
+          "Para mais detalhes, procure a coordenação da escola.\n\nEste é um aviso automático; não responda este e-mail."
+      }
+    };
+
+    return Promise.all(
+      destinatarios.map(async (destinatario): Promise<[DestinatarioNotificacao, ResultadoNotificacao]> => {
+        const { para, assunto, texto } = mensagens[destinatario];
+        if (!enviar || para.length === 0) return [destinatario, "NAO_ENVIADO"];
+        const envios = await Promise.allSettled(para.map((email) => enviar({ para: email, assunto, texto })));
+        const falhas = envios.filter((envio): envio is PromiseRejectedResult => envio.status === "rejected");
+        for (const falha of falhas) {
+          console.error(`Falha ao enviar e-mail (${destinatario}) da ocorrencia ${ocorrencia.id}:`, String(falha.reason));
+        }
+        return [destinatario, falhas.length === 0 ? "ENVIADO" : "FALHOU"];
+      })
+    );
   }
 
   // Regra de edicao: somente o autor, somente enquanto REGISTRADA, e toda

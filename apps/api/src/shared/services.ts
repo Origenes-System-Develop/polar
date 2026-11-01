@@ -1,6 +1,7 @@
 import type { ViradaAnoRepository } from "./database/repositories/virada-ano.repository.js";
 import { JsonViradaAnoRepository } from "./database/repositories/virada-ano.repository.json.js";
 import type { AppConfig } from "./config.js";
+import { criarEnviarEmail, type EnviarEmail } from "./email.js";
 import { createJsonDatabase, type DatabaseClient } from "./database/database.js";
 import { JsonUserRepository, type UserRepository } from "./database/repositories/user.repository.js";
 import { JsonTurmaRepository, type TurmaRepository } from "./database/repositories/turma.repository.js";
@@ -104,7 +105,12 @@ async function createRepositories(
   };
 }
 
-export async function createServiceContainer(config: AppConfig, database?: DatabaseClient): Promise<ServiceContainer> {
+// enviarEmail: sobrescreve o envio real (testes). Sem ele, usa o SMTP da config.
+export async function createServiceContainer(
+  config: AppConfig,
+  database?: DatabaseClient,
+  enviarEmail: EnviarEmail | null = criarEnviarEmail(config)
+): Promise<ServiceContainer> {
   const { repositories, close } = await createRepositories(config, database);
 
   const auth = new AuthService(repositories.users, repositories.audit, config);
@@ -113,7 +119,16 @@ export async function createServiceContainer(config: AppConfig, database?: Datab
     users: new UsersService(repositories.users, repositories.audit),
     turmas: new TurmasService(repositories.turmas, repositories.alunos, repositories.alunosTurmasHistorico, repositories.viradaAno, repositories.audit),
     alunos: new AlunosService(repositories.alunos, repositories.alunosTurmasHistorico, repositories.turmas, repositories.ocorrencias, repositories.audit),
-    ocorrencias: new OcorrenciasService(repositories.ocorrencias, repositories.alunos, repositories.turmas, repositories.notificacoesOcorrencia, repositories.audit),
+    ocorrencias: new OcorrenciasService(
+      repositories.ocorrencias,
+      repositories.alunos,
+      repositories.turmas,
+      repositories.notificacoesOcorrencia,
+      repositories.audit,
+      repositories.users,
+      enviarEmail,
+      config.appUrl
+    ),
     notas: new NotasService(repositories.notas, repositories.alunos, repositories.audit),
     faltas: new FaltasService(repositories.faltas, repositories.alunos, repositories.audit),
     dashboard: new DashboardService(repositories.ocorrencias, repositories.users),

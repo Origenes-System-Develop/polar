@@ -8,6 +8,7 @@ import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Select } from "../../components/ui/Select";
+import { rotuloDePapel } from "../../components/layout/iniciais";
 import { Table } from "../../components/ui/Table";
 import type { PapelUsuario, Usuario } from "../../services/domain";
 import { createUsuario, listUsuarios, updateUsuario } from "../../services/school.service";
@@ -47,7 +48,7 @@ export function UsuariosPage() {
         setError("");
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar usuarios.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar os usuários. Recarregue a página.");
       } finally {
         if (active) setLoading(false);
       }
@@ -67,7 +68,7 @@ export function UsuariosPage() {
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.nome.trim() || !form.email.trim() || form.senha.length < 8) {
-      setFormError("Nome, e-mail e senha com pelo menos 8 caracteres sao obrigatorios.");
+      setFormError("Preencha nome, e-mail e uma senha com pelo menos 8 caracteres.");
       return;
     }
 
@@ -79,7 +80,7 @@ export function UsuariosPage() {
       setForm(initialUserForm);
       await refreshData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Nao foi possivel criar o usuario.");
+      setFormError(err instanceof Error ? err.message : "Não foi possível cadastrar o usuário. Tente de novo.");
     } finally {
       setSaving(false);
     }
@@ -101,7 +102,7 @@ export function UsuariosPage() {
       await updateUsuario(usuario.id, { ativo: true });
       await refreshData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel atualizar o usuario.");
+      setError(err instanceof Error ? err.message : "Não foi possível atualizar o usuário. Tente de novo.");
     }
   }
 
@@ -114,7 +115,7 @@ export function UsuariosPage() {
       await updateUsuario(confirmTarget.id, { ativo: false });
       await refreshData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel inativar o usuario.");
+      setError(err instanceof Error ? err.message : "Não foi possível inativar o usuário. Tente de novo.");
     } finally {
       setInativando(false);
       setConfirmTarget(null);
@@ -124,25 +125,25 @@ export function UsuariosPage() {
   return (
     <>
       <PageHeader
-        title="Usuarios"
-        breadcrumb={[{ label: "Inicio", to: "/" }, { label: "Usuarios" }]}
-        actions={<Button icon={<UserPlus size={18} />} onClick={() => setModalOpen(true)}>Novo usuario</Button>}
+        title="Usuários"
+        breadcrumb={[{ label: "Início", to: "/" }, { label: "Usuários" }]}
+        actions={<Button icon={<UserPlus size={18} />} onClick={() => setModalOpen(true)}>Novo usuário</Button>}
       />
       {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
-      <Card title="Gestao de acessos">
+      <Card title="Quem acessa o Polar">
         {loading ? (
-          <p className="muted">Carregando usuarios...</p>
+          <p className="muted">Carregando usuários...</p>
         ) : (
           <Table
             data={usuarios}
             columns={[
               { key: "nome", header: "Nome", render: (item) => item.nome },
               { key: "email", header: "E-mail", render: (item) => item.email },
-              { key: "papel", header: "Perfil", render: (item) => <Badge tone="info">{item.papel}</Badge> },
+              { key: "papel", header: "Perfil", render: (item) => <Badge tone="info">{rotuloDePapel(item.papel)}</Badge> },
               { key: "status", header: "Status", render: (item) => <Badge tone={item.ativo ? "success" : "default"}>{item.ativo ? "Ativo" : "Inativo"}</Badge> },
               {
                 key: "acao",
-                header: "Acao",
+                header: "Ação",
                 render: (item) => (
                   <Button variant={item.ativo ? "danger" : "ghost"} onClick={() => toggleStatus(item)}>
                     {item.ativo ? "Desativar" : "Ativar"}
@@ -153,7 +154,7 @@ export function UsuariosPage() {
           />
         )}
       </Card>
-      <Modal title="Novo usuario" open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal title="Novo usuário" open={modalOpen} onClose={() => setModalOpen(false)}>
         {formError ? <p className="text-danger">{formError}</p> : null}
         <form className="form-grid" onSubmit={handleCreate}>
           <Input label="Nome" value={form.nome} onChange={(event) => setUserField("nome", event.target.value)} />
@@ -163,23 +164,22 @@ export function UsuariosPage() {
             value={form.papel}
             onChange={(event) => setUserField("papel", event.target.value)}
             options={[
-              { label: "PROFESSOR", value: "PROFESSOR" },
-              { label: "COORDENADOR", value: "COORDENADOR" },
-              { label: "DIRETOR", value: "DIRETOR" },
-              { label: "ADM", value: "ADM" },
-              { label: "ALUNO", value: "ALUNO" }
+              { label: rotuloDePapel("PROFESSOR"), value: "PROFESSOR" },
+              { label: rotuloDePapel("COORDENADOR"), value: "COORDENADOR" },
+              { label: rotuloDePapel("DIRETOR"), value: "DIRETOR" },
+              { label: rotuloDePapel("ADM"), value: "ADM" }
             ]}
           />
-          <Input label="Senha temporaria" type="password" value={form.senha} onChange={(event) => setUserField("senha", event.target.value)} />
+          <Input label="Senha temporária" type="password" value={form.senha} onChange={(event) => setUserField("senha", event.target.value)} />
           <div className="actions-row span-2">
-            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar usuario"}</Button>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</Button>
           </div>
         </form>
       </Modal>
       <ConfirmDialog
         open={!!confirmTarget}
         title="Inativar usuário"
-        message={`Tem certeza que deseja inativar o usuário "${confirmTarget?.nome}"? Essa ação pode ser revertida depois.`}
+        message={`Inativar "${confirmTarget?.nome}"? A pessoa perde o acesso agora, e dá para reativar depois.`}
         onConfirm={handleConfirmInativar}
         onCancel={() => setConfirmTarget(null)}
         loading={inativando}

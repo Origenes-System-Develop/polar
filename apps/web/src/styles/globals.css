@@ -111,15 +111,15 @@ textarea:focus-visible {
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   gap: var(--space-6);
   padding: var(--space-6);
-  background: linear-gradient(160deg, #f7f9ff 0%, #eef2fa 100%);
+  background: var(--color-bg);
 }
 
-/* Painel de apresentacao: gradiente ciano com o texto institucional. Rola por
-   dentro para nunca esticar a pagina -- o formulario ao lado fica sempre visivel. */
+/* Painel de apresentacao em azul chapado, sem gradiente. Rola por dentro para
+   nunca esticar a pagina: o formulario ao lado fica sempre visivel. */
 .login-about {
   border-radius: var(--radius-xl);
   padding: var(--space-10);
-  background: linear-gradient(150deg, var(--color-brand-teal) 0%, var(--color-brand-teal-deep) 100%);
+  background: var(--color-primary-strong);
   color: #fff;
   overflow-y: auto;
   max-height: calc(100vh - var(--space-6) * 2);
@@ -196,10 +196,6 @@ textarea:focus-visible {
   gap: var(--space-3);
 }
 
-.login-brand img {
-  width: 48px;
-  height: 48px;
-}
 
 .login-brand strong {
   display: block;
@@ -361,8 +357,13 @@ textarea:focus-visible {
   padding-left: var(--space-4);
 }
 
-.timeline strong {
+.timeline strong,
+.timeline time {
   display: block;
+}
+
+.timeline time {
+  font-size: 0.86rem;
 }
 
 /* A gravidade tem nome e marcador visiveis, alem da cor. O marcador distingue

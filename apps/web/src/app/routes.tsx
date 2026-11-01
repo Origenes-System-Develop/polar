@@ -33,7 +33,10 @@ const routes: RouteObject[] = [
           },
           {
             element: <ProtectedRoute permission="ocorrencias:create" />,
-            children: [{ path: "ocorrencias/nova", element: <NovaOcorrenciaPage /> }]
+            children: [
+              { path: "ocorrencias/nova", element: <NovaOcorrenciaPage /> },
+              { path: "ocorrencias/:id/editar", element: <NovaOcorrenciaPage /> }
+            ]
           },
           {
             element: <ProtectedRoute permission="alunos:view" />,

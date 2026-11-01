@@ -1,5 +1,5 @@
 import { Badge } from "../../components/ui/Badge";
-import { PRIORIDADE_LABEL, type PrioridadeOcorrencia, type StatusOcorrencia } from "../../services/domain";
+import { PRIORIDADE_LABEL, STATUS_LABEL, type PrioridadeOcorrencia, type StatusOcorrencia } from "../../services/domain";
 
 const gravidadePorPrioridade: Record<
   PrioridadeOcorrencia,
@@ -8,12 +8,12 @@ const gravidadePorPrioridade: Record<
   BAIXA: { label: "Baixa gravidade", marker: "●", tone: "success" },
   MEDIA: { label: "Gravidade moderada", marker: "●", tone: "warning" },
   ALTA: { label: "Grave", marker: "▲", tone: "danger" },
-  URGENTE: { label: "Urgencia", marker: "!", tone: "critical" }
+  URGENTE: { label: "Urgência", marker: "!", tone: "critical" }
 };
 
 export function StatusBadge({ status }: { status: StatusOcorrencia }) {
   const tone = status === "ENCERRADA" || status === "RESOLVIDA" ? "success" : status === "EM_ANALISE" ? "warning" : "info";
-  return <Badge tone={tone}>{status}</Badge>;
+  return <Badge tone={tone}>{STATUS_LABEL[status]}</Badge>;
 }
 
 export function PrioridadeBadge({ prioridade }: { prioridade: PrioridadeOcorrencia }) {
