@@ -5,7 +5,7 @@ Data: 01/11/2026. Base: `origin/develop` (`54563fa`). Dois pull requests, nesta 
 | PR | Branch | Conteúdo |
 |---|---|---|
 | [#117](https://github.com/Origenes-System-Develop/polar/pull/117) | `fix/seguranca-sessao` | limite de login, logs sem e-mail, 401, troca de senha obrigatória |
-| a abrir | `feat/visual-sala-do-futuro` | identidade da Sala do Futuro, fluxo de registro, painel e lista, animações, este relatório |
+| [#118](https://github.com/Origenes-System-Develop/polar/pull/118) | `feat/visual-sala-do-futuro` | identidade da Sala do Futuro, fluxo de registro, painel e lista, animações, este relatório |
 
 ## 1. O que foi feito
 
