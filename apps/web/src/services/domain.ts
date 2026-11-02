@@ -280,7 +280,6 @@ export interface CreateUsuarioPayload {
   nome: string;
   email: string;
   papel: PapelUsuario;
-  senha: string;
 }
 
 export interface UpdateUsuarioPayload {

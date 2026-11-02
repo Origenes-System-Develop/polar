@@ -239,12 +239,13 @@ export async function listUsuarios(): Promise<Usuario[]> {
   return response.data;
 }
 
-export async function createUsuario(payload: CreateUsuarioPayload): Promise<Usuario> {
-  const response = await apiRequest<ApiData<Usuario>>("/usuarios", {
+// A API gera a senha provisoria e a devolve so nesta resposta.
+export async function createUsuario(payload: CreateUsuarioPayload): Promise<{ usuario: Usuario; senhaTemporaria: string }> {
+  const response = await apiRequest<ApiData<Usuario> & { senhaTemporaria: string }>("/usuarios", {
     method: "POST",
     body: JSON.stringify(payload)
   });
-  return response.data;
+  return { usuario: response.data, senhaTemporaria: response.senhaTemporaria };
 }
 
 export async function updateUsuario(id: string, payload: UpdateUsuarioPayload): Promise<Usuario> {
