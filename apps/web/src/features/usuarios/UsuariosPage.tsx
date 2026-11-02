@@ -16,8 +16,7 @@ import { createUsuario, listUsuarios, updateUsuario } from "../../services/schoo
 const initialUserForm = {
   nome: "",
   email: "",
-  papel: "PROFESSOR" as PapelUsuario,
-  senha: ""
+  papel: "PROFESSOR" as PapelUsuario
 };
 
 export function UsuariosPage() {
@@ -28,6 +27,8 @@ export function UsuariosPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(initialUserForm);
+  const [novaSenha, setNovaSenha] = useState<{ nome: string; senha: string } | null>(null);
+  const [copiada, setCopiada] = useState(false);
 
   // Estado do modal de confirmação de inativação
   const [confirmTarget, setConfirmTarget] = useState<Usuario | null>(null);
@@ -67,16 +68,18 @@ export function UsuariosPage() {
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.nome.trim() || !form.email.trim() || form.senha.length < 8) {
-      setFormError("Preencha nome, e-mail e uma senha com pelo menos 8 caracteres.");
+    if (!form.nome.trim() || !form.email.trim()) {
+      setFormError("Preencha nome e e-mail.");
       return;
     }
 
     setSaving(true);
     setFormError("");
     try {
-      await createUsuario(form);
+      const { senhaTemporaria } = await createUsuario(form);
       setModalOpen(false);
+      setCopiada(false);
+      setNovaSenha({ nome: form.nome.trim(), senha: senhaTemporaria });
       setForm(initialUserForm);
       await refreshData();
     } catch (err) {
@@ -170,11 +173,30 @@ export function UsuariosPage() {
               { label: rotuloDePapel("ADM"), value: "ADM" }
             ]}
           />
-          <Input label="Senha temporária" type="password" value={form.senha} onChange={(event) => setUserField("senha", event.target.value)} />
+          <p className="muted span-2">O Polar cria uma senha temporária e mostra na próxima tela. A pessoa troca no primeiro acesso.</p>
           <div className="actions-row span-2">
             <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</Button>
           </div>
         </form>
+      </Modal>
+      <Modal title="Usuário cadastrado" open={!!novaSenha} onClose={() => setNovaSenha(null)}>
+        <p>
+          Passe esta senha temporária para <strong>{novaSenha?.nome}</strong>. Ela aparece só agora; no primeiro acesso a pessoa escolhe a senha dela.
+        </p>
+        <p className="senha-temporaria" aria-label="Senha temporária">
+          <code>{novaSenha?.senha}</code>
+        </p>
+        <div className="actions-row">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void navigator.clipboard?.writeText(novaSenha?.senha ?? "").then(() => setCopiada(true), () => undefined);
+            }}
+          >
+            {copiada ? "Copiada" : "Copiar senha"}
+          </Button>
+          <Button onClick={() => setNovaSenha(null)}>Pronto</Button>
+        </div>
       </Modal>
       <ConfirmDialog
         open={!!confirmTarget}

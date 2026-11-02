@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Palette, User, X } from "lucide-react";
+import { ChevronDown, ClipboardList, LogOut, Palette, User, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/providers";
@@ -110,10 +110,17 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
               <Palette size={18} aria-hidden="true" />
               <span>Editar meu avatar</span>
             </Link>
-            <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
+            <Link to="/perfil" role="menuitem" onClick={() => setAberto(false)}>
               <User size={18} aria-hidden="true" />
-              <span>Minhas ocorrências</span>
+              <span>Meu perfil</span>
             </Link>
+            {/* So quem registra ocorrencias tem "minhas": para os demais perfis seria so a lista geral. */}
+            {user?.papel === "PROFESSOR" ? (
+              <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
+                <ClipboardList size={18} aria-hidden="true" />
+                <span>Minhas ocorrências</span>
+              </Link>
+            ) : null}
             <button type="button" role="menuitem" className="user-menu__logout" onClick={handleLogout}>
               <LogOut size={18} aria-hidden="true" />
               <span>Sair</span>
