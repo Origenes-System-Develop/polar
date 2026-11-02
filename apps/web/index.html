@@ -12,10 +12,22 @@
         if (t === "escuro" || (t !== "claro" && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.setAttribute("data-tema", "escuro");
       } catch (e) {}
     </script>
+    <style>
+      /* Tela de espera ate o app abrir: so CSS, desaparece quando o React monta. */
+      .splash { position: fixed; inset: 0; display: grid; place-items: center; background: #f4f5f7; }
+      html[data-tema="escuro"] .splash { background: #12161c; }
+      .splash svg { width: 56px; height: 75px; color: #3d77b7; }
+      html[data-tema="escuro"] .splash svg { color: #7db3f5; }
+      .splash .a { transform-box: fill-box; transform-origin: center; animation: splash-gira 2.8s linear infinite; }
+      .splash .b { transform-box: fill-box; transform-origin: center; animation: splash-respira 1.6s ease-in-out infinite; }
+      @keyframes splash-gira { to { transform: rotate(360deg); } }
+      @keyframes splash-respira { 50% { transform: scale(0.9); } }
+      @media (prefers-reduced-motion: reduce) { .splash .a, .splash .b { animation: none; } }
+    </style>
     <title>Polar · ocorrências escolares</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="splash" role="status" aria-label="Carregando o Polar"><svg viewBox="6 0 36 48" fill="none" aria-hidden="true"><path class="a" d="M35.31 12.69Q26.24 24.00 35.31 35.31Q24.00 26.24 12.69 35.31Q21.76 24.00 12.69 12.69Q24.00 21.76 35.31 12.69Z" fill="currentColor" opacity=".45"/><path class="b" d="M24 0.5Q25.5 21 40 24Q25.5 27 24 36Q22.5 27 8 24Q22.5 21 24 0.5Z" fill="currentColor"/><path d="M24 36Q24.7 41.5 24 47.5Q23.3 41.5 24 36Z" fill="currentColor" opacity=".5"/></svg></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

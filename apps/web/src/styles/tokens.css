@@ -20,6 +20,8 @@
      azul sobre fundo claro usa --color-link, que passa de 4,5:1 tambem no cinza. */
   --color-primary: #3d77b7;
   --color-primary-strong: #2f64a0;
+  /* Azul para TEXTO sobre fundo claro ou suave: o mesmo do botao no claro, mais claro no escuro. */
+  --color-primary-text: var(--color-primary-strong);
   --color-primary-soft: #e8f0fb;
   --color-link: #1565d8;
 
@@ -98,6 +100,7 @@
   --color-shell: #161b22;
 
   --color-primary-soft: #223148;
+  --color-primary-text: #8dbbf7;
   --color-link: #7db3f5;
 
   --color-text: #e6ebf2;

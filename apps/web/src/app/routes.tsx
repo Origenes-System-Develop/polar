@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { Carregando } from "../components/ui/Carregando";
 import { Navigate, RouteObject, useRoutes } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { AlunosPage } from "../features/alunos/AlunosPage";
@@ -72,7 +73,7 @@ const routes: RouteObject[] = [
           {
             path: "perfil/estudio",
             element: (
-              <Suspense fallback={<p className="muted">Abrindo o estúdio...</p>}>
+              <Suspense fallback={<Carregando texto="Abrindo o estúdio..." />}>
                 <EstudioPage />
               </Suspense>
             )

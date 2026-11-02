@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
@@ -163,7 +164,7 @@ export function OcorrenciasListPage() {
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
         <Card title="Lista">
           {loading ? (
-            <p className="muted">Carregando ocorrências...</p>
+            <Carregando texto="Carregando ocorrências..." linhas={4} />
           ) : filtered.length === 0 ? (
             <div className="empty-state">
               <span className="empty-state__icon" aria-hidden="true">
