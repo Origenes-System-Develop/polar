@@ -9,6 +9,16 @@ das versões foram conferidos no histórico do Git. Cada versão tem uma
 
 ## [Não lançado]
 
+### Corrigido
+
+- Contraste no tema escuro: selo "Registrada" e botões secundários passam de 6:1 (apontado pelo Lighthouse).
+- `robots.txt` e `llms.txt` válidos. O Vercel devolvia a página inicial para qualquer caminho com ponto (`/robots.txt`, `/llms.txt`, `/.well-known/...`); agora só rotas sem ponto caem no app, e arquivo inexistente responde 404.
+
+### Adicionado
+
+- Tela de espera enquanto o app abre e estado "Carregando" com a estrela do Polar e linhas de esqueleto nas listas.
+- Janelas, linhas de tabela, fila de pendências e cartões de resumo entram com movimento curto (só `opacity` e `transform`, e nada anima para quem pede movimento reduzido).
+
 ### Alterado
 
 - README refeito com o tema da equipe Polaris: banner, passeio animado pelo sistema, fluxo, recursos, papéis, arquitetura e segurança desenhados em SVG com as cores do GitHub, nos temas claro e escuro. Saem o vídeo, as capturas de tela e o roadmap. As imagens vêm de `scripts/gerar-readme.py`.

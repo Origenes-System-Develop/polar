@@ -1,0 +1,18 @@
+# Polar
+
+> Sistema de ocorrências escolares: o professor registra, a coordenação analisa e resolve, a direção encerra, e o histórico não se apaga. Feito pela equipe Polaris.
+
+O Polar é um aplicativo web com login obrigatório e dados de estudantes. Fora a tela de entrada, não há conteúdo público: o que ajuda a entender o sistema está na documentação do repositório.
+
+## Documentação
+
+- [Visão geral](https://github.com/Origenes-System-Develop/polar/blob/master/docs/visao-geral.md): problema, papéis, escopo e critério de aceite
+- [Fluxo das ocorrências](https://github.com/Origenes-System-Develop/polar/blob/master/docs/fluxos/fluxo-ocorrencias.md): os 4 estados, as 3 transições e quem faz cada uma
+- [Arquitetura](https://github.com/Origenes-System-Develop/polar/blob/master/docs/arquitetura/arquitetura.md): camadas, padrões e diagramas
+- [Endpoints da API](https://github.com/Origenes-System-Develop/polar/blob/master/docs/api/endpoints.md): a tabela completa da API
+- [Segurança e LGPD](https://github.com/Origenes-System-Develop/polar/blob/master/docs/seguranca-e-lgpd.md): OWASP e dados de menores
+
+## Opcional
+
+- [Repositório](https://github.com/Origenes-System-Develop/polar): código, issues e releases
+- [Histórico de versões](https://github.com/Origenes-System-Develop/polar/blob/master/CHANGELOG.md): do v1.0 ao atual

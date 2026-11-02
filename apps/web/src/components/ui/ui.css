@@ -35,7 +35,7 @@
 
 .ui-button--secondary {
   background: transparent;
-  color: var(--color-primary-strong);
+  color: var(--color-primary-text);
   border-color: var(--color-primary);
 }
 
@@ -148,7 +148,7 @@
 
 .ui-badge--info {
   background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
+  color: var(--color-primary-text);
 }
 
 .ui-badge--success {
@@ -1101,4 +1101,120 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   user-select: all;
+}
+
+/* ---------- Carregando, esqueleto e entradas suaves ---------- */
+
+.carregando {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.carregando__topo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* A estrela pequena de tras gira devagar; a grande fica parada. So transform. */
+.carregando__marca .marca-polar__estrela--menor {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carregando-gira 2.8s linear infinite;
+}
+
+.carregando__marca .marca-polar__estrela:not(.marca-polar__estrela--menor) {
+  animation: carregando-respira 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes carregando-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes carregando-respira {
+  50% {
+    transform: scale(0.9);
+  }
+}
+
+.esqueleto {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.esqueleto__linha {
+  position: relative;
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.esqueleto__linha::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  animation: esqueleto-varre 1.5s ease-in-out infinite;
+}
+
+@keyframes esqueleto-varre {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Janela: o fundo escurece e o cartao sobe com um leve zoom. */
+@keyframes fundo-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes janela-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+.ui-modal-backdrop {
+  animation: fundo-entra var(--dur-2) var(--ease-padrao) backwards;
+}
+
+.ui-modal {
+  animation: janela-entra var(--dur-3) var(--ease-padrao) backwards;
+}
+
+/* Linhas de tabela entram em sequencia curta (so as 8 primeiras, para nao arrastar). */
+.ui-table tbody tr {
+  animation: pagina-entra var(--dur-2) var(--ease-padrao) backwards;
+}
+
+.ui-table tbody tr:nth-child(2) { animation-delay: 30ms; }
+.ui-table tbody tr:nth-child(3) { animation-delay: 60ms; }
+.ui-table tbody tr:nth-child(4) { animation-delay: 90ms; }
+.ui-table tbody tr:nth-child(5) { animation-delay: 120ms; }
+.ui-table tbody tr:nth-child(6) { animation-delay: 150ms; }
+.ui-table tbody tr:nth-child(7) { animation-delay: 180ms; }
+.ui-table tbody tr:nth-child(n + 8) { animation-delay: 210ms; }
+
+/* Cartoes de resumo e cartoes clicaveis sobem 2px ao passar o mouse. */
+.stat-card,
+.pendencias-card {
+  transition: transform var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao);
+}
+
+@media (hover: hover) {
+  .stat-card:hover,
+  .pendencias-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+  }
 }

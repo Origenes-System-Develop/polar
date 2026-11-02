@@ -1,0 +1,4 @@
+# Polar: app com login e dados de estudantes. So a tela de entrada pode ser indexada.
+User-agent: *
+Allow: /login
+Disallow: /api/
