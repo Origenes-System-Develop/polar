@@ -11,6 +11,7 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { DetalheOcorrenciaPage } from "../features/ocorrencias/DetalheOcorrenciaPage";
 import { NovaOcorrenciaPage } from "../features/ocorrencias/NovaOcorrenciaPage";
 import { OcorrenciasListPage } from "../features/ocorrencias/OcorrenciasListPage";
+import { PendenciasPage } from "../features/pendencias/PendenciasPage";
 import { RelatoriosPage } from "../features/relatorios/RelatoriosPage";
 import { TurmasPage } from "../features/turmas/TurmasPage";
 import { UsuariosPage } from "../features/usuarios/UsuariosPage";
@@ -32,6 +33,7 @@ const routes: RouteObject[] = [
           {
             element: <ProtectedRoute permission="ocorrencias:view" />,
             children: [
+              { path: "pendencias", element: <PendenciasPage /> },
               { path: "ocorrencias", element: <OcorrenciasListPage /> },
               { path: "ocorrencias/:id", element: <DetalheOcorrenciaPage /> }
             ]

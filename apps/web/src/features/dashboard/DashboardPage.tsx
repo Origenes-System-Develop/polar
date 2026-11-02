@@ -91,6 +91,7 @@ export function DashboardPage() {
             {saudacao()}, <strong>{user?.nome?.split(" ")[0] ?? ""}</strong>
           </h1>
           <p className="greeting__meta">
+            {user?.escola ? `${user.escola} · ` : ""}
             {rotuloDePapel(user?.papel)} · {new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
           </p>
         </div>
@@ -112,11 +113,11 @@ export function DashboardPage() {
               className={`stat-card ${pendencias > 0 ? "stat-card--red" : "stat-card--green"} pendencias-card${entra}`}
               role="button"
               tabIndex={0}
-              onClick={() => navigate("/ocorrencias?pendentes=1")}
+              onClick={() => navigate("/pendencias")}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  navigate("/ocorrencias?pendentes=1");
+                  navigate("/pendencias");
                 }
               }}
             >

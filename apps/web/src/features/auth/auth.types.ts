@@ -9,6 +9,7 @@ export interface AuthUser {
   papel: UserRole;
   precisaTrocarSenha?: boolean;
   avatar?: AvatarUsuario | null;
+  escola?: string | null;
 }
 
 export interface LoginResponse {

@@ -1,14 +1,17 @@
-import { BarChart3, BookOpen, ClipboardList, ClipboardPlus, GraduationCap, Home, PanelLeftClose, PanelLeftOpen, Settings, Users } from "lucide-react";
+import { BarChart3, BookOpen, ClipboardList, ClipboardPlus, GraduationCap, Inbox, Home, PanelLeftClose, PanelLeftOpen, Settings, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { MarcaPolar } from "../ui/Marca";
+import { statusPendentes } from "../../features/ocorrencias/pendencias";
+import { usePendencias } from "../../features/pendencias/usePendencias";
 import { PendenciasBell } from "./PendenciasBell";
 import { UserMenu } from "./UserMenu";
 import "./layout.css";
 
 const navItems = [
   { label: "Início", to: "/", icon: Home, permission: "dashboard:view" as const },
+  { label: "Pendências", to: "/pendencias", icon: Inbox, permission: "ocorrencias:view" as const, soComAcao: true },
   { label: "Ocorrências", to: "/ocorrencias", icon: ClipboardList, permission: "ocorrencias:view" as const },
   { label: "Alunos", to: "/alunos", icon: GraduationCap, permission: "alunos:view" as const },
   { label: "Turmas", to: "/turmas", icon: BookOpen, permission: "turmas:view" as const },
@@ -19,6 +22,8 @@ const navItems = [
 export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { user } = useAuth();
   const admin = canAccess(user?.papel, "configuracoes:manage");
+  const { naoVistas } = usePendencias();
+  const temAcao = statusPendentes(user?.papel).length > 0;
 
   return (
     <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
@@ -53,13 +58,14 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
 
       <nav className="sidebar__nav">
         {navItems
-          .filter((item) => canAccess(user?.papel, item.permission))
+          .filter((item) => canAccess(user?.papel, item.permission) && (!("soComAcao" in item) || temAcao))
           .map((item) => {
             const Icon = item.icon;
             return (
               <NavLink key={item.to} to={item.to} end={item.to === "/"} title={collapsed ? item.label : undefined}>
                 <Icon size={20} aria-hidden="true" />
                 <span className="sidebar__label">{item.label}</span>
+                {item.to === "/pendencias" && naoVistas.length > 0 ? <span className="sidebar__contador">{naoVistas.length}</span> : null}
               </NavLink>
             );
           })}

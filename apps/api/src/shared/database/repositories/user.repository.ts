@@ -1,3 +1,4 @@
+import { acharUnico, chaveDeNome } from "../../utils/texto.js";
 import type { DatabaseClient } from "../database.js";
 import type { Usuario } from "../../domain.js";
 
@@ -25,11 +26,9 @@ export class JsonUserRepository implements UserRepository {
   async findByEmailOrNome(identifier: string): Promise<Usuario | null> {
     const normalized = identifier.trim().toLowerCase();
     const state = await this.db.read();
-    return (
-      state.usuarios.find(
-        (usuario) => usuario.email.toLowerCase() === normalized || usuario.nome.toLowerCase() === normalized
-      ) ?? null
-    );
+    const exato = state.usuarios.find((usuario) => usuario.email.toLowerCase() === normalized || usuario.nome.toLowerCase() === normalized);
+    // Sem acento ou com acento decomposto ("joao" acha "João"): so vale se for um nome so.
+    return exato ?? acharUnico(state.usuarios, chaveDeNome(identifier), (usuario) => usuario.nome);
   }
 
   async create(usuario: Usuario): Promise<Usuario> {
