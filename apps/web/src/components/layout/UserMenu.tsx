@@ -1,7 +1,6 @@
-import { ChevronDown, KeyRound, LogOut, Settings, User, X } from "lucide-react";
+import { ChevronDown, LogOut, Palette, User, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { Avatar } from "../ui/Avatar";
 import { rotuloDePapel } from "./iniciais";
@@ -107,15 +106,9 @@ export function UserMenu({ variante = "topo" }: { variante?: "topo" | "menu" }) 
           </div>
 
           <nav className="user-menu__links">
-            {canAccess(user?.papel, "configuracoes:manage") ? (
-              <Link to="/configuracoes" role="menuitem" onClick={() => setAberto(false)}>
-                <Settings size={18} aria-hidden="true" />
-                <span>Configurações</span>
-              </Link>
-            ) : null}
-            <Link to="/perfil" role="menuitem" onClick={() => setAberto(false)}>
-              <KeyRound size={18} aria-hidden="true" />
-              <span>Meu perfil</span>
+            <Link to="/perfil/estudio" role="menuitem" onClick={() => setAberto(false)}>
+              <Palette size={18} aria-hidden="true" />
+              <span>Editar meu avatar</span>
             </Link>
             <Link to="/ocorrencias" role="menuitem" onClick={() => setAberto(false)}>
               <User size={18} aria-hidden="true" />

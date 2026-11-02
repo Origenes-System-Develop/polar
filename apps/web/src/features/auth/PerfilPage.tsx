@@ -72,6 +72,7 @@ export function PerfilPage() {
   return (
     <>
       <PageHeader title="Meu perfil" breadcrumb={[{ label: "Início", to: "/" }, { label: "Meu perfil" }]} />
+      <div className="page-grid">
       <Card title="Seus dados">
         <p>
           <strong>{user?.nome}</strong>
@@ -149,6 +150,7 @@ export function PerfilPage() {
           </div>
         </form>
       </Card>
+      </div>
     </>
   );
 }

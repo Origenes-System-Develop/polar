@@ -3,61 +3,21 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
-import { Input } from "../../components/ui/Input";
+import { CampoData, paraIso } from "../../components/ui/CampoData";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { RelatorioOcorrencias, Turma } from "../../services/domain";
 import { getRelatorioOcorrencias, listTurmas } from "../../services/school.service";
 import { baixarCsv, ocorrenciasParaCsv } from "./csv";
+import { BarrasHorizontais, LinhaMensal, PilhaDeStatus, nomeDoMes } from "./graficos";
 
-interface DadoGrafico {
-  nome: string;
-  total: number;
-}
-
-function GraficoBarras({ dados }: { dados: DadoGrafico[] }) {
-  const maiorValor = Math.max(...dados.map((item) => item.total), 1);
-  const largura = Math.max(dados.length * 72, 280);
-
-  return (
-    <svg className="report-chart" viewBox={`0 0 ${largura} 220`} role="img" aria-label="Gráfico de barras da distribuição de ocorrências por turma">
-      {dados.map((item, index) => {
-        const altura = (item.total / maiorValor) * 150;
-        const x = 24 + index * 72;
-        return (
-          <g key={item.nome}>
-            <rect x={x} y={178 - altura} width="44" height={altura} rx="4" className="report-chart__bar" />
-            <text x={x + 22} y="172" textAnchor="middle" className="report-chart__value">{item.total}</text>
-            <text x={x + 22} y="204" textAnchor="middle" className="report-chart__label">{item.nome}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-function GraficoLinha({ dados }: { dados: DadoGrafico[] }) {
-  const maiorValor = Math.max(...dados.map((item) => item.total), 1);
-  const largura = Math.max(dados.length * 92, 300);
-  const pontos = dados.map((item, index) => {
-    const x = 34 + index * ((largura - 68) / Math.max(dados.length - 1, 1));
-    const y = 174 - (item.total / maiorValor) * 132;
-    return { ...item, x, y };
-  });
-
-  return (
-    <svg className="report-chart" viewBox={`0 0 ${largura} 220`} role="img" aria-label="Gráfico de linha da evolução mensal de ocorrências">
-      <line x1="28" x2={largura - 20} y1="174" y2="174" className="report-chart__axis" />
-      <polyline fill="none" points={pontos.map((item) => `${item.x},${item.y}`).join(" ")} className="report-chart__line" />
-      {pontos.map((item) => (
-        <g key={item.nome}>
-          <circle cx={item.x} cy={item.y} r="5" className="report-chart__point" />
-          <text x={item.x} y={item.y - 10} textAnchor="middle" className="report-chart__value">{item.total}</text>
-          <text x={item.x} y="204" textAnchor="middle" className="report-chart__label">{item.nome}</text>
-        </g>
-      ))}
-    </svg>
-  );
+// Atalhos de periodo: quem nao quer digitar data clica e pronto.
+function atalhoDePeriodo(tipo: "hoje" | "7dias" | "mes"): { inicio: string; fim: string } {
+  const agora = new Date();
+  const fim = paraIso(agora);
+  if (tipo === "hoje") return { inicio: fim, fim };
+  if (tipo === "7dias") return { inicio: paraIso(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() - 6)), fim };
+  return { inicio: paraIso(new Date(agora.getFullYear(), agora.getMonth(), 1)), fim };
 }
 
 export function RelatoriosPage() {
@@ -113,8 +73,12 @@ export function RelatoriosPage() {
   const encerradas = relatorio?.byStatus.ENCERRADA ?? 0;
   const categorias = Object.keys(relatorio?.byCategory ?? {}).length;
   const dadosTurma = relatorio?.byTurma ?? [];
+  const dadosCategoria = Object.entries(relatorio?.byCategory ?? {})
+    .map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 6);
   const dadosPeriodo = (relatorio?.byPeriodo ?? []).map((item) => ({
-    nome: item.periodo.slice(5, 7) + "/" + item.periodo.slice(0, 4),
+    nome: nomeDoMes(item.periodo),
     total: item.total
   }));
 
@@ -155,8 +119,41 @@ export function RelatoriosPage() {
               onChange={(event) => setTurmaId(event.target.value)}
               options={[{ value: "", label: "Todas as turmas" }, ...turmas.map((turma) => ({ value: turma.id, label: turma.nome }))]}
             />
-            <Input label="Data inicial" type="date" value={dataInicio} onChange={(event) => setDataInicio(event.target.value)} />
-            <Input label="Data final" type="date" value={dataFim} onChange={(event) => setDataFim(event.target.value)} />
+            <CampoData label="Data inicial" value={dataInicio} max={dataFim || undefined} onChange={setDataInicio} />
+            <CampoData label="Data final" value={dataFim} min={dataInicio || undefined} onChange={setDataFim} />
+          </div>
+          <div className="atalhos-periodo" role="group" aria-label="Atalhos de período">
+            <span>Período rápido</span>
+            {(
+              [
+                ["hoje", "Hoje"],
+                ["7dias", "Últimos 7 dias"],
+                ["mes", "Este mês"]
+              ] as const
+            ).map(([tipo, rotulo]) => (
+              <button
+                key={tipo}
+                type="button"
+                onClick={() => {
+                  const periodo = atalhoDePeriodo(tipo);
+                  setDataInicio(periodo.inicio);
+                  setDataFim(periodo.fim);
+                }}
+              >
+                {rotulo}
+              </button>
+            ))}
+            {dataInicio || dataFim ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDataInicio("");
+                  setDataFim("");
+                }}
+              >
+                Limpar datas
+              </button>
+            ) : null}
           </div>
         </Card>
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
@@ -168,12 +165,24 @@ export function RelatoriosPage() {
         </div>
         <div className="grid-2">
           <Card title="Por turma">
-            {dadosTurma.length > 0 ? <GraficoBarras dados={dadosTurma} /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
-            <Table data={dadosTurma} columns={[{ key: "nome", header: "Turma", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados por turma." />
+            {dadosTurma.length > 0 ? <BarrasHorizontais dados={dadosTurma} rotulo="Ocorrências por turma" /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
+            <details className="relatorio-tabela">
+              <summary>Ver em tabela</summary>
+              <Table data={dadosTurma} columns={[{ key: "nome", header: "Turma", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados por turma." />
+            </details>
           </Card>
           <Card title="Mês a mês">
-            {dadosPeriodo.length > 0 ? <GraficoLinha dados={dadosPeriodo} /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
-            <Table data={dadosPeriodo} columns={[{ key: "nome", header: "Período", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados no período." />
+            {dadosPeriodo.length > 0 ? <LinhaMensal dados={dadosPeriodo} rotulo="Evolução mensal das ocorrências" /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
+            <details className="relatorio-tabela">
+              <summary>Ver em tabela</summary>
+              <Table data={dadosPeriodo} columns={[{ key: "nome", header: "Período", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados no período." />
+            </details>
+          </Card>
+          <Card title="Por status">
+            {total > 0 ? <PilhaDeStatus porStatus={relatorio?.byStatus ?? {}} /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
+          </Card>
+          <Card title="Categorias mais comuns">
+            {dadosCategoria.length > 0 ? <BarrasHorizontais dados={dadosCategoria} rotulo="Ocorrências por categoria" /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
           </Card>
         </div>
       </div>

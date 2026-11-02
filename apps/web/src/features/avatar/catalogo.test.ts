@@ -5,6 +5,7 @@ import {
   BARBA_COR,
   CABELOS,
   CABELOS_COR,
+  ROUPAS,
   COM_CHAPEU,
   FUNDOS,
   OCULOS_COR,
@@ -18,6 +19,10 @@ import {
 const OPCOES_DA_SALA_DO_FUTURO = 52;
 
 describe("catalogo do avatar", () => {
+  it("a configuracao cabe no limite da API (24 chaves)", () => {
+    expect(Object.keys(AVATAR_PADRAO).length).toBeLessThanOrEqual(24);
+  });
+
   it("oferece pelo menos 5 vezes as opcoes da Sala do Futuro", () => {
     expect(totalDeOpcoes()).toBeGreaterThanOrEqual(OPCOES_DA_SALA_DO_FUTURO * 5);
   });

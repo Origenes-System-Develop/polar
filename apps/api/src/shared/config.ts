@@ -29,7 +29,9 @@ const configSchema = z.object({
   smtpPass: z.string().optional(),
   smtpFrom: z.string().optional(),
   // Endereco publico do sistema, usado nos links dos e-mails para a equipe.
-  appUrl: z.string().url().optional()
+  appUrl: z.string().url().optional(),
+  // Nome da escola mostrado no inicio. Vem do ambiente: nao ha tela de edicao nem coluna no banco.
+  schoolName: z.string().trim().max(120).optional()
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -52,7 +54,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     smtpUser: env.SMTP_USER || undefined,
     smtpPass: env.SMTP_PASS || undefined,
     smtpFrom: env.SMTP_FROM || undefined,
-    appUrl: env.APP_URL || undefined
+    appUrl: env.APP_URL || undefined,
+    schoolName: env.NOME_ESCOLA || undefined
   });
 
   if (parsed.databaseProvider === "postgres" && !parsed.databaseUrl) {
