@@ -39,6 +39,11 @@
   --color-warning-soft: #fff3d6;
   --color-danger: #c80000;
   --color-danger-soft: #fde7e7;
+  --color-danger-solid: #c80000;
+  --color-danger-hover: #fbd9d9;
+  --color-hover: #d8e8fa;
+  --color-inverse: #183b56;
+  --color-scrim: rgba(15, 23, 42, 0.28);
   --color-critical: #15171a;
   --color-critical-soft: #e9eaec;
 
@@ -79,5 +84,43 @@
   --dur-3: 300ms;
   --ease-padrao: cubic-bezier(0.4, 0, 0.2, 1);
 
+  color-scheme: light;
   --font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Tema escuro. Ligado por data-tema="escuro" na raiz (ver services/tema.ts); so troca
+   os valores, nenhuma regra de componente muda. Pares conferidos com scripts/contraste.mjs. */
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --color-bg: #12161c;
+  --color-surface: #1b212a;
+  --color-surface-muted: #222a35;
+  --color-shell: #161b22;
+
+  --color-primary-soft: #223148;
+  --color-link: #7db3f5;
+
+  --color-text: #e6ebf2;
+  --color-text-muted: #a9b4c4;
+  --color-text-soft: #8d99ac;
+  --color-heading-table: #aac4f0;
+  --color-border: #2d3644;
+  --color-border-input: #7b8799;
+
+  --color-success: #7fd49b;
+  --color-success-soft: #17301f;
+  --color-warning: #f0b44c;
+  --color-warning-soft: #3a2c10;
+  --color-danger: #ff8a8a;
+  --color-danger-soft: #3d1a1a;
+  --color-danger-hover: #542222;
+  --color-hover: #2a3d5a;
+  --color-inverse: #2d3a4d;
+  --color-scrim: rgba(0, 0, 0, 0.6);
+  --color-critical: #4a505a;
+  --color-critical-soft: #2a2d33;
+
+  --shadow-subtle: 0 2px 1px -1px rgba(0, 0, 0, 0.5), 0 1px 1px 0 rgba(0, 0, 0, 0.4), 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 3px 3px -2px rgba(0, 0, 0, 0.5), 0 3px 4px 0 rgba(0, 0, 0, 0.4), 0 1px 8px 0 rgba(0, 0, 0, 0.4);
+  --shadow-raised: 0 5px 5px -3px rgba(0, 0, 0, 0.5), 0 8px 10px 1px rgba(0, 0, 0, 0.4), 0 3px 14px 2px rgba(0, 0, 0, 0.4);
 }

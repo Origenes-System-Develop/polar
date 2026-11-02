@@ -42,7 +42,28 @@ const pares = [
   ["aviso: branco / #183b56", W, "#183b56", 4.5],
   ["painel do login: branco / #1d6f9a", W, "#1d6f9a", 4.5],
   ["painel do login: branco / #0b5276", W, "#0b5276", 4.5],
-  ["painel do login SdF #2c7fa6 (referencia, parte clara)", W, "#2c7fa6", 4.5]
+  ["painel do login SdF #2c7fa6 (referencia, parte clara)", W, "#2c7fa6", 4.5],
+  // Tema escuro (tokens.css, [data-tema="escuro"])
+  ["escuro: texto / fundo", "#e6ebf2", "#12161c", 4.5],
+  ["escuro: texto / cartao", "#e6ebf2", "#1b212a", 4.5],
+  ["escuro: secundario / cartao", "#a9b4c4", "#1b212a", 4.5],
+  ["escuro: secundario / fundo", "#a9b4c4", "#12161c", 4.5],
+  ["escuro: icone inativo / menu", "#8d99ac", "#161b22", 3],
+  ["escuro: link / cartao", "#7db3f5", "#1b212a", 4.5],
+  ["escuro: link / fundo", "#7db3f5", "#12161c", 4.5],
+  ["escuro: item ativo / #223148", "#7db3f5", "#223148", 4.5],
+  ["escuro: cabecalho de tabela / cartao", "#aac4f0", "#1b212a", 4.5],
+  ["escuro: borda do campo / cartao (UI)", "#7b8799", "#1b212a", 3],
+  ["escuro: selo sucesso", "#7fd49b", "#17301f", 4.5],
+  ["escuro: selo aviso", "#f0b44c", "#3a2c10", 4.5],
+  ["escuro: selo perigo", "#ff8a8a", "#3d1a1a", 4.5],
+  ["escuro: selo critico: branco / #4a505a", W, "#4a505a", 4.5],
+  ["escuro: aviso: branco / #2d3a4d", W, "#2d3a4d", 4.5],
+  ["escuro: botao perigo: branco / #c80000", W, "#c80000", 4.5],
+  ["escuro: linha azul / cartao (decorativo)", "#3c9cc6", "#1b212a", 3],
+  ["escuro: linha areia / cartao (decorativo)", "#c4802a", "#1b212a", 3],
+  ["escuro: linha coral / cartao (decorativo)", "#d8786b", "#1b212a", 3],
+  ["escuro: linha verde / cartao (decorativo)", "#2e9a5b", "#1b212a", 3]
 ];
 const ver = process.argv[2] === "--so-falhas";
 for (const [nome, f, b, min] of pares) {
