@@ -22,7 +22,7 @@
 </p>
 
 <p>
-  <b><a href="https://polarescolar.vercel.app/login">▶ Ver ao vivo</a></b>
+  <b><a href="https://polarescolar.vercel.app/login">Ver ao vivo</a></b>
   &nbsp;·&nbsp; <a href="#-veja-funcionando">Passeio</a>
   &nbsp;·&nbsp; <a href="#-comece-em-um-minuto">Rodar</a>
   &nbsp;·&nbsp; <a href="#-segurança">Segurança</a>
@@ -47,14 +47,26 @@ O nome vem da estrela que aponta o norte. Quem o construiu é a **Polaris**, a c
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/demo-escuro.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/demo-claro.svg">
-  <img alt="Passeio animado: o professor entra e registra, a coordenação vê a fila e resolve, a direção encerra e o histórico guarda tudo." src="docs/assets/demo-claro.svg" width="100%">
+  <img alt="Passeio animado pelo Polar: login, início, registro de ocorrência, fila de pendências, resolução, encerramento, histórico e relatórios." src="docs/assets/demo-claro.svg" width="100%">
 </picture>
 
 </div>
 
 <br>
 
-Seis passos, na ordem em que acontecem de verdade. Para ver o sistema inteiro, abra o [site no ar](https://polarescolar.vercel.app/login).
+O passeio acima roda em 8 telas, na ordem em que o trabalho acontece de verdade:
+
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/passeio-escuro.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/passeio-claro.svg">
+  <img alt="As 8 telas do passeio: entrada, início, registro, pendências, resolução, encerramento, histórico e relatórios." src="docs/assets/passeio-claro.svg" width="100%">
+</picture>
+
+</div>
+
+Para ver o sistema inteiro, abra o [site no ar](https://polarescolar.vercel.app/login).
 
 ## ✦ O fluxo
 
@@ -124,13 +136,13 @@ Menores de idade, LGPD e OWASP: [docs/seguranca-e-lgpd.md](docs/seguranca-e-lgpd
 
 Precisa de Node 20+ e pnpm 9 (`npm i -g pnpm@9.15.4`). **Sem Docker**: o modo de desenvolvimento guarda os dados em um arquivo.
 
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-comece-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-comece-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-comece-claro.svg" width="100%" style="display:block"></picture></div>
+
 ```bash
 pnpm install
-```
 
-Crie `apps/api/.env` a partir de `apps/api/.env.example`:
-
-```env
+# crie apps/api/.env (modelo em apps/api/.env.example)
+cat > apps/api/.env <<'EOF'
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
@@ -138,29 +150,32 @@ JWT_SECRET=um-segredo-forte-com-pelo-menos-32-caracteres
 DATABASE_PROVIDER=json
 SEED_SENHA_PADRAO=escolha-uma-senha-de-teste
 NOME_ESCOLA=Nome da sua escola
-```
+EOF
 
-```bash
 pnpm seed   # dados de demonstração
 pnpm dev    # site em localhost:5173 e API em localhost:3000
 ```
 
 Uma conta por papel: `professor@`, `coordenacao@`, `direcao@` e `adm@escola.polar`. A senha é a do `SEED_SENHA_PADRAO`.
 
-<details>
-<summary><b>Com PostgreSQL de verdade</b> (obrigatório em produção)</summary>
-<br>
+### Com PostgreSQL de verdade
+
+Obrigatório em produção: o servidor se recusa a subir sem PostgreSQL.
+
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-postgres-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-postgres-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-postgres-claro.svg" width="100%" style="display:block"></picture></div>
 
 ```bash
-docker run --name polar-pg -e POSTGRES_USER=polar -e POSTGRES_PASSWORD=polar \
-  -e POSTGRES_DB=polar -p 5432:5432 -d postgres:16
+docker run --name polar-pg -e POSTGRES_USER=polar -e POSTGRES_PASSWORD=polar   -e POSTGRES_DB=polar -p 5432:5432 -d postgres:16
 psql postgresql://polar:polar@localhost:5432/polar -f database/schema.sql
+
+# no apps/api/.env, troque por:
+#   DATABASE_PROVIDER=postgres
+#   DATABASE_URL=postgresql://polar:polar@localhost:5432/polar
 ```
 
-No `.env`, troque por `DATABASE_PROVIDER=postgres` e `DATABASE_URL=postgresql://polar:polar@localhost:5432/polar`. Em produção o servidor se recusa a subir sem PostgreSQL.
-</details>
-
 ### Qualidade
+
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-qualidade-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-qualidade-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-qualidade-claro.svg" width="100%" style="display:block"></picture></div>
 
 ```bash
 pnpm lint        # ESLint
@@ -173,53 +188,60 @@ O CI roda os quatro em todo push e pull request.
 
 ## ✦ Entrega
 
-| | |
-| --- | --- |
-| **Site e API** | [polarescolar.vercel.app](https://polarescolar.vercel.app) na Vercel, com uma prévia para cada pull request |
-| **Banco** | PostgreSQL gratuito no Supabase |
-| **Fluxo** | `develop` → `release` → `master`. Mudanças de banco entram pelo [`database/schema.sql`](database/schema.sql) antes de ir para `master` |
-| **Passo a passo** | [Supabase](docs/deploy/supabase.md) (banco, primeiro) e [Vercel](docs/deploy/vercel.md) (aplicação) |
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/entrega-escuro.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/entrega-claro.svg">
+  <img alt="Entrega: site e API na Vercel, banco no Supabase, fluxo develop, release e master." src="docs/assets/entrega-claro.svg" width="100%">
+</picture>
+
+</div>
+
+Passo a passo: [Supabase](docs/deploy/supabase.md) (banco, primeiro) e [Vercel](docs/deploy/vercel.md) (aplicação).
 
 ## ✦ Regras que não mudam
 
-1. Só existem 4 estados e 3 transições, cada uma de um papel. Pular etapa → `409`.
-2. Professor não muda status e só vê as próprias ocorrências.
-3. Editar: só o autor, só em `REGISTRADA`, sempre com histórico.
-4. O histórico só cresce. Tentativa de editar → `405`.
-5. Ocorrência `ENCERRADA` é somente leitura, para sempre.
-6. Nada é apagado de verdade: alunos, turmas e usuários são **inativados**.
-7. Autor e data vêm do servidor, nunca do formulário.
-8. O servidor é a única autoridade de permissão.
-9. Aluno nunca é usuário do sistema.
-10. Acentuação em português é válida em todo lugar, inclusive no login.
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/regras-escuro.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/regras-claro.svg">
+  <img alt="Regras que não mudam: quatro estados e três transições, histórico que só cresce, nada é apagado, o servidor decide a permissão." src="docs/assets/regras-claro.svg" width="100%">
+</picture>
+
+</div>
 
 ## ✦ Estrutura
 
-```text
-apps/api/    Express + TypeScript (auth, usuários, turmas, alunos, ocorrências,
-             notas, faltas, dashboard, relatórios, auditoria)
-apps/web/    React + TypeScript (telas, componentes, estúdio de avatar)
-database/    schema.sql, contas e dados de demonstração
-docs/        produto, arquitetura, banco, testes, segurança, deploy
-scripts/     migração de dados legados
-```
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/terminal-estrutura-escuro.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/terminal-estrutura-claro.svg">
+  <img alt="Terminal: a estrutura de pastas do repositório." src="docs/assets/terminal-estrutura-claro.svg" width="100%">
+</picture>
+
+</div>
 
 ## ✦ Documentação
 
-| Documento | Conteúdo |
-| --- | --- |
-| [Visão geral](docs/visao-geral.md) | Problema, papéis, escopo, critério de aceite |
-| [Manual do usuário](docs/manual-do-usuario.md) | Como usar, por papel |
-| [Arquitetura](docs/arquitetura/arquitetura.md) | Camadas, padrões, diagramas |
-| [Por que PostgreSQL](docs/arquitetura/decisao-postgres.md) | Decisão de arquitetura |
-| [Modelo relacional](docs/banco-de-dados/modelo-relacional.md) | DER e dicionário de dados |
-| [Endpoints](docs/api/endpoints.md) | Tabela completa da API |
-| [Fluxo das ocorrências](docs/fluxos/fluxo-ocorrencias.md) | Máquina de estados e regras |
-| [Plano de testes](docs/testes/plano-de-testes.md) | T01 a T16 com evidências |
-| [Segurança e LGPD](docs/seguranca-e-lgpd.md) | OWASP e dados de menores |
-| [Uso de IA](docs/uso-de-ia.md) | Declaração de uso |
-| [Roteiro da apresentação](docs/demo/roteiro-apresentacao.md) | Para ensaiar a banca |
-| [Histórico de versões](CHANGELOG.md) | Do v1.0 ao v3.1 |
+<div align="center">
+
+<a href="docs/visao-geral.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-visao-geral-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-visao-geral-claro.svg"><img alt="Visão geral" src="docs/assets/doc-visao-geral-claro.svg" width="49%"></picture></a>
+<a href="docs/manual-do-usuario.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-manual-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-manual-claro.svg"><img alt="Manual do usuário" src="docs/assets/doc-manual-claro.svg" width="49%"></picture></a>
+<a href="docs/arquitetura/arquitetura.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-arquitetura-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-arquitetura-claro.svg"><img alt="Arquitetura" src="docs/assets/doc-arquitetura-claro.svg" width="49%"></picture></a>
+<a href="docs/arquitetura/decisao-postgres.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-postgres-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-postgres-claro.svg"><img alt="Por que PostgreSQL" src="docs/assets/doc-postgres-claro.svg" width="49%"></picture></a>
+<a href="docs/banco-de-dados/modelo-relacional.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-modelo-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-modelo-claro.svg"><img alt="Modelo relacional" src="docs/assets/doc-modelo-claro.svg" width="49%"></picture></a>
+<a href="docs/api/endpoints.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-endpoints-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-endpoints-claro.svg"><img alt="Endpoints" src="docs/assets/doc-endpoints-claro.svg" width="49%"></picture></a>
+<a href="docs/fluxos/fluxo-ocorrencias.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-fluxo-ocorrencias-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-fluxo-ocorrencias-claro.svg"><img alt="Fluxo das ocorrências" src="docs/assets/doc-fluxo-ocorrencias-claro.svg" width="49%"></picture></a>
+<a href="docs/testes/plano-de-testes.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-testes-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-testes-claro.svg"><img alt="Plano de testes" src="docs/assets/doc-testes-claro.svg" width="49%"></picture></a>
+<a href="docs/seguranca-e-lgpd.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-seguranca-lgpd-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-seguranca-lgpd-claro.svg"><img alt="Segurança e LGPD" src="docs/assets/doc-seguranca-lgpd-claro.svg" width="49%"></picture></a>
+<a href="docs/uso-de-ia.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-uso-de-ia-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-uso-de-ia-claro.svg"><img alt="Uso de IA" src="docs/assets/doc-uso-de-ia-claro.svg" width="49%"></picture></a>
+<a href="docs/demo/roteiro-apresentacao.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-roteiro-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-roteiro-claro.svg"><img alt="Roteiro da apresentação" src="docs/assets/doc-roteiro-claro.svg" width="49%"></picture></a>
+<a href="CHANGELOG.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-changelog-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-changelog-claro.svg"><img alt="Histórico de versões" src="docs/assets/doc-changelog-claro.svg" width="49%"></picture></a>
+
+</div>
 
 ## ✦ Quem construiu
 

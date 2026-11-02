@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Tabs } from "../../components/ui/Tabs";
 import type { OcorrenciaDetalhada } from "../../services/domain";
 import { DiasEmAberto } from "../ocorrencias/DiasEmAberto";
@@ -18,7 +19,7 @@ export function PendenciasPage() {
   const diretor = user?.papel === "DIRETOR";
 
   function lista(dados: OcorrenciaDetalhada[], vazio: { titulo: string; texto: string }) {
-    if (carregando) return <p className="muted">Carregando...</p>;
+    if (carregando) return <Carregando texto="Carregando..." linhas={3} />;
     if (dados.length === 0) {
       return (
         <div className="pendencias-vazio">

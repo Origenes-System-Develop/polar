@@ -2,6 +2,7 @@ import { UserPlus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Input } from "../../components/ui/Input";
@@ -135,7 +136,7 @@ export function UsuariosPage() {
       {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
       <Card title="Quem acessa o Polar">
         {loading ? (
-          <p className="muted">Carregando usuários...</p>
+          <Carregando texto="Carregando usuários..." linhas={3} />
         ) : (
           <Table
             data={usuarios}

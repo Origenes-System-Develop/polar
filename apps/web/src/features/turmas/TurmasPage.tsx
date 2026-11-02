@@ -6,6 +6,7 @@ import { useAuth } from "../../app/providers";
 
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Card } from "../../components/ui/Card";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Input } from "../../components/ui/Input";
@@ -318,9 +319,7 @@ export function TurmasPage() {
 
       <Card title="Turmas cadastradas">
         {loading ? (
-          <p className="muted">
-            Carregando turmas...
-          </p>
+          <Carregando texto="Carregando turmas..." linhas={3} />
         ) : turmas.length === 0 ? (
           <div className="empty-state">
             <SearchX
