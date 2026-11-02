@@ -4,10 +4,12 @@ Todas as mudanças relevantes deste projeto serão documentadas neste arquivo.
 
 O formato deste arquivo é baseado no
 [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Datas e conteúdo
-das versões foram conferidos no histórico do Git. O projeto ainda não possui
-tags nem releases no GitHub; por isso os links apontam para commits.
+das versões foram conferidos no histórico do Git. Cada versão tem uma
+[release no GitHub](https://github.com/Origenes-System-Develop/polar/releases).
 
 ## [Não lançado]
+
+## [v3.2] - 2026-11-01
 
 ### Adicionado
 
@@ -140,8 +142,9 @@ tags nem releases no GitHub; por isso os links apontam para commits.
 
 - Diversos ajustes na API e na execução dos serviços Python (`runPython`).
 
-[Não lançado]: https://github.com/Origenes-System-Develop/polar/compare/8d5face...develop
-[v3.1]: https://github.com/Origenes-System-Develop/polar/commit/8d5face
-[v3.0]: https://github.com/Origenes-System-Develop/polar/commit/0e18563
-[v2.0]: https://github.com/Origenes-System-Develop/polar/commit/4ca3d4d
-[v1.0]: https://github.com/Origenes-System-Develop/polar/commit/571904b
+[Não lançado]: https://github.com/Origenes-System-Develop/polar/compare/v3.2...develop
+[v3.2]: https://github.com/Origenes-System-Develop/polar/releases/tag/v3.2
+[v3.1]: https://github.com/Origenes-System-Develop/polar/releases/tag/v3.1
+[v3.0]: https://github.com/Origenes-System-Develop/polar/releases/tag/v3.0
+[v2.0]: https://github.com/Origenes-System-Develop/polar/releases/tag/v2.0
+[v1.0]: https://github.com/Origenes-System-Develop/polar/releases/tag/v1.0
