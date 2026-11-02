@@ -89,6 +89,9 @@ export interface Turma {
   anoLetivo: number;
   turno: string;
   tipoEnsino: TipoEnsino;
+  // So para ensino tecnico: curso da lista da escola e serie (dentro do intervalo que a escola define).
+  curso?: string | null;
+  serie?: number | null;
   ativa: boolean;
   criadoEm: string;
   atualizadoEm: string;

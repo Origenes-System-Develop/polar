@@ -9,7 +9,9 @@ export const createTurmaSchema = z.object({
   nome: z.string().trim().min(1).max(120),
   anoLetivo: z.coerce.number().int().min(2000).max(2100),
   turno: z.string().trim().min(1).max(40).default("Integral"),
-  tipoEnsino: tipoEnsinoSchema.default(TipoEnsino.REGULAR)
+  tipoEnsino: tipoEnsinoSchema.default(TipoEnsino.REGULAR),
+  curso: z.string().trim().min(1).max(80).nullish(),
+  serie: z.coerce.number().int().min(1).max(9).nullish()
 });
 
 export const updateTurmaSchema = z.object({
@@ -17,6 +19,8 @@ export const updateTurmaSchema = z.object({
   anoLetivo: z.coerce.number().int().min(2000).max(2100).optional(),
   turno: z.string().trim().min(1).max(40).optional(),
   tipoEnsino: tipoEnsinoSchema.optional(),
+  curso: z.string().trim().min(1).max(80).nullish(),
+  serie: z.coerce.number().int().min(1).max(9).nullish(),
   ativa: z.boolean().optional()
 });
 

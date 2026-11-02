@@ -78,6 +78,8 @@ export interface Turma {
   anoLetivo: number;
   turno: string;
   tipoEnsino: "REGULAR" | "TECNICO";
+  curso?: string | null;
+  serie?: number | null;
   ativa: boolean;
   criadoEm?: string;
   atualizadoEm?: string;
@@ -241,6 +243,8 @@ export interface CreateTurmaPayload {
   anoLetivo: number;
   turno: string;
   tipoEnsino?: "REGULAR" | "TECNICO";
+  curso?: string | null;
+  serie?: number | null;
 }
 
 export interface UpdateTurmaPayload {
@@ -248,7 +252,21 @@ export interface UpdateTurmaPayload {
   anoLetivo?: number;
   turno?: string;
   tipoEnsino?: "REGULAR" | "TECNICO";
+  curso?: string | null;
+  serie?: number | null;
   ativa?: boolean;
+}
+
+export interface CursosTecnicos {
+  oferece: boolean;
+  serieInicial: number;
+  serieFinal: number;
+  cursos: string[];
+}
+
+export interface DadosEscola {
+  nome: string | null;
+  cursosTecnicos: CursosTecnicos;
 }
 
 export interface RelatorioOcorrenciasFiltro {
