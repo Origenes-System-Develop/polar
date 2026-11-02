@@ -1,4 +1,4 @@
-import { CheckCheck, Inbox } from "lucide-react";
+import { CheckCheck, Inbox, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../app/providers";
@@ -13,7 +13,7 @@ import "./pendencias.css";
 
 export function PendenciasPage() {
   const { user } = useAuth();
-  const { itens, naoVistas, vistas, carregando, marcarVistas } = usePendencias();
+  const { itens, naoVistas, vistas, carregando, marcarVistas, desmarcarVistas } = usePendencias();
   const [aba, setAba] = useState("novas");
   const diretor = user?.papel === "DIRETOR";
 
@@ -61,9 +61,13 @@ export function PendenciasPage() {
         title="Pendências"
         description={diretor ? "Ocorrências resolvidas que esperam o seu encerramento, da mais urgente para a menos." : "Ocorrências que esperam a sua análise, da mais urgente para a menos. Comece pela primeira."}
         actions={
-          naoVistas.length > 0 ? (
-            <Button variant="ghost" icon={<CheckCheck size={18} />} onClick={() => marcarVistas(itens.map((o) => o.id))}>
+          aba === "novas" && naoVistas.length > 0 ? (
+            <Button variant="ghost" icon={<CheckCheck size={18} />} onClick={() => marcarVistas(naoVistas.map((o) => o.id))}>
               Marcar tudo como visto
+            </Button>
+          ) : aba === "todas" && itens.some((o) => vistas.has(o.id)) ? (
+            <Button variant="ghost" icon={<Undo2 size={18} />} onClick={() => desmarcarVistas(itens.map((o) => o.id))}>
+              Marcar tudo como não visto
             </Button>
           ) : null
         }

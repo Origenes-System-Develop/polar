@@ -1,5 +1,5 @@
-import { Download } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronRight, Download } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -8,7 +8,8 @@ import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { RelatorioOcorrencias, Turma } from "../../services/domain";
 import { getRelatorioOcorrencias, listTurmas } from "../../services/school.service";
-import { baixarCsv, ocorrenciasParaCsv } from "./csv";
+import { ocorrenciasParaXlsx } from "./planilha";
+import { baixarXlsx } from "./xlsx";
 import { BarrasHorizontais, LinhaMensal, PilhaDeStatus, nomeDoMes } from "./graficos";
 
 // Atalhos de periodo: quem nao quer digitar data clica e pronto.
@@ -27,6 +28,8 @@ export function RelatoriosPage() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [bimestre, setBimestre] = useState("");
+  // O relatorio nasce no ano corrente: ninguem quer ver 2024 em 2026 sem pedir.
+  const [ano, setAno] = useState(String(new Date().getFullYear()));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -51,8 +54,8 @@ export function RelatoriosPage() {
       try {
         const data = await getRelatorioOcorrencias({
           turmaId: turmaId || undefined,
-          dataInicio: dataInicio || undefined,
-          dataFim: dataFim || undefined,
+          dataInicio: dataInicio || (ano ? `${ano}-01-01` : undefined),
+          dataFim: dataFim || (ano ? `${ano}-12-31` : undefined),
           bimestre: bimestre ? Number(bimestre) : undefined
       });
         if (!active) return;
@@ -66,7 +69,14 @@ export function RelatoriosPage() {
     }
     void loadRelatorio();
     return () => { active = false; };
-  }, [turmaId, dataInicio, dataFim, bimestre]);
+  }, [turmaId, dataInicio, dataFim, bimestre, ano]);
+
+  const anosDisponiveis = useMemo(() => {
+    const anos = new Set([new Date().getFullYear(), ...turmas.map((t) => t.anoLetivo)]);
+    return [...anos].sort((a, b) => b - a);
+  }, [turmas]);
+  const turmasDoAno = ano ? turmas.filter((t) => String(t.anoLetivo) === ano) : turmas;
+  const periodoTexto = ano ? `ano de ${ano}` : "todos os anos";
 
   const total = relatorio?.total ?? 0;
   const resolvidas = relatorio?.byStatus.RESOLVIDA ?? 0;
@@ -87,20 +97,32 @@ export function RelatoriosPage() {
       <PageHeader
         title="Relatórios"
         breadcrumb={[{ label: "Início", to: "/" }, { label: "Relatórios" }]}
+        description={`Mostrando ocorrências do ${periodoTexto}.`}
         actions={
           <Button
             variant="secondary"
             icon={<Download size={18} />}
             disabled={loading || total === 0}
-            onClick={() => relatorio && baixarCsv(ocorrenciasParaCsv(relatorio.ocorrencias), "ocorrencias.csv")}
+            onClick={() => relatorio && baixarXlsx(ocorrenciasParaXlsx(relatorio.ocorrencias), `ocorrencias-${ano || "todos-os-anos"}.xlsx`)}
           >
-            Baixar planilha (CSV)
+            Baixar planilha (Excel)
           </Button>
         }
       />
       <div className="page-grid">
         <Card title="Filtros">
           <div className="form-grid">
+            <Select
+              label="Ano"
+              value={ano}
+              onChange={(event) => {
+                setAno(event.target.value);
+                setTurmaId("");
+                setDataInicio("");
+                setDataFim("");
+              }}
+              options={[{ value: "", label: "Todos os anos" }, ...anosDisponiveis.map((a) => ({ value: String(a), label: String(a) }))]}
+            />
             <Select
             label="Bimestre"
             value={bimestre}
@@ -117,7 +139,7 @@ export function RelatoriosPage() {
               label="Turma"
               value={turmaId}
               onChange={(event) => setTurmaId(event.target.value)}
-              options={[{ value: "", label: "Todas as turmas" }, ...turmas.map((turma) => ({ value: turma.id, label: turma.nome }))]}
+              options={[{ value: "", label: "Todas as turmas" }, ...turmasDoAno.map((turma) => ({ value: turma.id, label: turma.nome }))]}
             />
             <CampoData label="Data inicial" value={dataInicio} max={dataFim || undefined} onChange={setDataInicio} />
             <CampoData label="Data final" value={dataFim} min={dataInicio || undefined} onChange={setDataFim} />
@@ -163,18 +185,24 @@ export function RelatoriosPage() {
           <Card className="stat-card stat-card--green"><span className="stat-card__value">{loading ? "..." : encerradas}</span><span className="stat-card__label">Encerradas</span></Card>
           <Card className="stat-card"><span className="stat-card__value">{loading ? "..." : categorias}</span><span className="stat-card__label">Categorias</span></Card>
         </div>
-        <div className="grid-2">
+        <div className="grid-2 relatorio-graficos">
           <Card title="Por turma">
             {dadosTurma.length > 0 ? <BarrasHorizontais dados={dadosTurma} rotulo="Ocorrências por turma" /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
             <details className="relatorio-tabela">
-              <summary>Ver em tabela</summary>
+              <summary>
+                <ChevronRight size={16} aria-hidden="true" />
+                Ver em tabela
+              </summary>
               <Table data={dadosTurma} columns={[{ key: "nome", header: "Turma", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados por turma." />
             </details>
           </Card>
           <Card title="Mês a mês">
             {dadosPeriodo.length > 0 ? <LinhaMensal dados={dadosPeriodo} rotulo="Evolução mensal das ocorrências" /> : <p className="muted">Nenhuma ocorrência com esses filtros.</p>}
             <details className="relatorio-tabela">
-              <summary>Ver em tabela</summary>
+              <summary>
+                <ChevronRight size={16} aria-hidden="true" />
+                Ver em tabela
+              </summary>
               <Table data={dadosPeriodo} columns={[{ key: "nome", header: "Período", render: (item) => item.nome }, { key: "total", header: "Ocorrências", render: (item) => item.total }]} empty="Sem dados no período." />
             </details>
           </Card>

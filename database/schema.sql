@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS turmas (
   ano_letivo INTEGER NOT NULL,
   turno VARCHAR(40) NOT NULL,
   tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR',
+  curso VARCHAR(80) NULL,
+  serie SMALLINT NULL,
   ativa BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
@@ -62,6 +64,8 @@ CREATE TABLE IF NOT EXISTS turmas (
 
 -- Compatibilidade com bancos ja existentes: toda turma anterior passa a ser REGULAR.
 ALTER TABLE turmas ADD COLUMN IF NOT EXISTS tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR';
+ALTER TABLE turmas ADD COLUMN IF NOT EXISTS curso VARCHAR(80) NULL;
+ALTER TABLE turmas ADD COLUMN IF NOT EXISTS serie SMALLINT NULL;
 
 CREATE TABLE IF NOT EXISTS alunos (
   id CHAR(36) NOT NULL,
@@ -239,6 +243,12 @@ CREATE TABLE IF NOT EXISTS faltas (
   CONSTRAINT uq_faltas_aluno_data UNIQUE (aluno_id, data),
   CONSTRAINT fk_faltas_aluno FOREIGN KEY (aluno_id) REFERENCES alunos (id),
   CONSTRAINT fk_faltas_registrada_por FOREIGN KEY (registrada_por_id) REFERENCES users (id)
+);
+
+CREATE TABLE IF NOT EXISTS configuracoes (
+  chave VARCHAR(60) NOT NULL,
+  valor TEXT NOT NULL,
+  CONSTRAINT pk_configuracoes PRIMARY KEY (chave)
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (

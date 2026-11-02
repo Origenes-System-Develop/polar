@@ -14,9 +14,11 @@ function brilho(raio: number, giro: number): string {
 }
 
 // Estrela do norte: a ponta de cima e a mais longa, como a Polar que aponta o norte.
+// O desenho ocupa 32 x 47 dentro de 48 x 48; o viewBox recorta a folga dos lados para que
+// "size" seja a altura real da estrela e o espaco ate o nome seja o que o CSS manda.
 export function MarcaPolar({ size = 36 }: { size?: number }) {
   return (
-    <svg className="marca marca-polar" width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+    <svg className="marca marca-polar" width={(size * 36) / 48} height={size} viewBox="6 0 36 48" fill="none" aria-hidden="true" focusable="false">
       <path className="marca-polar__estrela marca-polar__estrela--menor" d={brilho(16, 45)} fill="currentColor" opacity="0.45" />
       <path className="marca-polar__estrela" d="M24 0.5Q25.5 21 40 24Q25.5 27 24 36Q22.5 27 8 24Q22.5 21 24 0.5Z" fill="currentColor" />
       <path d="M24 36Q24.7 41.5 24 47.5Q23.3 41.5 24 36Z" fill="currentColor" opacity="0.5" />
