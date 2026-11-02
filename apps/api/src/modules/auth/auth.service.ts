@@ -6,6 +6,8 @@ import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import { AppError, unauthorized } from "../../shared/errors/app-error.js";
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
+import type { ConfiguracaoRepository } from "../../shared/database/repositories/configuracao.repository.js";
+import { nomeDaEscola } from "../../shared/escola.js";
 import type { LoginResult } from "./auth.types.js";
 
 const MAX_TENTATIVAS_INVALIDAS = 5;
@@ -15,7 +17,8 @@ export class AuthService {
   constructor(
     private readonly users: UserRepository,
     private readonly audit: AuditRepository,
-    private readonly config: AppConfig
+    private readonly config: AppConfig,
+    private readonly configuracoes?: ConfiguracaoRepository
   ) {}
 
   // Guarda por e-mail especifico (nao por "banco vazio"): permite que o admin
@@ -126,10 +129,10 @@ export class AuthService {
       metadata: { tipo: avatar.tipo },
       criadoEm: now
     });
-    return { ...usuarioPublico(atualizado), escola: this.config.schoolName ?? null };
+    return { ...usuarioPublico(atualizado), escola: await nomeDaEscola(this.configuracoes, this.config.schoolName) };
   }
 
-  private emitirSessao(usuario: Usuario): LoginResult {
+  private async emitirSessao(usuario: Usuario): Promise<LoginResult> {
     const publicUser = usuarioPublico(usuario);
     const signOptions: SignOptions = {
       expiresIn: this.config.jwtExpiresIn as Exclude<SignOptions["expiresIn"], undefined>,
@@ -149,7 +152,7 @@ export class AuthService {
 
     return {
       token,
-      user: { ...publicUser, escola: this.config.schoolName ?? null }
+      user: { ...publicUser, escola: await nomeDaEscola(this.configuracoes, this.config.schoolName) }
     };
   }
 

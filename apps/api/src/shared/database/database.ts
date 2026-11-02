@@ -28,7 +28,8 @@ export function createInitialState(): DatabaseState {
     notificacoesOcorrencia: [],
     notas: [],
     faltas: [],
-    auditLogs: []
+    auditLogs: [],
+    configuracoes: {}
   };
 }
 
@@ -52,7 +53,8 @@ function normalizeState(input: Partial<DatabaseState> | null): DatabaseState {
       : base.notificacoesOcorrencia,
     notas: Array.isArray(input.notas) ? input.notas : base.notas,
     faltas: Array.isArray(input.faltas) ? input.faltas : base.faltas,
-    auditLogs: Array.isArray(input.auditLogs) ? input.auditLogs : base.auditLogs
+    auditLogs: Array.isArray(input.auditLogs) ? input.auditLogs : base.auditLogs,
+    configuracoes: input.configuracoes && typeof input.configuracoes === "object" ? input.configuracoes : base.configuracoes
   };
 }
 
