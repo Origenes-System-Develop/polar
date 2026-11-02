@@ -466,7 +466,7 @@
 
 .user-menu__links a:hover,
 .user-menu__links button:hover {
-  background: #d8e8fa;
+  background: var(--color-hover);
 }
 
 .user-menu__logout {
@@ -475,7 +475,7 @@
 }
 
 .user-menu__logout:hover {
-  background: #fbd9d9 !important;
+  background: var(--color-danger-hover) !important;
 }
 
 /* ---------- Sino de pendencias ---------- */
@@ -508,7 +508,7 @@
   place-items: center;
   border-radius: var(--radius-pill);
   padding: 0 5px;
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -677,7 +677,7 @@
   place-items: center;
   border-radius: var(--radius-pill);
   padding: 0 6px;
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   color: #fff;
   font-size: 0.74rem;
   font-weight: 700;
