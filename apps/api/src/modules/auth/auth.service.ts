@@ -126,7 +126,7 @@ export class AuthService {
       metadata: { tipo: avatar.tipo },
       criadoEm: now
     });
-    return usuarioPublico(atualizado);
+    return { ...usuarioPublico(atualizado), escola: this.config.schoolName ?? null };
   }
 
   private emitirSessao(usuario: Usuario): LoginResult {
@@ -149,7 +149,7 @@ export class AuthService {
 
     return {
       token,
-      user: publicUser
+      user: { ...publicUser, escola: this.config.schoolName ?? null }
     };
   }
 
