@@ -993,49 +993,30 @@
   background: var(--color-surface);
 }
 
-/* ---------- Registro em blocos coloridos ---------- */
+/* ---------- Registro em um cartao so ---------- */
 
-.form-sections {
+.form-unico {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.form-bloco {
   display: grid;
   gap: var(--space-4);
 }
 
-.form-section {
-  --secao: var(--color-primary);
-  display: grid;
-  gap: var(--space-5);
+.form-bloco + .form-bloco {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-6);
 }
 
-
-.form-section__titulo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.form-section__titulo h2 {
+.form-bloco__titulo {
   margin: 0;
-  font-size: 1.1rem;
-}
-
-.form-section__titulo p {
-  margin: 2px 0 0;
   color: var(--color-text-muted);
-  font-size: 0.88rem;
-}
-
-.form-section__numero {
-  flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-pill);
-  background: var(--secao);
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 800;
-  animation: marca-pop var(--dur-3) var(--ease-padrao) backwards;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .providencias__situacao {
