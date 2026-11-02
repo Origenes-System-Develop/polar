@@ -25,14 +25,16 @@ export class PostgresViradaAnoRepository
 
         await client.query(
           `INSERT INTO turmas
-            (id, nome, ano_letivo, turno, tipo_ensino, ativa, criado_em, atualizado_em)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            (id, nome, ano_letivo, turno, tipo_ensino, curso, serie, ativa, criado_em, atualizado_em)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
           [
             turma.id,
             turma.nome,
             turma.anoLetivo,
             turma.turno,
             turma.tipoEnsino,
+            turma.curso ?? null,
+            turma.serie ?? null,
             turma.ativa,
             dbDateTime(turma.criadoEm),
             dbDateTime(turma.atualizadoEm)

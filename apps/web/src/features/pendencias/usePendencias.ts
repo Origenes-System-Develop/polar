@@ -71,6 +71,20 @@ export function usePendencias() {
     [user?.id]
   );
 
+  const desmarcarVistas = useCallback(
+    (ids: string[]) => {
+      const novas = lerVistas(user?.id);
+      ids.forEach((id) => novas.delete(id));
+      try {
+        localStorage.setItem(chave(user?.id), JSON.stringify([...novas]));
+      } catch {
+        // Sem armazenamento, o sino so volta a aparecer na proxima visita.
+      }
+      window.dispatchEvent(new Event(EVENTO));
+    },
+    [user?.id]
+  );
+
   const naoVistas = useMemo(() => itens.filter((o) => !vistas.has(o.id)), [itens, vistas]);
-  return { itens, naoVistas, vistas, carregando, marcarVistas };
+  return { itens, naoVistas, vistas, carregando, marcarVistas, desmarcarVistas };
 }

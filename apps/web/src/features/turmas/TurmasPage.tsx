@@ -12,13 +12,13 @@ import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
+import { ViradaAnoModal } from "./ViradaAnoModal";
 
-import type { Aluno, Turma } from "../../services/domain";
+import type { CursosTecnicos, Turma } from "../../services/domain";
 
 import {
-  copiarAnoLetivo,
   createTurma,
-  listAlunos,
+  getEscola,
   listTurmas,
   updateTurma
 } from "../../services/school.service";
@@ -29,6 +29,8 @@ type TurmaForm = {
   anoLetivo: string;
   turno: string;
   tipoEnsino: Turma["tipoEnsino"];
+  curso: string;
+  serie: string;
   ativa: boolean;
 };
 
@@ -38,6 +40,8 @@ const initialTurmaForm: TurmaForm = {
   anoLetivo: String(new Date().getFullYear()),
   turno: "Manha",
   tipoEnsino: "REGULAR",
+  curso: "",
+  serie: "",
   ativa: true
 };
 
@@ -77,32 +81,12 @@ export function TurmasPage() {
 
   const [inativando, setInativando] = useState(false);
 
-  // =========================================================
-  // ESTADO DA VIRADA DE ANO
-  // =========================================================
-
   const [viradaOpen, setViradaOpen] = useState(false);
-  const [viradaLoading, setViradaLoading] = useState(false);
-  const [viradaError, setViradaError] = useState("");
+  const [escola, setEscola] = useState<CursosTecnicos>({ oferece: false, serieInicial: 1, serieFinal: 3, cursos: [] });
 
-  const [viradaAnoOrigem, setViradaAnoOrigem] = useState(
-    String(new Date().getFullYear())
-  );
-
-  const [viradaAnoDestino, setViradaAnoDestino] = useState(
-    String(new Date().getFullYear() + 1)
-  );
-
-  const [viradaAlunos, setViradaAlunos] = useState<Aluno[]>([]);
-  const [viradaTurmas, setViradaTurmas] = useState<Turma[]>([]);
-
-  // turmaId da turma de origem -> IDs dos alunos escolhidos
-  const [viradaComposicao, setViradaComposicao] =
-    useState<Record<string, string[]>>({});
-
-  // turmaId da turma de origem -> nome da turma de destino
-  const [viradaNomes, setViradaNomes] =
-    useState<Record<string, string>>({});
+  useEffect(() => {
+    getEscola().then((dados) => setEscola(dados.cursosTecnicos)).catch(() => undefined);
+  }, []);
 
   // =========================================================
   // ATUALIZAR LISTA DE TURMAS
@@ -171,6 +155,8 @@ export function TurmasPage() {
       anoLetivo: String(turma.anoLetivo),
       turno: turma.turno,
       tipoEnsino: turma.tipoEnsino,
+      curso: turma.curso ?? "",
+      serie: turma.serie ? String(turma.serie) : "",
       ativa: turma.ativa
     });
 
@@ -212,7 +198,9 @@ export function TurmasPage() {
         nome: form.nome.trim(),
         anoLetivo: Number(form.anoLetivo),
         turno: form.turno.trim(),
-        tipoEnsino: form.tipoEnsino
+        tipoEnsino: form.tipoEnsino,
+        curso: form.tipoEnsino === "TECNICO" ? form.curso : null,
+        serie: form.tipoEnsino === "TECNICO" ? Number(form.serie) || null : null
       };
 
       if (form.id) {
@@ -234,211 +222,6 @@ export function TurmasPage() {
       );
     } finally {
       setSaving(false);
-    }
-  }
-
-  // =========================================================
-  // PREPARAR VIRADA DE ANO
-  // =========================================================
-
-  function prepararComposicaoVirada(
-    anoOrigem: number,
-    anoDestino: number,
-    alunos: Aluno[],
-    turmas: Turma[]
-  ) {
-    const composicao: Record<string, string[]> = {};
-    const nomes: Record<string, string> = {};
-
-    for (const turma of turmas.filter((item) => item.anoLetivo === anoOrigem)) {
-      composicao[turma.id] = alunos
-        .filter((aluno) => aluno.ativo && aluno.turmaId === turma.id)
-        .map((aluno) => aluno.id);
-      nomes[turma.id] = turma.nome.replace(String(anoOrigem), String(anoDestino));
-    }
-
-    setViradaComposicao(composicao);
-    setViradaNomes(nomes);
-  }
-
-  async function openViradaAno() {
-    setViradaError("");
-    setViradaLoading(true);
-
-    try {
-      const [alunos, turmas] = await Promise.all([
-        listAlunos(),
-        listTurmas()
-      ]);
-
-      const anoOrigem = new Date().getFullYear();
-
-      setViradaAlunos(alunos);
-      setViradaTurmas(turmas);
-      setViradaAnoOrigem(String(anoOrigem));
-      setViradaAnoDestino(String(anoOrigem + 1));
-      prepararComposicaoVirada(anoOrigem, anoOrigem + 1, alunos, turmas);
-      setViradaOpen(true);
-    } catch (err) {
-      setViradaError(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível preparar a virada de ano. Tente de novo."
-      );
-    } finally {
-      setViradaLoading(false);
-    }
-  }
-
-  // =========================================================
-  // ALTERAR NOME DA TURMA NOVA
-  // =========================================================
-
-  function setViradaNome(
-    turmaId: string,
-    nome: string
-  ) {
-    setViradaNomes((current) => ({
-      ...current,
-      [turmaId]: nome
-    }));
-  }
-
-  // =========================================================
-  // ADICIONAR / REMOVER ALUNO DA NOVA TURMA
-  // =========================================================
-
-  function toggleAlunoNaTurma(
-    turmaId: string,
-    alunoId: string
-  ) {
-    setViradaComposicao((current) => {
-      const alunosAtuais = current[turmaId] ?? [];
-
-      // Se o aluno já está nessa turma,
-      // remove.
-      if (alunosAtuais.includes(alunoId)) {
-        return {
-          ...current,
-          [turmaId]: alunosAtuais.filter(
-            (id) => id !== alunoId
-          )
-        };
-      }
-
-      // Impede o mesmo aluno em duas turmas
-      // durante a mesma virada.
-      const jaEstaEmOutraTurma =
-        Object.entries(current).some(
-          ([outraTurmaId, alunos]) =>
-            outraTurmaId !== turmaId &&
-            alunos.includes(alunoId)
-        );
-
-      if (jaEstaEmOutraTurma) {
-        return current;
-      }
-
-      return {
-        ...current,
-        [turmaId]: [
-          ...alunosAtuais,
-          alunoId
-        ]
-      };
-    });
-  }
-
-  // =========================================================
-  // CONFIRMAR VIRADA
-  // =========================================================
-
-  async function handleConfirmVirada() {
-    const anoOrigem = Number(viradaAnoOrigem);
-    const anoDestino = Number(viradaAnoDestino);
-
-    if (
-      !Number.isInteger(anoOrigem) ||
-      !Number.isInteger(anoDestino)
-    ) {
-      setViradaError(
-        "Informe anos letivos válidos."
-      );
-      return;
-    }
-
-    if (anoDestino <= anoOrigem) {
-      setViradaError(
-        "O ano de destino deve ser maior que o ano de origem."
-      );
-      return;
-    }
-
-    const turmasOrigem = viradaTurmas.filter(
-      (turma) => turma.anoLetivo === anoOrigem
-    );
-
-    if (turmasOrigem.length === 0) {
-      setViradaError(
-        `Nenhuma turma encontrada para o ano ${anoOrigem}.`
-      );
-      return;
-    }
-
-    // Verifica nomes antes de enviar.
-    for (const turma of turmasOrigem) {
-      const nome =
-        viradaNomes[turma.id]?.trim();
-
-      if (!nome) {
-        setViradaError(
-          `Informe o nome da nova turma "${turma.nome}".`
-        );
-        return;
-      }
-    }
-
-    setViradaLoading(true);
-    setViradaError("");
-
-    try {
-      await copiarAnoLetivo({
-        anoOrigem,
-        anoDestino,
-
-        turmas: turmasOrigem.map(
-          (turma) => ({
-            origemId: turma.id,
-
-            nome: (
-              viradaNomes[turma.id] ??
-              turma.nome.replace(
-                String(anoOrigem),
-                String(anoDestino)
-              )
-            ).trim(),
-
-            turno: turma.turno,
-
-            tipoEnsino: turma.tipoEnsino,
-
-            alunos:
-              viradaComposicao[turma.id] ??
-              []
-          })
-        )
-      });
-
-      setViradaOpen(false);
-      await refreshData();
-    } catch (err) {
-      setViradaError(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível concluir a virada de ano. Nada foi alterado. Tente de novo."
-      );
-    } finally {
-      setViradaLoading(false);
     }
   }
 
@@ -507,7 +290,7 @@ export function TurmasPage() {
             <div className="actions-row">
               <Button
                 variant="secondary"
-                onClick={openViradaAno}
+                onClick={() => setViradaOpen(true)}
               >
                 Virar ano letivo
               </Button>
@@ -701,9 +484,33 @@ export function TurmasPage() {
             onChange={(event) => setTurmaField("tipoEnsino", event.target.value)}
             options={[
               { label: "Ensino regular", value: "REGULAR" },
-              { label: "Ensino técnico", value: "TECNICO" }
+              ...(escola.oferece || form.tipoEnsino === "TECNICO" ? [{ label: "Ensino técnico", value: "TECNICO" }] : [])
             ]}
           />
+
+          {form.tipoEnsino === "TECNICO" ? (
+            escola.oferece ? (
+              <>
+                <Select
+                  label="Curso técnico"
+                  value={form.curso}
+                  onChange={(event) => setTurmaField("curso", event.target.value)}
+                  options={[{ label: "Escolha o curso", value: "" }, ...escola.cursos.map((curso) => ({ label: curso, value: curso }))]}
+                />
+                <Select
+                  label="Série"
+                  value={form.serie}
+                  onChange={(event) => setTurmaField("serie", event.target.value)}
+                  options={[
+                    { label: "Escolha a série", value: "" },
+                    ...Array.from({ length: escola.serieFinal - escola.serieInicial + 1 }, (_, i) => String(escola.serieInicial + i)).map((s) => ({ label: `${s}ª série`, value: s }))
+                  ]}
+                />
+              </>
+            ) : (
+              <p className="muted span-2">A escola não está com curso técnico ativo. A administração liga isso em Configurações.</p>
+            )
+          ) : null}
 
           {form.id ? (
             <Select
@@ -746,264 +553,7 @@ export function TurmasPage() {
         </form>
       </Modal>
 
-      {/* =====================================================
-          MODAL: VIRADA DE ANO
-          ===================================================== */}
-
-      <Modal
-        title="Virar ano letivo"
-        open={viradaOpen}
-        onClose={() =>
-          setViradaOpen(false)
-        }
-      >
-        {viradaError ? (
-          <p className="text-danger">
-            {viradaError}
-          </p>
-        ) : null}
-
-        {/* ANOS */}
-        <div className="form-grid">
-          <Input
-            label="Ano de origem"
-            type="number"
-            value={viradaAnoOrigem}
-            onChange={(event) => {
-              const proximoAno = event.target.value;
-              setViradaAnoOrigem(proximoAno);
-              const origem = Number(proximoAno);
-              const destino = Number(viradaAnoDestino);
-              if (Number.isInteger(origem) && Number.isInteger(destino)) {
-                prepararComposicaoVirada(origem, destino, viradaAlunos, viradaTurmas);
-              }
-            }}
-          />
-
-          <Input
-            label="Ano de destino"
-            type="number"
-            value={viradaAnoDestino}
-            onChange={(event) =>
-              setViradaAnoDestino(
-                event.target.value
-              )
-            }
-          />
-        </div>
-
-        {/* TURMAS */}
-        <div>
-          {viradaTurmas
-            .filter(
-              (turma) =>
-                turma.anoLetivo ===
-                Number(
-                  viradaAnoOrigem
-                )
-            )
-            .map((turma) => {
-              const alunosSelecionados =
-                viradaComposicao[
-                  turma.id
-                ] ?? [];
-
-              const alunosDaTurma =
-                viradaAlunos.filter(
-                  (aluno) =>
-                    aluno.ativo &&
-                    aluno.turmaId ===
-                      turma.id
-                );
-
-              const idsTurmasOrigem =
-                new Set(
-                  viradaTurmas
-                    .filter(
-                      (item) =>
-                        item.anoLetivo ===
-                        Number(
-                          viradaAnoOrigem
-                        )
-                    )
-                    .map(
-                      (item) =>
-                        item.id
-                    )
-                );
-
-              const alunosDaOrigem =
-                viradaAlunos.filter(
-                  (aluno) =>
-                    aluno.ativo &&
-                    idsTurmasOrigem.has(
-                      aluno.turmaId
-                    )
-                );
-
-              const alunosDisponiveis =
-                alunosDaOrigem.filter(
-                  (aluno) => {
-                    if (
-                      alunosSelecionados.includes(
-                        aluno.id
-                      )
-                    ) {
-                      return false;
-                    }
-
-                    const estaEmOutraTurma =
-                      Object.entries(
-                        viradaComposicao
-                      ).some(
-                        ([
-                          outraTurmaId,
-                          alunos
-                        ]) =>
-                          outraTurmaId !==
-                            turma.id &&
-                          alunos.includes(
-                            aluno.id
-                          )
-                      );
-
-                    return !estaEmOutraTurma;
-                  }
-                );
-
-              return (
-                <Card
-                  key={turma.id}
-                  title={turma.nome}
-                >
-                  {/* NOME DA NOVA TURMA */}
-                  <Input
-                    label="Nome da nova turma"
-                    value={
-                      viradaNomes[
-                        turma.id
-                      ] ??
-                      turma.nome.replace(
-                        viradaAnoOrigem,
-                        viradaAnoDestino
-                      )
-                    }
-                    onChange={(event) =>
-                      setViradaNome(
-                        turma.id,
-                        event.target.value
-                      )
-                    }
-                  />
-
-                  <p className="muted">
-                    Alunos selecionados:{" "}
-                    {
-                      alunosSelecionados.length
-                    }
-                  </p>
-
-                  {/* ALUNOS ATUAIS */}
-                  {alunosDaTurma.length >
-                  0 ? (
-                    <div className="form-grid">
-                      {alunosDaTurma
-                        .filter((aluno) =>
-                          alunosSelecionados.includes(
-                            aluno.id
-                          )
-                        )
-                        .map((aluno) => (
-                          <div
-                            key={aluno.id}
-                            className="actions-row"
-                          >
-                            <span>
-                              {aluno.nome}
-                            </span>
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              onClick={() =>
-                                toggleAlunoNaTurma(
-                                  turma.id,
-                                  aluno.id
-                                )
-                              }
-                            >
-                              Remover
-                            </Button>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <p className="muted">
-                      Nenhum aluno selecionado.
-                    </p>
-                  )}
-
-                  {/* ADICIONAR ALUNO */}
-                  {alunosDisponiveis.length >
-                  0 ? (
-                    <Select
-                      label="Adicionar aluno"
-                      value=""
-                      onChange={(event) => {
-                        const alunoId =
-                          event.target.value;
-
-                        if (!alunoId) {
-                          return;
-                        }
-
-                        toggleAlunoNaTurma(
-                          turma.id,
-                          alunoId
-                        );
-                      }}
-                      options={[
-                        {
-                          label:
-                            "Selecione um aluno",
-                          value: ""
-                        },
-                        ...alunosDisponiveis.map(
-                          (aluno) => ({
-                            label: `${aluno.nome} (${aluno.matricula})`,
-                            value: aluno.id
-                          })
-                        )
-                      ]}
-                    />
-                  ) : null}
-                </Card>
-              );
-            })}
-        </div>
-
-        {/* BOTÕES */}
-        <div className="actions-row">
-          <Button
-            variant="secondary"
-            onClick={() =>
-              setViradaOpen(false)
-            }
-            disabled={viradaLoading}
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={handleConfirmVirada}
-            disabled={viradaLoading}
-          >
-            {viradaLoading
-              ? "Confirmando..."
-              : "Confirmar virada"}
-          </Button>
-        </div>
-      </Modal>
+      <ViradaAnoModal open={viradaOpen} onClose={() => setViradaOpen(false)} onConcluida={refreshData} />
 
       {/* =====================================================
           MODAL: CONFIRMAÇÃO DE INATIVAÇÃO

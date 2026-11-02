@@ -53,7 +53,7 @@
 }
 
 .ui-button--danger {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   color: #fff;
 }
 
@@ -101,7 +101,7 @@
   min-height: 48px;
   border: 1px solid var(--color-border-input);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   padding: 0 var(--space-3);
   transition: border-color var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao);
@@ -209,7 +209,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(15, 23, 42, 0.28);
+  background: var(--color-scrim);
   padding: var(--space-5);
   z-index: 40;
 }
@@ -351,10 +351,10 @@
 
   .ui-table tr {
     margin-bottom: 1rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 0.75rem;
-    background: #fff;
+    background: var(--color-surface);
   }
 
   .ui-table td::before {
@@ -362,7 +362,7 @@
     display: block;
     font-weight: 700;
     margin-bottom: 0.25rem;
-    color: #374151;
+    color: var(--color-text-muted);
   }
 }
 
@@ -494,7 +494,7 @@
   border: 1.6px solid var(--color-border-input);
   border-radius: var(--radius-pill);
   padding: 0 var(--space-4);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   transition: background var(--dur-2) var(--ease-padrao), border-color var(--dur-2) var(--ease-padrao), color var(--dur-2) var(--ease-padrao);
 }
@@ -544,7 +544,7 @@
   gap: var(--space-4);
   border-radius: var(--radius-button);
   padding: var(--space-3) var(--space-6);
-  background: var(--color-text);
+  background: var(--color-inverse);
   color: #fff;
   font-weight: 600;
   box-shadow: var(--shadow-raised);
@@ -694,7 +694,7 @@
   border: 1px solid var(--color-border-input);
   border-radius: var(--radius-sm);
   padding: 0 var(--space-3);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   text-align: left;
@@ -882,7 +882,7 @@
   border: 1px solid var(--color-border-input);
   border-radius: var(--radius-button);
   padding: 0 var(--space-5) 0 calc(var(--space-4) + 30px);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   transition: border-color var(--dur-2) var(--ease-padrao), box-shadow var(--dur-2) var(--ease-padrao);
 }
@@ -990,52 +990,33 @@
 }
 
 .busca-aluno__trocar:hover {
-  background: #fff;
+  background: var(--color-surface);
 }
 
-/* ---------- Registro em blocos coloridos ---------- */
+/* ---------- Registro em um cartao so ---------- */
 
-.form-sections {
+.form-unico {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.form-bloco {
   display: grid;
   gap: var(--space-4);
 }
 
-.form-section {
-  --secao: var(--color-primary);
-  display: grid;
-  gap: var(--space-5);
+.form-bloco + .form-bloco {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-6);
 }
 
-
-.form-section__titulo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.form-section__titulo h2 {
+.form-bloco__titulo {
   margin: 0;
-  font-size: 1.1rem;
-}
-
-.form-section__titulo p {
-  margin: 2px 0 0;
   color: var(--color-text-muted);
-  font-size: 0.88rem;
-}
-
-.form-section__numero {
-  flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-pill);
-  background: var(--secao);
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 800;
-  animation: marca-pop var(--dur-3) var(--ease-padrao) backwards;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .providencias__situacao {
@@ -1065,7 +1046,7 @@
   border: 1.6px solid var(--color-border-input);
   border-radius: var(--radius-pill);
   padding: 4px var(--space-4);
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text);
   font-weight: 600;
   cursor: pointer;
@@ -1075,4 +1056,48 @@
 .atalhos-periodo button:hover {
   border-color: var(--color-link);
   background: var(--color-primary-soft);
+}
+
+.cursos-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cursos-lista li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary-soft);
+  color: var(--color-link);
+  font-weight: 600;
+}
+
+.cursos-lista button {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+
+.senha-temporaria {
+  margin: var(--space-4) 0;
+  border: 1px dashed var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  text-align: center;
+}
+
+.senha-temporaria code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  user-select: all;
 }

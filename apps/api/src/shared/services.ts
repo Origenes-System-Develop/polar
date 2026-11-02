@@ -16,6 +16,8 @@ import {
 } from "./database/repositories/ocorrencia.repository.js";
 import { JsonNotaRepository, type NotaRepository } from "./database/repositories/nota.repository.js";
 import { JsonFaltaRepository, type FaltaRepository } from "./database/repositories/falta.repository.js";
+import { JsonConfiguracaoRepository, type ConfiguracaoRepository } from "./database/repositories/configuracao.repository.js";
+import { EscolaService } from "../modules/escola/escola.service.js";
 import { JsonAuditRepository, type AuditRepository } from "./database/repositories/audit.repository.js";
 import {
   JsonNotificacaoOcorrenciaRepository,
@@ -43,6 +45,7 @@ export interface Repositories {
   notas: NotaRepository;
   faltas: FaltaRepository;
   audit: AuditRepository;
+  configuracoes: ConfiguracaoRepository;
 }
 
 export interface Services {
@@ -56,6 +59,7 @@ export interface Services {
   dashboard: DashboardService;
   relatorios: RelatoriosService;
   auditoria: AuditoriaService;
+  escola: EscolaService;
 }
 
 export interface ServiceContainer {
@@ -75,7 +79,8 @@ export function createJsonRepositories(db: DatabaseClient): Repositories {
     notificacoesOcorrencia: new JsonNotificacaoOcorrenciaRepository(db),
     notas: new JsonNotaRepository(db),
     faltas: new JsonFaltaRepository(db),
-    audit: new JsonAuditRepository(db)
+    audit: new JsonAuditRepository(db),
+    configuracoes: new JsonConfiguracaoRepository(db)
   };
 }
 
@@ -113,11 +118,11 @@ export async function createServiceContainer(
 ): Promise<ServiceContainer> {
   const { repositories, close } = await createRepositories(config, database);
 
-  const auth = new AuthService(repositories.users, repositories.audit, config);
+  const auth = new AuthService(repositories.users, repositories.audit, config, repositories.configuracoes);
   const services: Services = {
     auth,
     users: new UsersService(repositories.users, repositories.audit),
-    turmas: new TurmasService(repositories.turmas, repositories.alunos, repositories.alunosTurmasHistorico, repositories.viradaAno, repositories.audit),
+    turmas: new TurmasService(repositories.turmas, repositories.alunos, repositories.alunosTurmasHistorico, repositories.viradaAno, repositories.audit, repositories.configuracoes),
     alunos: new AlunosService(repositories.alunos, repositories.alunosTurmasHistorico, repositories.turmas, repositories.ocorrencias, repositories.audit),
     ocorrencias: new OcorrenciasService(
       repositories.ocorrencias,
@@ -134,6 +139,7 @@ export async function createServiceContainer(
     dashboard: new DashboardService(repositories.ocorrencias, repositories.users),
     relatorios: new RelatoriosService(repositories.ocorrencias, repositories.alunos, repositories.turmas, repositories.alunosTurmasHistorico),
     auditoria: new AuditoriaService(repositories.audit),
+    escola: new EscolaService(repositories.configuracoes, repositories.audit, config),
   };
 
   await auth.bootstrapAdminIfNeeded();

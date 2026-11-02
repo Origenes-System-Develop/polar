@@ -6,6 +6,8 @@ import type { AlunoTurmaHistoricoRepository } from "../../shared/database/reposi
 import type { ViradaAnoRepository } from "../../shared/database/repositories/virada-ano.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
+import { lerCursosTecnicos } from "../../shared/escola.js";
+import type { ConfiguracaoRepository } from "../../shared/database/repositories/configuracao.repository.js";
 
 export interface CopiarAnoTurmaInput {
   origemId: string;
@@ -27,8 +29,23 @@ export class TurmasService {
     private readonly alunos: AlunoRepository,
     private readonly alunosTurmasHistorico: AlunoTurmaHistoricoRepository,
     private readonly viradaAno: ViradaAnoRepository,
-    private readonly audit: AuditRepository
+    private readonly audit: AuditRepository,
+    private readonly configuracoes: ConfiguracaoRepository
   ) {}
+
+  // Turma tecnica so existe se a escola oferece, com curso da lista dela e serie dentro do intervalo.
+  // Turma regular nunca guarda curso nem serie.
+  private async cursoESerie(tipo: TipoEnsino, curso: string | null | undefined, serie: number | null | undefined) {
+    if (tipo !== TipoEnsino.TECNICO) return { curso: null, serie: null };
+    const oferta = await lerCursosTecnicos(this.configuracoes);
+    if (!oferta.oferece) throw badRequest("A escola nao oferece curso tecnico. Ative em Configuracoes.");
+    const doCatalogo = oferta.cursos.find((c) => c.toLowerCase() === curso?.trim().toLowerCase());
+    if (!doCatalogo) throw badRequest("Escolha um dos cursos tecnicos cadastrados pela escola.");
+    if (!serie || serie < oferta.serieInicial || serie > oferta.serieFinal) {
+      throw badRequest(`A serie do curso tecnico vai da ${oferta.serieInicial}a a ${oferta.serieFinal}a.`);
+    }
+    return { curso: doCatalogo, serie };
+  }
 
   async list(): Promise<Turma[]> {
     return this.turmas.list();
@@ -40,9 +57,12 @@ export class TurmasService {
       anoLetivo: number;
       turno: string;
       tipoEnsino?: TipoEnsino;
+      curso?: string | null | undefined;
+      serie?: number | null | undefined;
     },
     actorId: string
   ): Promise<Turma> {
+    const tecnico = await this.cursoESerie(input.tipoEnsino ?? TipoEnsino.REGULAR, input.curso, input.serie);
     const existing = await this.turmas.findByNome(input.nome);
 
     if (existing) {
@@ -57,6 +77,7 @@ export class TurmasService {
       anoLetivo: input.anoLetivo,
       turno: input.turno,
       tipoEnsino: input.tipoEnsino ?? TipoEnsino.REGULAR,
+      ...tecnico,
       ativa: true,
       criadoEm: now,
       atualizadoEm: now
@@ -242,6 +263,9 @@ export class TurmasService {
           anoLetivo: input.anoDestino,
           turno: turmaInput.turno.trim(),
           tipoEnsino: turmaInput.tipoEnsino ?? turmasOrigem.find((turma) => turma.id === turmaInput.origemId)?.tipoEnsino ?? TipoEnsino.REGULAR,
+          curso: turmasOrigem.find((turma) => turma.id === turmaInput.origemId)?.curso ?? null,
+          // A serie muda na virada (1a vira 2a); quem vira o ano ajusta na turma nova.
+          serie: null,
           ativa: true,
           criadoEm: now,
           atualizadoEm: now
@@ -300,11 +324,18 @@ export class TurmasService {
       anoLetivo?: number | undefined;
       turno?: string | undefined;
       tipoEnsino?: TipoEnsino | undefined;
+      curso?: string | null | undefined;
+      serie?: number | null | undefined;
       ativa?: boolean | undefined;
     },
     actorId: string
   ): Promise<Turma> {
     const now = agoraIso();
+    const atual = input.tipoEnsino !== undefined || input.curso !== undefined || input.serie !== undefined ? await this.turmas.findById(id) : null;
+    // So revalida quando o tipo, o curso ou a serie mudam: inativar uma turma antiga nao deve ser barrado por isso.
+    const tecnico = atual
+      ? await this.cursoESerie(input.tipoEnsino ?? atual.tipoEnsino, input.curso !== undefined ? input.curso : atual.curso, input.serie !== undefined ? input.serie : atual.serie)
+      : null;
 
     const updated = await this.turmas.update(
       id,
@@ -314,6 +345,7 @@ export class TurmasService {
         anoLetivo: input.anoLetivo ?? current.anoLetivo,
         turno: input.turno ?? current.turno,
         tipoEnsino: input.tipoEnsino ?? current.tipoEnsino,
+        ...(tecnico ?? {}),
         ativa: input.ativa ?? current.ativa,
         atualizadoEm: now
       })
