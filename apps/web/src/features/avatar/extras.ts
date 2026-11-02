@@ -144,7 +144,7 @@ export const CABELOS_EXTRAS: PecaCabelo[] = [
     id: "xTwists",
     rotulo: "Twists",
     genero: "n",
-    frente: (c) => forma(CALOTA, c) + par([76, 86, 96].map((x, i) => forma(`M${x} 90C${x - 6} 120 ${x - 8} ${150 + i * 14} ${x - 2} ${176 + i * 12}L${x + 8} ${176 + i * 12}C${x + 12} 150 ${x + 12} 120 ${x + 8} 90Z`, c)).join(""))
+    frente: (c) => forma(CALOTA, c) + par([56, 66, 76].map((x, i) => forma(`M${x} 90C${x - 6} 120 ${x - 8} ${150 + i * 14} ${x - 2} ${176 + i * 12}L${x + 8} ${176 + i * 12}C${x + 12} 150 ${x + 12} 120 ${x + 8} 90Z`, c)).join(""))
   },
   {
     id: "xMoicano",

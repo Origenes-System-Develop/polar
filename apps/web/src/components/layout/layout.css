@@ -542,8 +542,6 @@
   gap: var(--space-3);
 }
 
-/* ---------- Rodape ---------- */
-
 @media (max-width: 980px) {
   .app-shell,
   .app-shell.is-collapsed {
@@ -587,7 +585,10 @@
   }
 
   .topbar,
-  .app-shell__main,
+  .app-shell__main {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
 
   .user-menu__name {
     display: none;

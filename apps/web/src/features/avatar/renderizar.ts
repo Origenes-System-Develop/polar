@@ -65,7 +65,7 @@ export function montarSvg(c: ConfigAvatar): string {
   if (espelhado) {
     const com = gerar(c, { ...roupa, top: topReal });
     const trecho = com.slice(ponto, com.length - (sem.length - ponto));
-    cabelo = `<g transform="matrix(-1 0 0 1 263 0)">${trecho}</g>`;
+    cabelo = `<g transform="matrix(-1 0 0 1 266 0)">${trecho}</g>`;
   } else if (!extraCabelo && c.top !== "none") {
     const com = gerar(c, { ...roupa, top: topReal });
     cabelo = com.slice(ponto, com.length - (sem.length - ponto));
@@ -102,6 +102,11 @@ const RECORTES: Record<Recorte, string> = {
   tudo: "0 0 280 280"
 };
 
+// Miniatura de cabelo e roupa: fundo neutro (roupa branca some no fundo claro do avatar) e sem
+// oculos, que escondem justamente o que a miniatura quer mostrar.
+const FUNDO_MINIATURA = "dbe4ee";
+
 export function montarMiniatura(c: ConfigAvatar, recorte: Recorte): string {
-  return montarSvg(c).replace(/<metadata>[\s\S]*?<\/metadata>/, "").replace('viewBox="0 0 280 280"', `viewBox="${RECORTES[recorte]}"`);
+  const limpo = { ...c, backgroundColor: FUNDO_MINIATURA, ...(recorte === "cabelo" || recorte === "roupa" ? { accessories: "none" } : {}) };
+  return montarSvg(limpo).replace(/<metadata>[\s\S]*?<\/metadata>/, "").replace('viewBox="0 0 280 280"', `viewBox="${RECORTES[recorte]}"`);
 }
