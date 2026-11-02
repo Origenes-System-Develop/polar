@@ -317,6 +317,9 @@
   display: block;
   width: 100%;
   height: 100%;
+  /* O desenho inteiro tem muito ar em volta: aproxima do rosto para ele aparecer no circulo pequeno. */
+  transform: scale(1.4);
+  transform-origin: 50% 38%;
 }
 
 .avatar--lg {

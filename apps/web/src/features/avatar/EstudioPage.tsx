@@ -26,7 +26,6 @@ import {
   ROUPAS,
   ROUPAS_COR,
   SOBRANCELHAS,
-  VISUAIS,
   sortearAvatar,
   type ConfigAvatar,
   type Opcao
@@ -37,7 +36,6 @@ import { montarMiniatura, montarSvg, type Recorte } from "./renderizar";
 import "./estudio.css";
 
 type Campo = keyof ConfigAvatar;
-type Filtro = "todos" | "f" | "m";
 
 // Config salva so tem chaves conhecidas e valores simples; o que faltar volta ao padrao.
 function configInicial(salva: Record<string, string> | undefined): ConfigAvatar {
@@ -46,21 +44,17 @@ function configInicial(salva: Record<string, string> | undefined): ConfigAvatar 
   for (const chave of Object.keys(base) as Campo[]) {
     if (typeof salva[chave] === "string" && /^[A-Za-z0-9]{1,40}$/.test(salva[chave])) base[chave] = salva[chave];
   }
+  // Pecas que ja nao existem (de versoes antigas do estudio) voltam ao padrao.
+  if (!CABELOS.some((o) => o.valor === base.top)) base.top = AVATAR_PADRAO.top;
+  if (!ROUPAS.some((o) => o.valor === base.clothing)) base.clothing = AVATAR_PADRAO.clothing;
   return base;
 }
-
-const FILTROS: Array<{ id: Filtro; rotulo: string }> = [
-  { id: "todos", rotulo: "Todos" },
-  { id: "f", rotulo: "Femininos" },
-  { id: "m", rotulo: "Masculinos" }
-];
 
 export function EstudioPage() {
   const navigate = useNavigate();
   const { user, setAuthenticatedUser } = useAuth();
   const [config, setConfig] = useState<ConfigAvatar>(() => configInicial(user?.avatar?.tipo === "avatar" ? user.avatar.config : undefined));
   const [aba, setAba] = useState("cabelo");
-  const [filtro, setFiltro] = useState<Filtro>("todos");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -68,11 +62,6 @@ export function EstudioPage() {
 
   function mudar(campo: Campo, valor: string) {
     setConfig((atual) => ({ ...atual, [campo]: valor }));
-  }
-
-  function aplicarVisual(genero: "f" | "m") {
-    setConfig((atual) => ({ ...atual, ...VISUAIS[genero] }));
-    setFiltro(genero);
   }
 
   async function salvar(avatar: { tipo: "iniciais" } | { tipo: "avatar" }) {
@@ -89,8 +78,8 @@ export function EstudioPage() {
     }
   }
 
-  const grade = (campo: Campo, opcoes: Opcao[], legenda: string, recorte: Recorte, filtrar = false) => (
-    <Grade legenda={legenda} campo={campo} opcoes={opcoes} config={config} recorte={recorte} filtro={filtrar ? filtro : "todos"} onEscolher={mudar} />
+  const grade = (campo: Campo, opcoes: Opcao[], legenda: string, recorte: Recorte) => (
+    <Grade legenda={legenda} campo={campo} opcoes={opcoes} config={config} recorte={recorte} onEscolher={mudar} />
   );
   const cores = (campo: Campo, paleta: string[], legenda: string) => (
     <Cores legenda={legenda} paleta={paleta} valor={config[campo]} onEscolher={(cor) => mudar(campo, cor)} />
@@ -102,7 +91,7 @@ export function EstudioPage() {
       label: "Cabelo",
       content: (
         <div className="estudio__painel">
-          {grade("top", CABELOS, "Cabelo e chapéu", "cabelo", true)}
+          {grade("top", CABELOS, "Cabelo e chapéu", "cabelo")}
           {cores("hairColor", CABELOS_COR, "Cor do cabelo")}
           {COM_CHAPEU.has(config.top) ? cores("hatColor", ROUPAS_COR, "Cor do chapéu ou lenço") : null}
           {grade("hairAccessory", ENFEITES.map(({ valor, rotulo }) => ({ valor, rotulo })), "Enfeite de cabelo", "cabelo")}
@@ -143,7 +132,7 @@ export function EstudioPage() {
       label: "Roupa",
       content: (
         <div className="estudio__painel">
-          {grade("clothing", ROUPAS, "Roupa", "roupa", true)}
+          {grade("clothing", ROUPAS, "Roupa", "roupa")}
           {config.clothing === "graphicShirt" ? grade("clothingGraphic", ESTAMPAS, "Estampa", "roupa") : null}
           {cores("clothesColor", ROUPAS_COR, "Cor da roupa")}
         </div>
@@ -175,15 +164,6 @@ export function EstudioPage() {
               Começar de novo
             </Button>
           </div>
-          <div className="estudio__visuais" role="group" aria-label="Visuais prontos">
-            <span>Visual pronto</span>
-            <button type="button" onClick={() => aplicarVisual("f")}>
-              Feminino
-            </button>
-            <button type="button" onClick={() => aplicarVisual("m")}>
-              Masculino
-            </button>
-          </div>
           <Button icon={<Save size={18} />} disabled={salvando} onClick={() => void salvar({ tipo: "avatar" })}>
             {salvando ? "Salvando..." : "Salvar personagem"}
           </Button>
@@ -196,19 +176,11 @@ export function EstudioPage() {
         </Card>
 
         <Card className="estudio__opcoes">
-          <div className="estudio__filtro" role="group" aria-label="Mostrar cabelos e roupas">
-            <span>Mostrar</span>
-            {FILTROS.map((item) => (
-              <button key={item.id} type="button" aria-pressed={filtro === item.id} onClick={() => setFiltro(item.id)}>
-                {item.rotulo}
-              </button>
-            ))}
-          </div>
           <Tabs items={abas} active={aba} onChange={setAba} />
         </Card>
       </div>
       <p className="muted estudio__credito">
-        Base das ilustrações no estilo Avataaars, de Pablo Stanley (uso livre), montadas com a biblioteca DiceBear. Cabelos, roupas e detalhes extras foram desenhados para o Polar.
+        Base das ilustrações no estilo Avataaars, de Pablo Stanley (uso livre), montadas com a biblioteca DiceBear.
       </p>
     </>
   );
@@ -220,7 +192,6 @@ function Grade({
   opcoes,
   config,
   recorte,
-  filtro,
   onEscolher
 }: {
   legenda: string;
@@ -228,24 +199,21 @@ function Grade({
   opcoes: Opcao[];
   config: ConfigAvatar;
   recorte: Recorte;
-  filtro: Filtro;
   onEscolher: (campo: Campo, valor: string) => void;
 }) {
-  // Neutros aparecem em qualquer filtro; a opcao ja escolhida nunca some da lista.
-  const visiveis = opcoes.filter((o) => filtro === "todos" || !o.genero || o.genero === "n" || o.genero === filtro || o.valor === config[campo]);
   // As miniaturas mostram o avatar atual com so aquela opcao trocada; refazem quando o resto muda.
   const restoDoAvatar = Object.entries(config)
     .filter(([chave]) => chave !== campo)
     .join("|");
   const miniaturas = useMemo(
-    () => visiveis.map((opcao) => ({ ...opcao, imagem: svgParaImagem(montarMiniatura({ ...config, [campo]: opcao.valor }, recorte)) })),
+    () => opcoes.map((opcao) => ({ ...opcao, imagem: svgParaImagem(montarMiniatura({ ...config, [campo]: opcao.valor }, recorte)) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- depende do resto do avatar, nao do campo escolhido
-    [campo, recorte, filtro, restoDoAvatar, opcoes]
+    [campo, recorte, restoDoAvatar, opcoes]
   );
   return (
     <fieldset className="estudio__grupo">
       <legend>
-        {legenda} <small>{visiveis.length}</small>
+        {legenda} <small>{opcoes.length}</small>
       </legend>
       <div className="estudio__grade">
         {miniaturas.map((opcao) => (

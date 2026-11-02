@@ -1,8 +1,9 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Polar">
   <rect width="64" height="64" rx="14" fill="#1351b4"/>
-  <g transform="translate(8 8) scale(1)" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round">
-    <path d="M24 14 L25.94 20.65 L32.66 19 L27.87 24 L32.66 29 L25.94 27.35 L24 34 L22.07 27.35 L15.34 29 L20.13 24 L15.34 19 L22.06 20.65 Z" fill="#fff" stroke="none"/>
-    <path d="M38.74 37.32 A18 18 0 0 1 9.26 37.32"/>
-    <path d="M4.34 13.23 A24 24 0 0 1 43.66 13.23"/>
+  <g transform="translate(8 8)" fill="#fff">
+    <path d="M24 1Q25 22 47 24Q25 26 24 47Q23 26 1 24Q23 22 24 1Z"/>
+    <path d="M24 11Q24.6 23.4 37 24Q24.6 24.6 24 37Q23.4 24.6 11 24Q23.4 23.4 24 11Z" fill="#9ec5ff" transform="rotate(45 24 24)"/>
+    <circle cx="24" cy="24" r="3.2" fill="#1351b4"/>
+    <circle cx="24" cy="24" r="1.6" fill="#fff"/>
   </g>
 </svg>
