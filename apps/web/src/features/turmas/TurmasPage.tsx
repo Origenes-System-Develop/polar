@@ -14,10 +14,11 @@ import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import { ViradaAnoModal } from "./ViradaAnoModal";
 
-import type { Turma } from "../../services/domain";
+import type { CursosTecnicos, Turma } from "../../services/domain";
 
 import {
   createTurma,
+  getEscola,
   listTurmas,
   updateTurma
 } from "../../services/school.service";
@@ -28,6 +29,8 @@ type TurmaForm = {
   anoLetivo: string;
   turno: string;
   tipoEnsino: Turma["tipoEnsino"];
+  curso: string;
+  serie: string;
   ativa: boolean;
 };
 
@@ -37,6 +40,8 @@ const initialTurmaForm: TurmaForm = {
   anoLetivo: String(new Date().getFullYear()),
   turno: "Manha",
   tipoEnsino: "REGULAR",
+  curso: "",
+  serie: "",
   ativa: true
 };
 
@@ -77,6 +82,11 @@ export function TurmasPage() {
   const [inativando, setInativando] = useState(false);
 
   const [viradaOpen, setViradaOpen] = useState(false);
+  const [escola, setEscola] = useState<CursosTecnicos>({ oferece: false, serieInicial: 1, serieFinal: 3, cursos: [] });
+
+  useEffect(() => {
+    getEscola().then((dados) => setEscola(dados.cursosTecnicos)).catch(() => undefined);
+  }, []);
 
   // =========================================================
   // ATUALIZAR LISTA DE TURMAS
@@ -145,6 +155,8 @@ export function TurmasPage() {
       anoLetivo: String(turma.anoLetivo),
       turno: turma.turno,
       tipoEnsino: turma.tipoEnsino,
+      curso: turma.curso ?? "",
+      serie: turma.serie ? String(turma.serie) : "",
       ativa: turma.ativa
     });
 
@@ -186,7 +198,9 @@ export function TurmasPage() {
         nome: form.nome.trim(),
         anoLetivo: Number(form.anoLetivo),
         turno: form.turno.trim(),
-        tipoEnsino: form.tipoEnsino
+        tipoEnsino: form.tipoEnsino,
+        curso: form.tipoEnsino === "TECNICO" ? form.curso : null,
+        serie: form.tipoEnsino === "TECNICO" ? Number(form.serie) || null : null
       };
 
       if (form.id) {
@@ -470,9 +484,33 @@ export function TurmasPage() {
             onChange={(event) => setTurmaField("tipoEnsino", event.target.value)}
             options={[
               { label: "Ensino regular", value: "REGULAR" },
-              { label: "Ensino técnico", value: "TECNICO" }
+              ...(escola.oferece || form.tipoEnsino === "TECNICO" ? [{ label: "Ensino técnico", value: "TECNICO" }] : [])
             ]}
           />
+
+          {form.tipoEnsino === "TECNICO" ? (
+            escola.oferece ? (
+              <>
+                <Select
+                  label="Curso técnico"
+                  value={form.curso}
+                  onChange={(event) => setTurmaField("curso", event.target.value)}
+                  options={[{ label: "Escolha o curso", value: "" }, ...escola.cursos.map((curso) => ({ label: curso, value: curso }))]}
+                />
+                <Select
+                  label="Série"
+                  value={form.serie}
+                  onChange={(event) => setTurmaField("serie", event.target.value)}
+                  options={[
+                    { label: "Escolha a série", value: "" },
+                    ...Array.from({ length: escola.serieFinal - escola.serieInicial + 1 }, (_, i) => String(escola.serieInicial + i)).map((s) => ({ label: `${s}ª série`, value: s }))
+                  ]}
+                />
+              </>
+            ) : (
+              <p className="muted span-2">A escola não está com curso técnico ativo. A administração liga isso em Configurações.</p>
+            )
+          ) : null}
 
           {form.id ? (
             <Select

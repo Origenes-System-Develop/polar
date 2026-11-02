@@ -11,7 +11,9 @@ export function escolaRoutes(services: Services, config: AppConfig): Router {
   const controller = new EscolaController(services);
 
   router.use(authenticate(config));
+  router.get("/", asyncHandler(controller.dados));
   router.put("/", authorize(Permissao.GERENCIAR_CONFIGURACOES), asyncHandler(controller.renomear));
+  router.put("/cursos-tecnicos", authorize(Permissao.GERENCIAR_CONFIGURACOES), asyncHandler(controller.definirCursosTecnicos));
 
   return router;
 }

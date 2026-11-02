@@ -122,7 +122,7 @@ export async function createServiceContainer(
   const services: Services = {
     auth,
     users: new UsersService(repositories.users, repositories.audit),
-    turmas: new TurmasService(repositories.turmas, repositories.alunos, repositories.alunosTurmasHistorico, repositories.viradaAno, repositories.audit),
+    turmas: new TurmasService(repositories.turmas, repositories.alunos, repositories.alunosTurmasHistorico, repositories.viradaAno, repositories.audit, repositories.configuracoes),
     alunos: new AlunosService(repositories.alunos, repositories.alunosTurmasHistorico, repositories.turmas, repositories.ocorrencias, repositories.audit),
     ocorrencias: new OcorrenciasService(
       repositories.ocorrencias,

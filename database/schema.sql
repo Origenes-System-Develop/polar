@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS turmas (
   ano_letivo INTEGER NOT NULL,
   turno VARCHAR(40) NOT NULL,
   tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR',
+  curso VARCHAR(80) NULL,
+  serie SMALLINT NULL,
   ativa BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
@@ -62,6 +64,8 @@ CREATE TABLE IF NOT EXISTS turmas (
 
 -- Compatibilidade com bancos ja existentes: toda turma anterior passa a ser REGULAR.
 ALTER TABLE turmas ADD COLUMN IF NOT EXISTS tipo_ensino tipo_ensino NOT NULL DEFAULT 'REGULAR';
+ALTER TABLE turmas ADD COLUMN IF NOT EXISTS curso VARCHAR(80) NULL;
+ALTER TABLE turmas ADD COLUMN IF NOT EXISTS serie SMALLINT NULL;
 
 CREATE TABLE IF NOT EXISTS alunos (
   id CHAR(36) NOT NULL,

@@ -6,10 +6,15 @@ describe("FE-09, FE-10, BE-03, BD-05 e BE-01", () => {
   it("registra tipo de ensino e encaminha ocorrencia técnica para PAET, coordenação e direção", async () => {
     const { app } = await buildTestContext();
     const auth = await tokens(app);
+    await request(app)
+      .put("/api/escola/cursos-tecnicos")
+      .set("Authorization", `Bearer ${auth.adm}`)
+      .send({ oferece: true, serieInicial: 1, serieFinal: 3, cursos: ["Informática"] })
+      .expect(200);
     const turma = await request(app)
       .post("/api/turmas")
       .set("Authorization", `Bearer ${auth.adm}`)
-      .send({ nome: "9T", anoLetivo: 2026, turno: "Tarde", tipoEnsino: "TECNICO" })
+      .send({ nome: "9T", anoLetivo: 2026, turno: "Tarde", tipoEnsino: "TECNICO", curso: "Informática", serie: 1 })
       .expect(201);
 
     const aluno = await request(app)
