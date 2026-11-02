@@ -9,6 +9,10 @@ das versões foram conferidos no histórico do Git. Cada versão tem uma
 
 ## [Não lançado]
 
+### Alterado
+
+- README refeito com o tema da equipe Polaris: banner, passeio animado pelo sistema, fluxo, recursos, papéis, arquitetura e segurança desenhados em SVG com as cores do GitHub, nos temas claro e escuro. Saem o vídeo, as capturas de tela e o roadmap. As imagens vêm de `scripts/gerar-readme.py`.
+
 ## [v3.2] - 2026-11-01
 
 ### Adicionado
