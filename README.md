@@ -22,7 +22,7 @@
 </p>
 
 <p>
-  <b><a href="https://polarescolar.vercel.app/login">▶ Ver ao vivo</a></b>
+  <b><a href="https://polarescolar.vercel.app/login">Ver ao vivo</a></b>
   &nbsp;·&nbsp; <a href="#-veja-funcionando">Passeio</a>
   &nbsp;·&nbsp; <a href="#-comece-em-um-minuto">Rodar</a>
   &nbsp;·&nbsp; <a href="#-segurança">Segurança</a>
@@ -56,16 +56,15 @@ O nome vem da estrela que aponta o norte. Quem o construiu é a **Polaris**, a c
 
 O passeio acima roda em 8 telas, na ordem em que o trabalho acontece de verdade:
 
-| | Tela | O que você vê |
-| :---: | --- | --- |
-| 1 | **Entrada** | O professor entra com o e-mail da escola. |
-| 2 | **Início** | O painel do dia: números, últimas ocorrências e o aviso de pendências. |
-| 3 | **Registro** | Aluno, categoria, gravidade e relato numa tela só. O aviso confirma. |
-| 4 | **Pendências** | A fila chega em ordem de urgência, e a primeira vem marcada. |
-| 5 | **Resolução** | A coordenação analisa, escreve a observação e marca como resolvida. |
-| 6 | **Encerramento** | A direção encerra. Dali em diante a ocorrência é só leitura. |
-| 7 | **Histórico** | Cada passo, com autor, data e hora. Ninguém edita nem apaga. |
-| 8 | **Relatórios** | Gráficos do ano e planilha do Excel para baixar. |
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/passeio-escuro.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/passeio-claro.svg">
+  <img alt="As 8 telas do passeio: entrada, início, registro, pendências, resolução, encerramento, histórico e relatórios." src="docs/assets/passeio-claro.svg" width="100%">
+</picture>
+
+</div>
 
 Para ver o sistema inteiro, abra o [site no ar](https://polarescolar.vercel.app/login).
 
@@ -137,27 +136,13 @@ Menores de idade, LGPD e OWASP: [docs/seguranca-e-lgpd.md](docs/seguranca-e-lgpd
 
 Precisa de Node 20+ e pnpm 9 (`npm i -g pnpm@9.15.4`). **Sem Docker**: o modo de desenvolvimento guarda os dados em um arquivo.
 
-<div align="center">
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/terminal-comece-escuro.svg">
-  <source media="(prefers-color-scheme: light)" srcset="docs/assets/terminal-comece-claro.svg">
-  <img alt="Terminal: pnpm install, arquivo .env, pnpm seed e pnpm dev." src="docs/assets/terminal-comece-claro.svg" width="100%">
-</picture>
-
-</div>
-
-<details>
-<summary><b>Copiar os comandos</b></summary>
-<br>
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-comece-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-comece-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-comece-claro.svg" width="100%" style="display:block"></picture></div>
 
 ```bash
 pnpm install
-```
 
-Crie `apps/api/.env` a partir de `apps/api/.env.example`:
-
-```env
+# crie apps/api/.env (modelo em apps/api/.env.example)
+cat > apps/api/.env <<'EOF'
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
@@ -165,13 +150,11 @@ JWT_SECRET=um-segredo-forte-com-pelo-menos-32-caracteres
 DATABASE_PROVIDER=json
 SEED_SENHA_PADRAO=escolha-uma-senha-de-teste
 NOME_ESCOLA=Nome da sua escola
-```
+EOF
 
-```bash
 pnpm seed   # dados de demonstração
 pnpm dev    # site em localhost:5173 e API em localhost:3000
 ```
-</details>
 
 Uma conta por papel: `professor@`, `coordenacao@`, `direcao@` e `adm@escola.polar`. A senha é a do `SEED_SENHA_PADRAO`.
 
@@ -179,43 +162,20 @@ Uma conta por papel: `professor@`, `coordenacao@`, `direcao@` e `adm@escola.pola
 
 Obrigatório em produção: o servidor se recusa a subir sem PostgreSQL.
 
-<div align="center">
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/terminal-postgres-escuro.svg">
-  <source media="(prefers-color-scheme: light)" srcset="docs/assets/terminal-postgres-claro.svg">
-  <img alt="Terminal: subir o PostgreSQL com Docker, aplicar o schema e configurar o .env." src="docs/assets/terminal-postgres-claro.svg" width="100%">
-</picture>
-
-</div>
-
-<details>
-<summary><b>Copiar os comandos</b></summary>
-<br>
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-postgres-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-postgres-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-postgres-claro.svg" width="100%" style="display:block"></picture></div>
 
 ```bash
 docker run --name polar-pg -e POSTGRES_USER=polar -e POSTGRES_PASSWORD=polar   -e POSTGRES_DB=polar -p 5432:5432 -d postgres:16
 psql postgresql://polar:polar@localhost:5432/polar -f database/schema.sql
-```
 
-No `.env`, troque por `DATABASE_PROVIDER=postgres` e `DATABASE_URL=postgresql://polar:polar@localhost:5432/polar`.
-</details>
+# no apps/api/.env, troque por:
+#   DATABASE_PROVIDER=postgres
+#   DATABASE_URL=postgresql://polar:polar@localhost:5432/polar
+```
 
 ### Qualidade
 
-<div align="center">
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/terminal-qualidade-escuro.svg">
-  <source media="(prefers-color-scheme: light)" srcset="docs/assets/terminal-qualidade-claro.svg">
-  <img alt="Terminal: pnpm lint, typecheck, test e build." src="docs/assets/terminal-qualidade-claro.svg" width="100%">
-</picture>
-
-</div>
-
-<details>
-<summary><b>Copiar os comandos</b></summary>
-<br>
+<div><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/barra-qualidade-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/barra-qualidade-claro.svg"><img alt="Janela do Terminal" src="docs/assets/barra-qualidade-claro.svg" width="100%" style="display:block"></picture></div>
 
 ```bash
 pnpm lint        # ESLint
@@ -223,7 +183,8 @@ pnpm typecheck   # tsc na API e no site
 pnpm test        # Vitest: API (HTTP real) e site
 pnpm build       # build de produção
 ```
-</details>
+
+O CI roda os quatro em todo push e pull request.
 
 ## ✦ Entrega
 
@@ -265,32 +226,22 @@ Passo a passo: [Supabase](docs/deploy/supabase.md) (banco, primeiro) e [Vercel](
 
 ## ✦ Documentação
 
-<table>
-  <tr>
-    <td><a href="docs/visao-geral.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-visao-geral-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-visao-geral-claro.svg"><img alt="Visão geral" src="docs/assets/doc-visao-geral-claro.svg" width="440"></picture></a></td>
-    <td><a href="docs/manual-do-usuario.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-manual-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-manual-claro.svg"><img alt="Manual do usuário" src="docs/assets/doc-manual-claro.svg" width="440"></picture></a></td>
-  </tr>
-  <tr>
-    <td><a href="docs/arquitetura/arquitetura.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-arquitetura-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-arquitetura-claro.svg"><img alt="Arquitetura" src="docs/assets/doc-arquitetura-claro.svg" width="440"></picture></a></td>
-    <td><a href="docs/arquitetura/decisao-postgres.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-postgres-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-postgres-claro.svg"><img alt="Por que PostgreSQL" src="docs/assets/doc-postgres-claro.svg" width="440"></picture></a></td>
-  </tr>
-  <tr>
-    <td><a href="docs/banco-de-dados/modelo-relacional.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-modelo-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-modelo-claro.svg"><img alt="Modelo relacional" src="docs/assets/doc-modelo-claro.svg" width="440"></picture></a></td>
-    <td><a href="docs/api/endpoints.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-endpoints-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-endpoints-claro.svg"><img alt="Endpoints" src="docs/assets/doc-endpoints-claro.svg" width="440"></picture></a></td>
-  </tr>
-  <tr>
-    <td><a href="docs/fluxos/fluxo-ocorrencias.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-fluxo-ocorrencias-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-fluxo-ocorrencias-claro.svg"><img alt="Fluxo das ocorrências" src="docs/assets/doc-fluxo-ocorrencias-claro.svg" width="440"></picture></a></td>
-    <td><a href="docs/testes/plano-de-testes.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-testes-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-testes-claro.svg"><img alt="Plano de testes" src="docs/assets/doc-testes-claro.svg" width="440"></picture></a></td>
-  </tr>
-  <tr>
-    <td><a href="docs/seguranca-e-lgpd.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-seguranca-lgpd-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-seguranca-lgpd-claro.svg"><img alt="Segurança e LGPD" src="docs/assets/doc-seguranca-lgpd-claro.svg" width="440"></picture></a></td>
-    <td><a href="docs/uso-de-ia.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-uso-de-ia-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-uso-de-ia-claro.svg"><img alt="Uso de IA" src="docs/assets/doc-uso-de-ia-claro.svg" width="440"></picture></a></td>
-  </tr>
-  <tr>
-    <td><a href="docs/demo/roteiro-apresentacao.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-roteiro-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-roteiro-claro.svg"><img alt="Roteiro da apresentação" src="docs/assets/doc-roteiro-claro.svg" width="440"></picture></a></td>
-    <td><a href="CHANGELOG.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-changelog-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-changelog-claro.svg"><img alt="Histórico de versões" src="docs/assets/doc-changelog-claro.svg" width="440"></picture></a></td>
-  </tr>
-</table>
+<div align="center">
+
+<a href="docs/visao-geral.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-visao-geral-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-visao-geral-claro.svg"><img alt="Visão geral" src="docs/assets/doc-visao-geral-claro.svg" width="49%"></picture></a>
+<a href="docs/manual-do-usuario.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-manual-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-manual-claro.svg"><img alt="Manual do usuário" src="docs/assets/doc-manual-claro.svg" width="49%"></picture></a>
+<a href="docs/arquitetura/arquitetura.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-arquitetura-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-arquitetura-claro.svg"><img alt="Arquitetura" src="docs/assets/doc-arquitetura-claro.svg" width="49%"></picture></a>
+<a href="docs/arquitetura/decisao-postgres.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-postgres-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-postgres-claro.svg"><img alt="Por que PostgreSQL" src="docs/assets/doc-postgres-claro.svg" width="49%"></picture></a>
+<a href="docs/banco-de-dados/modelo-relacional.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-modelo-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-modelo-claro.svg"><img alt="Modelo relacional" src="docs/assets/doc-modelo-claro.svg" width="49%"></picture></a>
+<a href="docs/api/endpoints.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-endpoints-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-endpoints-claro.svg"><img alt="Endpoints" src="docs/assets/doc-endpoints-claro.svg" width="49%"></picture></a>
+<a href="docs/fluxos/fluxo-ocorrencias.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-fluxo-ocorrencias-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-fluxo-ocorrencias-claro.svg"><img alt="Fluxo das ocorrências" src="docs/assets/doc-fluxo-ocorrencias-claro.svg" width="49%"></picture></a>
+<a href="docs/testes/plano-de-testes.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-testes-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-testes-claro.svg"><img alt="Plano de testes" src="docs/assets/doc-testes-claro.svg" width="49%"></picture></a>
+<a href="docs/seguranca-e-lgpd.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-seguranca-lgpd-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-seguranca-lgpd-claro.svg"><img alt="Segurança e LGPD" src="docs/assets/doc-seguranca-lgpd-claro.svg" width="49%"></picture></a>
+<a href="docs/uso-de-ia.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-uso-de-ia-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-uso-de-ia-claro.svg"><img alt="Uso de IA" src="docs/assets/doc-uso-de-ia-claro.svg" width="49%"></picture></a>
+<a href="docs/demo/roteiro-apresentacao.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-roteiro-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-roteiro-claro.svg"><img alt="Roteiro da apresentação" src="docs/assets/doc-roteiro-claro.svg" width="49%"></picture></a>
+<a href="CHANGELOG.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/doc-changelog-escuro.svg"><source media="(prefers-color-scheme: light)" srcset="docs/assets/doc-changelog-claro.svg"><img alt="Histórico de versões" src="docs/assets/doc-changelog-claro.svg" width="49%"></picture></a>
+
+</div>
 
 ## ✦ Quem construiu
 

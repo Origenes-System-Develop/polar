@@ -47,11 +47,11 @@ def marca(x, y, altura, t, classe="", fundo=None):
     )
 
 
-def cabeca(w, h, titulo, css, extra=""):
+def cabeca(w, h, titulo, css, extra="", css_depois=""):
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="{titulo}">'
         f"<style>text{{font-family:{FONTE}}}{css}"
-        "@media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;stroke-dashoffset:0!important}}"
+        "@media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;stroke-dashoffset:0!important}" + css_depois + "}"
         f"</style>{extra}"
     )
 
@@ -59,6 +59,12 @@ def cabeca(w, h, titulo, css, extra=""):
 def texto(x, y, s, tam=14, peso=400, cor="#000", ancora="start", extra=""):
     s = s.replace("&", "&amp;").replace("<", "&lt;")
     return f'<text x="{x}" y="{y}" font-size="{tam}" font-weight="{peso}" fill="{cor}" text-anchor="{ancora}" {extra}>{s}</text>'
+
+
+def rotulo_central(x, cy, s_, tam=14, peso=400, cor="#000", extra=""):
+    """Texto centrado na horizontal e na vertical em (x, cy), sem depender da altura da fonte."""
+    s_ = s_.replace("&", "&amp;").replace("<", "&lt;")
+    return f'<text x="{x}" y="{cy}" font-size="{tam}" font-weight="{peso}" fill="{cor}" text-anchor="middle" dominant-baseline="central" {extra}>{s_}</text>'
 
 
 def caixa(x, y, w, h, fundo, borda=None, r=6, extra=""):
@@ -70,7 +76,7 @@ def pilula(x, y, rotulo, fundo, cor, tam=12, pad=10, borda=None):
     w = len(rotulo) * tam * 0.58 + pad * 2
     return (
         caixa(x, y, w, tam + 12, fundo, borda, r=(tam + 12) / 2)
-        + texto(x + w / 2, y + tam + 2, rotulo, tam, 600, cor, "middle")
+        + rotulo_central(x + w / 2, y + (tam + 12) / 2, rotulo, tam, 600, cor)
     ), w
 
 
@@ -121,16 +127,18 @@ def banner(t):
     chips = ""
     cx = 206
     for i, (rot, cor, fundo) in enumerate([("Professor registra", t["azul"], t["azul_suave"]), ("Coordenação analisa e resolve", t["amarelo"], t["amarelo_suave"]), ("Direção encerra", t["verde"], t["verde_suave"])]):
-        pil, larg = pilula(cx, 290, rot, fundo, cor, 16, 16, t["borda"])
+        pil, larg = pilula(cx, 290, rot, fundo, cor, 16, 16, t["borda"])  # 28 de altura: centro em y=304
         chips += pil
-        cx += larg + 10
+        fim = cx + larg
+        cx = fim + 28
         if i < 2:
-            chips += texto(cx - 4, 311, "›", 22, 700, t["mudo"], "middle")
-            cx += 14
+            cxs = fim + 14  # meio do vao entre as pilulas
+            chips += f'<path d="M{cxs - 3} 299l6 5-6 5" fill="none" stroke="{t["mudo"]}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
     corpo = (
         caixa(0, 0, w, h, t["bg"], None, 14)
-        + f'<circle cx="1050" cy="60" r="260" fill="{t["azul"]}" opacity=".06"/>'
-        + f'<circle cx="150" cy="340" r="220" fill="{t["azul"]}" opacity=".05"/>'
+        + f'<defs><radialGradient id="g1"><stop offset="0" stop-color="{t["azul"]}" stop-opacity=".20"/><stop offset="1" stop-color="{t["azul"]}" stop-opacity="0"/></radialGradient><radialGradient id="g2"><stop offset="0" stop-color="{t["azul"]}" stop-opacity=".14"/><stop offset="1" stop-color="{t["azul"]}" stop-opacity="0"/></radialGradient></defs>'
+        + f'<circle cx="1040" cy="190" r="330" fill="url(#g1)"/>'
+        + f'<circle cx="170" cy="190" r="300" fill="url(#g2)"/>'
         + estrelas
         + f'<g class="mark">{marca(78, 96, 150, t)}</g>'
         + f'<g class="t1">{texto(204, 168, "Polar", 84, 800, t["texto"])}</g>'
@@ -142,16 +150,19 @@ def banner(t):
         + f'<circle class="halo" cx="{px:.1f}" cy="{py:.1f}" r="34" fill="{t["azul"]}" opacity=".16"/>'
         + f'<g transform="translate({px - POLARIS[0] * esc * 0.9:.1f} {py - POLARIS[1] * esc * 0.9:.1f}) scale({esc * 0.9})"><g class="polaris"><path d="{POLARIS_BRILHO}" fill="{t["azul"]}"/></g></g>'
         + f'<g class="cadente"><line x1="980" y1="26" x2="1030" y2="-4" stroke="{t["azul"]}" stroke-width="2" stroke-linecap="round"/></g>'
-        + f'<g class="rotulo">{texto(1146, 352, "Polaris", 15, 700, t["azul"], "end")}{texto(1146, 370, "a equipe, a estrela e a constelação", 12, 400, t["mudo"], "end")}</g>'
+        + f'<g class="rotulo">{texto(1176, 346, "Polaris", 24, 800, t["azul"], "end")}{texto(1176, 368, "a equipe, a estrela e a constelação", 15, 500, t["mudo"], "end")}</g>'
     )
-    return cabeca(w, h, "Polar: ocorrências escolares, do registro ao encerramento. Feito pela equipe Polaris.", css) + corpo + "</svg>"
+    return cabeca(w, h, "Polar: ocorrências escolares, do registro ao encerramento. Feito pela equipe Polaris.", css, css_depois=".cadente{opacity:0!important}") + corpo + "</svg>"
 
 
 # =============================================================================================
 # ANIMACAO: ferramentas para SVG que repete (tudo em CSS dentro do SVG)
 # =============================================================================================
 class Anim:
-    """Linha do tempo de uma volta (dur segundos). Cada metodo devolve a classe CSS a usar."""
+    """Linha do tempo de uma volta (dur segundos). Cada metodo devolve a classe CSS a usar.
+
+    Para ficar leve: so animamos opacity e transform (compostos na GPU) e as telas inteiras
+    trocam por corte seco (visibility), sem fundir grupos grandes a cada quadro."""
 
     def __init__(self, dur):
         self.d = dur
@@ -161,15 +172,27 @@ class Anim:
     def p(self, s):
         return s / self.d * 100
 
-    def _novo(self, chave, prefixo, corpo):
+    def _novo(self, chave, prefixo, corpo, css):
         if chave not in self.cache:
             nome = f"{prefixo}{len(self.cache)}"
             self.cache[chave] = nome
             self.kf.append(f"@keyframes {nome}{{{corpo}}}")
+            self.cache[("css", nome)] = css.replace("NOME", nome)
         return self.cache[chave]
 
-    def vis(self, a, b, dy=0, fade=0.45):
-        """Visivel de a ate b (com entrada suave, opcionalmente subindo dy pixels)."""
+    def corte(self, a, b):
+        """Visivel de a ate b, sem transicao (visibility)."""
+        pa, pb = self.p(a), self.p(b)
+        partes = []
+        if a > 0:
+            partes.append(f"0%,{max(pa - 0.002, 0):.3f}%{{visibility:hidden}}")
+        partes.append(f"{pa:.3f}%,{max(pb - 0.002, pa):.3f}%{{visibility:visible}}")
+        if b < self.d:
+            partes.append(f"{pb:.3f}%,100%{{visibility:hidden}}")
+        return self._novo(("corte", a, b), "c", "".join(partes), f".NOME{{visibility:hidden;animation:NOME {self.d}s step-end infinite}}")
+
+    def vis(self, a, b, dy=0, fade=0.4):
+        """Aparece em a (opacity e, se dy, subindo dy px) e some em b."""
         pa, pb, f = self.p(a), self.p(b), self.p(fade)
         oculto = f"opacity:0;transform:translateY({dy}px)" if dy else "opacity:0"
         pleno = "opacity:1;transform:none" if dy else "opacity:1"
@@ -181,47 +204,35 @@ class Anim:
             partes.append(f"0%{{{pleno}}}")
         if b < self.d:
             partes.append(f"{pb:.3f}%{{{pleno}}}")
-            partes.append(f"{min(pb + f, 100):.3f}%,100%{{opacity:0}}")
+            partes.append(f"{min(pb + 0.05, 100):.3f}%,100%{{opacity:0}}")
         else:
             partes.append(f"{100 - f:.3f}%{{{pleno}}}")
             partes.append("100%{opacity:0}")
-        nome = self._novo(("vis", a, b, dy), "v", "".join(partes))
-        self.cache[("css", nome)] = f".{nome}{{opacity:0;animation:{nome} {self.d}s linear infinite}}"
-        return nome
+        return self._novo(("vis", a, b, dy), "v", "".join(partes), f".NOME{{opacity:0;animation:NOME {self.d}s cubic-bezier(.2,.7,.2,1) infinite}}")
 
     def cresce(self, a, dur=0.8, eixo="x"):
-        """Barra que cresce a partir da esquerda (x) ou de baixo (y)."""
         pa, pb = self.p(a), self.p(a + dur)
         t0 = "scaleX(0)" if eixo == "x" else "scaleY(0)"
         t1 = "scaleX(1)" if eixo == "x" else "scaleY(1)"
-        nome = self._novo(("cresce", a, dur, eixo), "g", f"0%,{pa:.3f}%{{transform:{t0}}}{pb:.3f}%,100%{{transform:{t1}}}")
         origem = "left center" if eixo == "x" else "center bottom"
-        self.cache[("css", nome)] = f".{nome}{{transform-box:fill-box;transform-origin:{origem};transform:{t0};animation:{nome} {self.d}s cubic-bezier(.2,.7,.2,1) infinite}}"
-        return nome
-
-    def traco(self, a, dur=1.0):
-        """Linha desenhada (o path precisa de pathLength=1)."""
-        pa, pb = self.p(a), self.p(a + dur)
-        nome = self._novo(("traco", a, dur), "t", f"0%,{pa:.3f}%{{stroke-dashoffset:1}}{pb:.3f}%,100%{{stroke-dashoffset:0}}")
-        self.cache[("css", nome)] = f".{nome}{{stroke-dasharray:1;stroke-dashoffset:1;animation:{nome} {self.d}s ease-out infinite}}"
-        return nome
+        return self._novo(("cresce", a, dur, eixo), "g", f"0%,{pa:.3f}%{{transform:{t0}}}{pb:.3f}%,100%{{transform:{t1}}}",
+                          f".NOME{{transform-box:fill-box;transform-origin:{origem};transform:{t0};animation:NOME {self.d}s cubic-bezier(.2,.7,.2,1) infinite}}")
 
     def digita(self, x, y, w, h, a, b, fundo):
-        """Cobre o texto e descobre da esquerda para a direita entre a e b."""
+        """Tampa o texto e descobre da esquerda para a direita entre a e b (scaleX, sem repintar o texto)."""
         pa, pb = self.p(a), self.p(b)
-        nome = self._novo(("digita", a, b), "d", f"0%,{pa:.3f}%{{transform:scaleX(1)}}{pb:.3f}%,99.9%{{transform:scaleX(0)}}100%{{transform:scaleX(1)}}")
-        self.cache[("css", nome)] = f".{nome}{{transform-box:fill-box;transform-origin:right center;animation:{nome} {self.d}s linear infinite}}"
+        nome = self._novo(("digita", a, b), "d", f"0%,{pa:.3f}%{{transform:scaleX(1)}}{pb:.3f}%,99.9%{{transform:scaleX(0)}}100%{{transform:scaleX(1)}}",
+                          f".NOME{{transform-box:fill-box;transform-origin:right center;animation:NOME {self.d}s linear infinite}}")
         return f'<rect class="{nome}" x="{x}" y="{y}" width="{w}" height="{h}" fill="{fundo}"/>'
 
     def onda(self, x, y, a, cor):
-        """Anel que se abre onde o cursor clica."""
-        pa, pb = self.p(a), self.p(a + 0.8)
-        nome = self._novo(("onda", a), "o", f"0%,{pa:.3f}%{{opacity:0;transform:scale(.3)}}{pa + 0.01:.3f}%{{opacity:.55;transform:scale(.3)}}{pb:.3f}%,100%{{opacity:0;transform:scale(1.7)}}")
-        self.cache[("css", nome)] = f".{nome}{{transform-box:fill-box;transform-origin:center;opacity:0;animation:{nome} {self.d}s linear infinite}}"
+        pa, pb = self.p(a), self.p(a + 0.7)
+        nome = self._novo(("onda", a), "o", f"0%,{pa:.3f}%{{opacity:0;transform:scale(.3)}}{pa + 0.01:.3f}%{{opacity:.5;transform:scale(.3)}}{pb:.3f}%,100%{{opacity:0;transform:scale(1.6)}}",
+                          ".NOME{transform-box:fill-box;transform-origin:center;opacity:0;animation:NOME " + f"{self.d}s linear infinite}}")
         return f'<circle class="{nome}" cx="{x}" cy="{y}" r="20" fill="{cor}"/>'
 
     def cursor(self, pontos, cor, contorno):
-        """pontos: [(segundo_de_chegada, x, y)]; fica parado ate o proximo."""
+        """pontos: [(segundo_de_chegada, x, y)]. Move em 1 s e fica parado ate o proximo."""
         ini = pontos[0]
         regras = f"0%{{transform:translate({ini[1]}px,{ini[2]}px)}}"
         for i, (s, x, y) in enumerate(pontos):
@@ -229,7 +240,7 @@ class Anim:
             if i + 1 < len(pontos):
                 regras += f"{self.p(pontos[i + 1][0] - 1.0):.3f}%{{transform:translate({x}px,{y}px)}}"
         regras += f"100%{{transform:translate({ini[1]}px,{ini[2]}px)}}"
-        self.kf.append(f"@keyframes cur{{{regras}}}.cursor{{animation:cur {self.d}s ease-in-out infinite}}")
+        self.kf.append(f"@keyframes cur{{{regras}}}.cursor{{animation:cur {self.d}s cubic-bezier(.45,0,.25,1) infinite}}")
         return f'<g class="cursor"><path d="M0 0L0 17l4.5-4 3.2 7 2.6-1.2-3.1-6.8H14Z" fill="{cor}" stroke="{contorno}" stroke-width="1.2" stroke-linejoin="round"/></g>'
 
     def css(self):
@@ -239,17 +250,53 @@ class Anim:
 # =============================================================================================
 # DEMONSTRACAO (passeio animado pelo sistema, 8 telas)
 # =============================================================================================
+def tc(x, cy, s_, tam=12, peso=400, cor="#000", ancora="start", extra=""):
+    """Texto com a linha central em cy: alinha direito com caixas e icones, qualquer que seja a fonte."""
+    s_ = s_.replace("&", "&amp;").replace("<", "&lt;")
+    return f'<text x="{x}" y="{cy}" font-size="{tam}" font-weight="{peso}" fill="{cor}" text-anchor="{ancora}" dominant-baseline="central" {extra}>{s_}</text>'
+
+
+def larg_pilula(rot, tam=12, pad=10):
+    return len(rot) * tam * 0.58 + pad * 2
+
+
 def demo(t):
     A = Anim(32)
     w, h = 960, 610
     S = 4.0
-    wy = 20  # topo da janela
+    wy = 20
+    ax = 214  # esquerda da area de conteudo
+    CW = 704  # largura da area de conteudo (214 a 918)
+    ver = A.corte
 
     def T(i, dt):
         return i * S + dt
 
     def ate_fim(i, dt, dy=0):
         return A.vis(T(i, dt), T(i + 1, 0), dy)
+
+    def botao(x, y, bw, bh, rot, fundo, cor, borda=None, tam=12, peso=700):
+        return caixa(x, y, bw, bh, fundo, borda, bh / 2) + rotulo_central(x + bw / 2, y + bh / 2 + 0.5, rot, tam, peso, cor)
+
+    def pil_c(cx, y, rot, fundo, cor, tam=12, pad=12, borda=None):
+        lg = larg_pilula(rot, tam, pad)
+        return pilula(cx - lg / 2, y, rot, fundo, cor, tam, pad, borda)[0]
+
+    def pil_d(xr, y, rot, fundo, cor, tam=11, pad=10, borda=None):
+        lg = larg_pilula(rot, tam, pad)
+        return pilula(xr - lg, y, rot, fundo, cor, tam, pad, borda)[0], lg
+
+    def check(cx, cy, cor, tam=1.0):
+        return f'<path d="M{cx - 5 * tam:.1f} {cy:.1f}l{4 * tam:.1f} {4 * tam:.1f} {8 * tam:.1f}-{8 * tam:.1f}" fill="none" stroke="{cor}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+
+    def aviso(i, dt, x, y, aw, cor, suave, msg):
+        return (
+            f'<g class="{ate_fim(i, dt, -8)}">' + caixa(x, y, aw, 40, suave, cor, 8) + check(x + 24, y + 20, cor)
+            + tc(x + 44, y + 20, msg, 13, 700, cor) + "</g>"
+        )
+
+    def selo_ok(cx, cy, cor):
+        return f'<circle cx="{cx}" cy="{cy}" r="11" fill="{cor}"/>' + check(cx, cy, "#ffffff", 0.9)
 
     quadro = (
         caixa(0.5, 0.5, w - 1, h - 1, t["painel"], t["borda"], 14)
@@ -259,307 +306,289 @@ def demo(t):
         + f'<line x1="20" x2="{w - 20}" y1="{wy + 36}" y2="{wy + 36}" stroke="{t["borda"]}"/>'
         + "".join(f'<circle cx="{40 + i * 18}" cy="{wy + 18}" r="5" fill="{c}"/>' for i, c in enumerate(["#ff5f56", "#ffbd2e", "#27c93f"]))
         + caixa(300, wy + 8, 360, 20, t["bg"], t["borda"], 10)
-        + texto(480, wy + 22, "polarescolar.vercel.app", 11, 500, t["mudo"], "middle")
+        + rotulo_central(480, wy + 18.5, "polarescolar.vercel.app", 11, 500, t["mudo"])
     )
 
-    # ---- menu lateral -----------------------------------------------------------------
     itens = ["Início", "Pendências", "Ocorrências", "Alunos", "Turmas", "Relatórios"]
-    ativo_por_cena = {1: 0, 2: 2, 3: 1, 4: 2, 5: 2, 6: 2, 7: 5}  # cena -> indice do item
-    menu = (
-        f'<rect x="20" y="{wy + 36}" width="170" height="464" fill="{t["painel"]}"/>'
-        + f'<line x1="190" x2="190" y1="{wy + 36}" y2="{wy + 500}" stroke="{t["borda"]}"/>'
-        + marca(40, wy + 52, 26, t, fundo=t["painel"])
-        + texto(68, wy + 73, "Polar", 17, 800, t["texto"])
-        + caixa(34, wy + 92, 142, 30, t["azul"], None, 15)
-        + texto(105, wy + 112, "Registrar ocorrência", 11, 700, "#ffffff", "middle")
-    )
-    for i, nome in enumerate(itens):
-        y = wy + 138 + i * 34
-        menu += caixa(44, y + 9, 10, 10, "none", t["mudo"], 3) + texto(64, y + 19, nome, 12, 500, t["mudo"])
-    # destaque do item ativo (aparece na cena certa)
-    destaques = ""
-    for cena, idx in ativo_por_cena.items():
-        y = wy + 138 + idx * 34
-        destaques += (
-            f'<g class="{A.vis(cena * S, (cena + 1) * S, 0, 0.3)}">'
-            + caixa(34, y, 142, 28, t["azul_suave"], None, 6)
-            + caixa(44, y + 9, 10, 10, "none", t["azul"], 3)
-            + texto(64, y + 19, itens[idx], 12, 700, t["azul"])
-            + "</g>"
-        )
-    # perfil no rodape do menu
-    menu += (
-        f'<line x1="34" x2="176" y1="{wy + 440}" y2="{wy + 440}" stroke="{t["borda"]}"/>'
-        + f'<circle cx="52" cy="{wy + 470}" r="14" fill="{t["azul_suave"]}"/>'
-        + texto(52, wy + 474, "PR", 10, 800, t["azul"], "middle")
-        + texto(74, wy + 474, "Paulo Reis", 12, 600, t["texto"])
-    )
+    ativo = {1: 2, 2: 0, 3: 1, 4: 2, 5: 2, 6: 2, 7: 5}  # cena -> indice do item ativo
 
-    ax = 214  # inicio da area de conteudo
+    def menu(cena, quem, iniciais):
+        m = (
+            f'<rect x="20" y="{wy + 36}" width="170" height="464" fill="{t["painel"]}"/>'
+            + f'<line x1="190" x2="190" y1="{wy + 36}" y2="{wy + 500}" stroke="{t["borda"]}"/>'
+            + marca(38, wy + 52, 28, t, fundo=t["painel"])
+            + tc(68, wy + 66, "Polar", 18, 800, t["texto"])
+            + botao(34, wy + 92, 142, 32, "Registrar ocorrência", t["azul"], "#ffffff", None, 11)
+        )
+        for i, nome in enumerate(itens):
+            cy = wy + 154 + i * 34
+            on = ativo.get(cena) == i
+            if on:
+                m += caixa(34, cy - 15, 142, 30, t["azul_suave"], None, 6)
+            m += caixa(46, cy - 5, 10, 10, "none", t["azul"] if on else t["mudo"], 3) + tc(66, cy, nome, 12, 700 if on else 500, t["azul"] if on else t["mudo"])
+        m += (
+            f'<line x1="34" x2="176" y1="{wy + 436}" y2="{wy + 436}" stroke="{t["borda"]}"/>'
+            + f'<circle cx="52" cy="{wy + 466}" r="14" fill="{t["azul_suave"]}"/>'
+            + rotulo_central(52, wy + 466.5, iniciais, 10, 800, t["azul"])
+            + tc(74, wy + 466, quem, 12, 600, t["texto"])
+        )
+        return m
+
     cenas = []
 
-    # ---- 0 login --------------------------------------------------------------------
-    login = (
+    # ---- 0 login ------------------------------------------------------------------------------
+    cenas.append(
         f'<rect x="20" y="{wy + 36}" width="{w - 40}" height="464" fill="{t["bg"]}"/>'
-        + f'<circle cx="480" cy="250" r="230" fill="{t["azul"]}" opacity=".05"/>'
-        + caixa(330, 92, 300, 400, t["painel"], t["borda"], 12)
-        + marca(462, 116, 38, t, fundo=t["painel"])
-        + texto(480, 178, "Entrar no Polar", 20, 800, t["texto"], "middle")
-        + texto(350, 220, "E-mail", 11, 700, t["mudo"])
-        + caixa(350, 228, 260, 34, t["bg"], t["borda"], 6)
-        + texto(362, 250, "professor@escola.polar", 13, 400, t["texto"])
-        + A.digita(356, 234, 250, 22, 0.6, 1.8, t["bg"])
-        + texto(350, 286, "Senha", 11, 700, t["mudo"])
-        + caixa(350, 294, 260, 34, t["bg"], t["borda"], 6)
-        + texto(362, 316, "••••••••••", 13, 400, t["texto"])
-        + A.digita(356, 300, 250, 22, 1.8, 2.6, t["bg"])
-        + caixa(350, 350, 260, 36, t["azul"], None, 18)
-        + texto(480, 373, "Entrar", 13, 700, "#ffffff", "middle")
-        + texto(480, 420, "Use o e-mail cadastrado pela escola.", 11, 400, t["mudo"], "middle")
+        + caixa(330, 84, 300, 412, t["painel"], t["borda"], 12)
+        + marca(466.7, 108, 40, t, fundo=t["painel"])
+        + rotulo_central(480, 178, "Entrar no Polar", 21, 800, t["texto"])
+        + tc(350, 222, "E-mail", 11, 700, t["mudo"])
+        + caixa(350, 234, 260, 36, t["bg"], t["borda"], 6)
+        + tc(363, 252, "professor@escola.polar", 13, 400, t["texto"])
+        + A.digita(356, 240, 250, 24, 0.6, 1.8, t["bg"])
+        + tc(350, 298, "Senha", 11, 700, t["mudo"])
+        + caixa(350, 310, 260, 36, t["bg"], t["borda"], 6)
+        + tc(363, 328, "••••••••••", 13, 400, t["texto"])
+        + A.digita(356, 316, 250, 24, 1.8, 2.6, t["bg"])
+        + botao(350, 362, 260, 38, "Entrar", t["azul"], "#ffffff", None, 13)
+        + rotulo_central(480, 432, "Use o e-mail cadastrado pela escola.", 11, 400, t["mudo"])
     )
-    cenas.append(login)
 
-    # ---- 1 inicio (coordenacao) ------------------------------------------------------
-    stats = [("13", "Total", t["azul"]), ("4", "Em análise", t["amarelo"]), ("2", "Graves ou urgentes", t["vermelho"]), ("3", "Encerradas", t["verde"])]
-    cartoes = ""
-    for i, (n, rot, cor) in enumerate(stats):
-        x = ax + i * 184
-        cartoes += (
-            f'<g class="{ate_fim(1, 0.3 + i * 0.18, 10)}">'
-            + caixa(x, 150, 172, 84, t["painel"], t["borda"], 10)
-            + f'<rect x="{x + 1}" y="231" width="170" height="3" fill="{cor}"/>'
-            + texto(x + 16, 196, n, 34, 800, t["texto"])
-            + texto(x + 16, 220, rot, 12, 500, t["mudo"])
-            + "</g>"
-        )
-    ultimas = [("Ana Souza", "8ºA · Atraso", "Alta", t["vermelho"], "Registrada"), ("Bruno Lima", "9ºB · Desrespeito", "Média", t["amarelo"], "Em análise"), ("Caio Reis", "7ºC · Uso de celular", "Baixa", t["verde"], "Em análise")]
-    linhas_ult = ""
-    for i, (nome, sub, pri, cor, st) in enumerate(ultimas):
-        y = 308 + i * 46
-        linhas_ult += (
-            f'<g class="{ate_fim(1, 1.2 + i * 0.25, 8)}">'
-            + f'<line x1="{ax + 16}" x2="{ax + 504}" y1="{y - 12}" y2="{y - 12}" stroke="{t["borda"]}"/>'
-            + texto(ax + 16, y + 6, nome, 13, 700, t["texto"])
-            + texto(ax + 16, y + 24, sub, 11, 400, t["mudo"])
-            + pilula(ax + 380, y - 2, pri, t["bg"], cor, 11, 10, cor)[0]
-            + "</g>"
-        )
-    inicio = (
-        f'<g class="{ate_fim(1, 0, 8)}">'
-        + f'<circle cx="{ax + 22}" cy="98" r="22" fill="{t["azul_suave"]}"/>'
-        + texto(ax + 22, 104, "PR", 13, 800, t["azul"], "middle")
-        + texto(ax + 58, 94, "Boa tarde, Paulo", 24, 800, t["texto"])
-        + texto(ax + 58, 116, "Coordenação · segunda-feira, 2 de novembro", 12, 400, t["mudo"])
-        + "</g>"
-        + cartoes
-        + caixa(ax, 254, 520, 190, t["painel"], t["borda"], 10)
-        + texto(ax + 16, 280, "Últimas ocorrências", 13, 700, t["texto"])
-        + linhas_ult
-        + caixa(ax + 540, 254, 196, 190, t["painel"], t["borda"], 10)
-        + texto(ax + 556, 280, "Atalhos", 13, 700, t["texto"])
-        + pilula(ax + 556, 298, "Ver ocorrências", t["bg"], t["azul"], 11, 12, t["azul"])[0]
-        + pilula(ax + 556, 334, "Ver relatórios", t["bg"], t["azul"], 11, 12, t["azul"])[0]
-        + f'<g class="{ate_fim(1, 2.0, 6)}">{caixa(ax + 556, 378, 164, 50, t["amarelo_suave"], t["amarelo"], 8)}{texto(ax + 568, 398, "3 pendências novas", 12, 700, t["amarelo"])}{texto(ax + 568, 416, "esperam a sua análise", 11, 400, t["mudo"])}</g>'
-    )
-    cenas.append(inicio)
-
-    # ---- 2 registrar (professor) -----------------------------------------------------
+    # ---- 1 registrar (professor) -------------------------------------------------------------------
     cats = ["Atraso", "Desrespeito", "Briga", "Uso de celular"]
     chips = ""
     cx = ax + 16
     for i, rot in enumerate(cats):
-        pil, larg = pilula(cx, 230, rot, t["bg"], t["mudo"], 12, 12, t["borda"])
-        sel, _ = pilula(cx, 230, rot, t["azul_suave"], t["azul"], 12, 12, t["azul"])
-        chips += pil + (f'<g class="{ate_fim(2, 1.0)}">{sel}</g>' if i == 0 else "")
-        cx += larg + 8
-    pri_chips = ""
+        lg = larg_pilula(rot, 12, 12)
+        chips += pilula(cx, 226, rot, t["bg"], t["mudo"], 12, 12, t["borda"])[0]
+        if i == 0:
+            chips += f'<g class="{ate_fim(1, 1.0)}">{pilula(cx, 226, rot, t["azul_suave"], t["azul"], 12, 12, t["azul"])[0]}</g>'
+        cx += lg + 8
+    pri = ""
     cx = ax + 16
     for rot, cor, suave in [("Baixa", t["verde"], t["verde_suave"]), ("Média", t["amarelo"], t["amarelo_suave"]), ("Alta", t["vermelho"], t["painel2"])]:
-        pil, larg = pilula(cx, 282, rot, t["bg"], t["mudo"], 12, 12, t["borda"])
-        sel, _ = pilula(cx, 282, rot, suave, cor, 12, 12, cor)
-        pri_chips += pil + (f'<g class="{ate_fim(2, 1.5)}">{sel}</g>' if rot == "Alta" else "")
-        cx += larg + 8
-    registrar = (
+        lg = larg_pilula(rot, 12, 12)
+        pri += pilula(cx, 290, rot, t["bg"], t["mudo"], 12, 12, t["borda"])[0]
+        if rot == "Alta":
+            pri += f'<g class="{ate_fim(1, 1.5)}">{pilula(cx, 290, rot, suave, cor, 12, 12, cor)[0]}</g>'
+        cx += lg + 8
+    cenas.append(
         texto(ax, 100, "Registrar ocorrência", 22, 800, t["texto"])
         + texto(ax, 122, "Leva cerca de um minuto. Os campos com * são obrigatórios.", 12, 400, t["mudo"])
-        + caixa(ax, 138, 720, 300, t["painel"], t["borda"], 10)
-        + texto(ax + 16, 170, "ALUNO", 10, 700, t["mudo"])
-        + texto(ax + 70, 170, "Ana Souza · 8ºA", 12, 700, t["azul"])
-        + texto(ax + 16, 220, "CATEGORIA", 10, 700, t["mudo"])
-        + chips
-        + texto(ax + 16, 272, "GRAVIDADE", 10, 700, t["mudo"])
-        + pri_chips
-        + caixa(ax + 16, 330, 688, 64, t["bg"], t["borda"], 6)
-        + texto(ax + 28, 354, "Chegou 20 minutos depois do início da aula.", 12, 400, t["texto"])
-        + texto(ax + 28, 374, "Não é a primeira vez no mês.", 12, 400, t["texto"])
-        + A.digita(ax + 22, 338, 676, 50, 1.9, 3.1, t["bg"])
-        + caixa(ax + 590, 404, 114, 28, t["azul"], None, 14)
-        + texto(ax + 647, 422, "Registrar", 12, 700, "#ffffff", "middle")
-        + f'<g class="{ate_fim(2, 3.3, -10)}">{caixa(ax + 480, 78, 250, 44, t["verde_suave"], t["verde"], 8)}<path d="M{ax + 498} 100l5 5 9-10" fill="none" stroke="{t["verde"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>{texto(ax + 524, 105, "Ocorrência registrada", 13, 700, t["verde"])}</g>'
+        + caixa(ax, 138, CW, 312, t["painel"], t["borda"], 10)
+        + tc(ax + 16, 164, "ALUNO", 10, 700, t["mudo"]) + tc(ax + 66, 164, "Ana Souza · 8ºA", 12, 700, t["azul"])
+        + tc(ax + 16, 206, "CATEGORIA", 10, 700, t["mudo"]) + chips
+        + tc(ax + 16, 270, "GRAVIDADE", 10, 700, t["mudo"]) + pri
+        + caixa(ax + 16, 334, CW - 32, 64, t["bg"], t["borda"], 6)
+        + tc(ax + 30, 355, "Chegou 20 minutos depois do início da aula.", 12, 400, t["texto"])
+        + tc(ax + 30, 377, "Não é a primeira vez no mês.", 12, 400, t["texto"])
+        + A.digita(ax + 22, 340, CW - 44, 52, 1.9, 3.1, t["bg"])
+        + botao(ax + CW - 16 - 120, 410, 120, 30, "Registrar", t["azul"], "#ffffff")
+        + aviso(1, 3.3, ax + CW - 270, 78, 270, t["verde"], t["verde_suave"], "Ocorrência registrada")
     )
-    # corrige as posicoes dos chips (foram gerados em y=196/268 e deslocados)
-    cenas.append(registrar)
 
-    # ---- 3 pendencias -----------------------------------------------------------------
-    dados = [("Ana Souza", "8ºA · Atraso", "Alta", t["vermelho"], "Registrada"), ("Bruno Lima", "9ºB · Desrespeito", "Média", t["amarelo"], "Em análise"), ("Caio Reis", "7ºC · Uso de celular", "Baixa", t["verde"], "Em análise")]
-    lin = ""
-    for i, (nome, sub, pri, cor, st) in enumerate(dados):
-        y = 168 + i * 72
-        lin += (
-            f'<g class="{ate_fim(3, 0.3 + i * 0.25, 10)}">'
-            + caixa(ax, y, 720, 60, t["painel"], t["azul"] if i == 0 else t["borda"], 8)
-            + caixa(ax + 14, y + 16, 28, 28, t["azul"] if i == 0 else t["painel2"], None, 14)
-            + texto(ax + 28, y + 35, str(i + 1), 13, 800, "#ffffff" if i == 0 else t["mudo"], "middle")
-            + texto(ax + 56, y + 26, nome, 14, 700, t["texto"])
-            + texto(ax + 56, y + 44, sub, 11, 400, t["mudo"])
-            + (texto(ax + 170, y + 26, "Comece por esta", 11, 700, t["azul"], extra='font-style="italic"') if i == 0 else "")
-            + f'<g class="{A.vis(T(3, 0.3 + i * 0.25), T(3, 2.6), 0, 0.2)}"><circle cx="{ax + 700}" cy="{y + 12}" r="5" fill="{t["azul"]}"/></g>'
-            + pilula(ax + 520, y + 18, pri, t["bg"], cor, 11, 10, cor)[0]
-            + pilula(ax + 586, y + 18, st, t["azul_suave"], t["azul"], 11, 10)[0]
+    # ---- 2 inicio (coordenacao) ---------------------------------------------------------------------
+    stats = [("13", "Total", t["azul"]), ("4", "Em análise", t["amarelo"]), ("2", "Graves ou urgentes", t["vermelho"]), ("3", "Encerradas", t["verde"])]
+    cartoes = ""
+    for i, (n, rot, cor) in enumerate(stats):
+        x = ax + i * 180
+        cartoes += (
+            f'<g class="{ate_fim(2, 0.3 + i * 0.18, 10)}">'
+            + caixa(x, 150, 164, 84, t["painel"], t["borda"], 10)
+            + f'<rect x="{x + 1}" y="231" width="162" height="3" fill="{cor}"/>'
+            + texto(x + 16, 196, n, 34, 800, t["texto"])
+            + tc(x + 16, 216, rot, 12, 500, t["mudo"])
             + "</g>"
         )
-    pend = (
+    ultimas = [("Ana Souza", "8ºA · Atraso", "Alta", t["vermelho"]), ("Bruno Lima", "9ºB · Desrespeito", "Média", t["amarelo"]), ("Caio Reis", "7ºC · Uso de celular", "Baixa", t["verde"])]
+    lin = ""
+    for i, (nome, sub, prio, cor) in enumerate(ultimas):
+        cy = 322 + i * 48
+        pil, _ = pil_d(ax + 484, cy - 13, prio, t["bg"], cor, 11, 10, cor)
+        lin += (
+            f'<g class="{ate_fim(2, 1.2 + i * 0.25, 8)}">'
+            + (f'<line x1="{ax + 16}" x2="{ax + 484}" y1="{cy - 24}" y2="{cy - 24}" stroke="{t["borda"]}"/>' if i else "")
+            + tc(ax + 16, cy - 7, nome, 13, 700, t["texto"]) + tc(ax + 16, cy + 11, sub, 11, 400, t["mudo"])
+            + pil + "</g>"
+        )
+    cenas.append(
+        f'<g class="{ate_fim(2, 0, 8)}">'
+        + f'<circle cx="{ax + 22}" cy="96" r="22" fill="{t["azul_suave"]}"/>' + rotulo_central(ax + 22, 96.5, "PR", 13, 800, t["azul"])
+        + texto(ax + 58, 94, "Boa tarde, Paulo", 24, 800, t["texto"]) + tc(ax + 58, 113, "Coordenação · segunda-feira, 2 de novembro", 12, 400, t["mudo"])
+        + "</g>"
+        + cartoes
+        + caixa(ax, 254, 500, 196, t["painel"], t["borda"], 10) + tc(ax + 16, 276, "Últimas ocorrências", 13, 700, t["texto"])
+        + lin
+        + caixa(ax + 516, 254, 188, 196, t["painel"], t["borda"], 10) + tc(ax + 532, 276, "Atalhos", 13, 700, t["texto"])
+        + pil_c(ax + 610, 296, "Ver ocorrências", t["bg"], t["azul"], 11, 12, t["azul"])
+        + pil_c(ax + 610, 332, "Ver relatórios", t["bg"], t["azul"], 11, 12, t["azul"])
+        + f'<g class="{ate_fim(2, 2.0, 6)}">{caixa(ax + 530, 378, 160, 54, t["amarelo_suave"], t["amarelo"], 8)}{rotulo_central(ax + 610, 396, "3 pendências novas", 12, 700, t["amarelo"])}{rotulo_central(ax + 610, 415, "esperam a sua análise", 11, 400, t["mudo"])}</g>'
+    )
+
+    # ---- 3 pendencias ------------------------------------------------------------------------------------
+    dados = [("Ana Souza", "8ºA · Atraso", "Alta", t["vermelho"], "Registrada"), ("Bruno Lima", "9ºB · Desrespeito", "Média", t["amarelo"], "Em análise"), ("Caio Reis", "7ºC · Uso de celular", "Baixa", t["verde"], "Em análise")]
+    pend = ""
+    for i, (nome, sub, prio, cor, st) in enumerate(dados):
+        y = 164 + i * 72
+        cy = y + 30
+        p2, l2 = pil_d(ax + CW - 28, cy - 14, st, t["azul_suave"], t["azul"], 11, 10)
+        p1, _ = pil_d(ax + CW - 28 - l2 - 8, cy - 14, prio, t["bg"], cor, 11, 10, cor)
+        pend += (
+            f'<g class="{ate_fim(3, 0.3 + i * 0.25, 10)}">'
+            + caixa(ax, y, CW, 60, t["painel"], t["azul"] if i == 0 else t["borda"], 8)
+            + f'<circle cx="{ax + 28}" cy="{cy}" r="14" fill="{t["azul"] if i == 0 else t["painel2"]}"/>'
+            + rotulo_central(ax + 28, cy + 0.5, str(i + 1), 13, 800, "#ffffff" if i == 0 else t["mudo"])
+            + tc(ax + 56, cy - 9, nome, 14, 700, t["texto"]) + tc(ax + 56, cy + 11, sub, 11, 400, t["mudo"])
+            + (tc(ax + 170, cy - 9, "Comece por esta", 11, 700, t["azul"], extra='font-style="italic"') if i == 0 else "")
+            + p1 + p2
+            + f'<g class="{A.vis(T(3, 0.3 + i * 0.25), T(3, 2.6), 0, 0.2)}"><circle cx="{ax + CW - 12}" cy="{y + 12}" r="4.5" fill="{t["azul"]}"/></g>'
+            + "</g>"
+        )
+    cenas.append(
         texto(ax, 100, "Pendências", 22, 800, t["texto"])
         + texto(ax, 122, "3 ocorrências esperam a sua análise, da mais urgente para a menos.", 12, 400, t["mudo"])
-        + f'<g class="{A.vis(T(3, 0), T(3, 2.6), 0, 0.2)}">{caixa(ax + 520, 92, 200, 30, t["bg"], t["azul"], 15)}{texto(ax + 620, 112, "Marcar tudo como visto", 11, 700, t["azul"], "middle")}</g>'
-        + f'<g class="{A.vis(T(3, 2.6), T(4, 0), 0, 0.2)}">{caixa(ax + 520, 92, 200, 30, t["bg"], t["borda"], 15)}{texto(ax + 620, 112, "Marcar tudo como não visto", 11, 700, t["mudo"], "middle")}</g>'
-        + lin
-        + f'<g class="{ate_fim(3, 2.9, -6)}">{caixa(ax + 160, 400, 400, 36, t["verde_suave"], t["verde"], 8)}{texto(ax + 360, 423, "Tudo marcado como visto", 12, 700, t["verde"], "middle")}</g>'
+        + f'<g class="{A.vis(T(3, 0), T(3, 2.6), 0, 0.2)}">{botao(ax + CW - 196, 96, 196, 30, "Marcar tudo como visto", t["bg"], t["azul"], t["azul"], 11)}</g>'
+        + f'<g class="{A.vis(T(3, 2.6), T(4, 0), 0, 0.2)}">{botao(ax + CW - 224, 96, 224, 30, "Marcar tudo como não visto", t["bg"], t["mudo"], t["borda"], 11)}</g>'
+        + pend
+        + aviso(3, 2.9, ax + 170, 396, 364, t["verde"], t["verde_suave"], "Tudo marcado como visto")
     )
-    cenas.append(pend)
 
-    # ---- 4 resolver ---------------------------------------------------------------------
-    def stepper(ativa_em):
-        nomes = ["Registrada", "Em análise", "Resolvida", "Encerrada"]
-        s = ""
-        for i, n in enumerate(nomes):
-            x = ax + 20 + i * 176
-            s += f'<circle cx="{x + 10}" cy="212" r="10" fill="{t["bg"]}" stroke="{t["borda"]}" stroke-width="2"/>' + texto(x + 28, 217, n, 12, 500, t["mudo"])
+    # ---- 4 resolver / 5 encerrar (mesmo desenho do estagio) ---------------------------------------------------
+    nomes_est = ["Registrada", "Em análise", "Resolvida", "Encerrada"]
+    cxs = [ax + 90 + i * 176 for i in range(4)]
+    cy_est = 198
+
+    def estagios(base_ate, quando, cor_fim=None):
+        """base_ate: quantos estagios ja estao feitos desde o inicio; quando: {indice: segundo} dos que acendem durante a cena."""
+        s_ = ""
+        for i, nome in enumerate(nomes_est):
+            s_ += f'<circle cx="{cxs[i]}" cy="{cy_est}" r="12" fill="{t["bg"]}" stroke="{t["borda"]}" stroke-width="2"/>' + rotulo_central(cxs[i], cy_est + 36, nome, 12, 500, t["mudo"])
             if i < 3:
-                s += f'<line x1="{x + 118}" x2="{x + 164}" y1="212" y2="212" stroke="{t["borda"]}" stroke-width="2"/>'
-        for i, quando in enumerate(ativa_em):
-            if quando is None:
-                continue
-            x = ax + 20 + i * 176
-            clas = A.vis(T(4, quando), T(5, 0), 0, 0.25)
-            blocos = f'<circle cx="{x + 10}" cy="212" r="10" fill="{t["azul"]}" stroke="{t["azul"]}" stroke-width="2"/><path d="M{x + 5} 212l3.5 3.5 7-7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' + texto(x + 28, 217, nomes[i], 12, 700, t["texto"])
-            if i > 0:
-                blocos += f'<line x1="{x - 58}" x2="{x}" y1="212" y2="212" stroke="{t["azul"]}" stroke-width="2"/>'
-            s += f'<g class="{clas}">{blocos}</g>'
-        return s
+                s_ += f'<line x1="{cxs[i] + 14}" x2="{cxs[i + 1] - 14}" y1="{cy_est}" y2="{cy_est}" stroke="{t["borda"]}" stroke-width="2"/>'
+        for i in range(4):
+            if i < base_ate or i in quando:
+                inicio = 0 if i < base_ate else quando[i]
+                cor = cor_fim if (cor_fim and i == 3) else t["azul"]
+                cena_i = 4 if base_ate <= 2 and not cor_fim else 5
+                clas = A.vis(T(cena_i, inicio), T(cena_i + 1, 0), 0, 0.25)
+                blocos = f'<circle cx="{cxs[i]}" cy="{cy_est}" r="12" fill="{cor}"/>' + check(cxs[i], cy_est, "#ffffff", 0.9) + rotulo_central(cxs[i], cy_est + 36, nome_est(i), 12, 700, t["texto"])
+                if i > 0:
+                    blocos += f'<line x1="{cxs[i - 1] + 14}" x2="{cxs[i] - 14}" y1="{cy_est}" y2="{cy_est}" stroke="{cor}" stroke-width="2"/>'
+                s_ += f'<g class="{clas}">{blocos}</g>'
+        return s_
 
-    resolver = (
+    def nome_est(i):
+        return nomes_est[i]
+
+    cenas.append(
         texto(ax, 100, "Ana Souza · Atraso", 22, 800, t["texto"])
-        + texto(ax, 122, "8ºA · registrada pela professora Marta", 12, 400, t["mudo"])
-        + caixa(ax, 160, 720, 80, t["painel"], t["borda"], 10)
-        + stepper([0.0, 0.6, 3.4, None])
-        + caixa(ax, 256, 720, 130, t["painel"], t["borda"], 10)
-        + texto(ax + 16, 282, "OBSERVAÇÃO", 10, 700, t["mudo"])
-        + texto(ax + 16, 308, "Conversei com a família. Combinamos acompanhar a semana.", 12, 400, t["texto"])
-        + A.digita(ax + 16, 294, 688, 20, 1.0, 2.8, t["painel"])
-        + f'<g class="{A.vis(T(4, 0), T(4, 3.2), 0, 0.2)}">{caixa(ax + 560, 336, 144, 30, t["verde"], None, 15)}{texto(ax + 632, 356, "Marcar resolvida", 12, 700, "#ffffff", "middle")}</g>'
-        + f'<g class="{ate_fim(4, 3.4, -8)}">{caixa(ax + 460, 78, 260, 44, t["verde_suave"], t["verde"], 8)}<path d="M{ax + 478} 100l5 5 9-10" fill="none" stroke="{t["verde"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>{texto(ax + 504, 105, "Status: resolvida", 13, 700, t["verde"])}</g>'
-        + texto(ax, 414, "Quem analisa e resolve é a coordenação. A direção encerra.", 12, 400, t["mudo"])
+        + tc(ax, 120, "8ºA · registrada pela professora Marta", 12, 400, t["mudo"])
+        + caixa(ax, 144, CW, 108, t["painel"], t["borda"], 10)
+        + estagios(2, {2: 3.4})
+        + caixa(ax, 268, CW, 140, t["painel"], t["borda"], 10)
+        + tc(ax + 16, 290, "OBSERVAÇÃO", 10, 700, t["mudo"])
+        + tc(ax + 16, 318, "Conversei com a família. Combinamos acompanhar a semana.", 12, 400, t["texto"])
+        + A.digita(ax + 16, 306, CW - 32, 24, 1.0, 2.8, t["painel"])
+        + f'<g class="{A.vis(T(4, 0), T(4, 3.2), 0, 0.2)}">{botao(ax + CW - 16 - 150, 360, 150, 32, "Marcar resolvida", t["verde"], "#ffffff")}</g>'
+        + aviso(4, 3.4, ax + CW - 270, 78, 270, t["verde"], t["verde_suave"], "Status: resolvida")
+        + tc(ax, 434, "Quem analisa e resolve é a coordenação. A direção encerra.", 12, 400, t["mudo"])
     )
-    cenas.append(resolver)
 
-    # ---- 5 encerrar -----------------------------------------------------------------------
-    encerrar = (
+    cenas.append(
         texto(ax, 100, "Ana Souza · Atraso", 22, 800, t["texto"])
-        + texto(ax, 122, "8ºA · direção", 12, 400, t["mudo"])
-        + caixa(ax, 160, 720, 80, t["painel"], t["borda"], 10)
-        + "".join(
-            f'<circle cx="{ax + 30 + i * 176}" cy="212" r="10" fill="{t["azul"]}" stroke="{t["azul"]}" stroke-width="2"/><path d="M{ax + 25 + i * 176} 212l3.5 3.5 7-7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
-            + texto(ax + 48 + i * 176, 217, n, 12, 700, t["texto"])
-            + (f'<line x1="{ax + 138 + i * 176}" x2="{ax + 184 + i * 176}" y1="212" y2="212" stroke="{t["azul"]}" stroke-width="2"/>' if i < 2 else "")
-            for i, n in enumerate(["Registrada", "Em análise", "Resolvida"])
-        )
-        + f'<circle cx="{ax + 558}" cy="212" r="10" fill="{t["bg"]}" stroke="{t["borda"]}" stroke-width="2"/>{texto(ax + 576, 217, "Encerrada", 12, 500, t["mudo"])}'
-        + f'<g class="{ate_fim(5, 2.8)}"><circle cx="{ax + 558}" cy="212" r="10" fill="{t["roxo"]}" stroke="{t["roxo"]}" stroke-width="2"/><path d="M{ax + 553} 212l3.5 3.5 7-7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>{texto(ax + 576, 217, "Encerrada", 12, 700, t["texto"])}<line x1="{ax + 494}" x2="{ax + 548}" y1="212" y2="212" stroke="{t["roxo"]}" stroke-width="2"/></g>'
-        + caixa(ax, 256, 720, 130, t["painel"], t["borda"], 10)
-        + texto(ax + 16, 282, "SITUAÇÃO", 10, 700, t["mudo"])
-        + f'<g class="{A.vis(T(5, 0), T(5, 2.8), 0, 0.25)}">{pilula(ax + 16, 294, "Resolvida", t["verde_suave"], t["verde"], 12, 12, t["verde"])[0]}{texto(ax + 120, 312, "Falta o ato formal de encerramento.", 12, 400, t["mudo"])}{caixa(ax + 590, 336, 114, 30, t["azul"], None, 15)}{texto(ax + 647, 356, "Encerrar", 12, 700, "#ffffff", "middle")}</g>'
-        + f'<g class="{ate_fim(5, 2.8)}">{pilula(ax + 16, 294, "Encerrada", t["roxo_suave"], t["roxo"], 12, 12, t["roxo"])[0]}{texto(ax + 120, 312, "Somente leitura, para sempre.", 12, 400, t["mudo"])}'
-        + f'<rect x="{ax + 16}" y="336" width="26" height="22" rx="4" fill="none" stroke="{t["mudo"]}" stroke-width="2"/><path d="M{ax + 21} 336v-5a8 8 0 0 1 16 0v5" fill="none" stroke="{t["mudo"]}" stroke-width="2"/>{texto(ax + 54, 352, "Ninguém edita, ninguém apaga.", 12, 600, t["mudo"])}</g>'
-        + f'<g class="{ate_fim(5, 3.0, -8)}">{caixa(ax + 460, 78, 260, 44, t["roxo_suave"], t["roxo"], 8)}<path d="M{ax + 478} 100l5 5 9-10" fill="none" stroke="{t["roxo"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>{texto(ax + 504, 105, "Ocorrência encerrada", 13, 700, t["roxo"])}</g>'
+        + tc(ax, 120, "8ºA · direção", 12, 400, t["mudo"])
+        + caixa(ax, 144, CW, 108, t["painel"], t["borda"], 10)
+        + estagios(3, {3: 2.8}, t["roxo"])
+        + caixa(ax, 268, CW, 140, t["painel"], t["borda"], 10)
+        + tc(ax + 16, 290, "SITUAÇÃO", 10, 700, t["mudo"])
+        + f'<g class="{A.vis(T(5, 0), T(5, 2.8), 0, 0.25)}">{pilula(ax + 16, 304, "Resolvida", t["verde_suave"], t["verde"], 12, 12, t["verde"])[0]}{tc(ax + 120, 318, "Falta o ato formal de encerramento.", 12, 400, t["mudo"])}{botao(ax + CW - 16 - 120, 356, 120, 32, "Encerrar", t["azul"], "#ffffff")}</g>'
+        + f'<g class="{ate_fim(5, 2.8)}">{pilula(ax + 16, 304, "Encerrada", t["roxo_suave"], t["roxo"], 12, 12, t["roxo"])[0]}{tc(ax + 120, 318, "Somente leitura, para sempre.", 12, 400, t["mudo"])}'
+        + f'<g transform="translate({ax + 16} 354)"><rect x="0" y="9" width="18" height="14" rx="3" fill="none" stroke="{t["mudo"]}" stroke-width="2"/><path d="M3.5 9V6a5.5 5.5 0 0 1 11 0v3" fill="none" stroke="{t["mudo"]}" stroke-width="2"/></g>{tc(ax + 44, 369, "Ninguém edita, ninguém apaga.", 12, 600, t["mudo"])}</g>'
+        + aviso(5, 3.0, ax + CW - 270, 78, 270, t["roxo"], t["roxo_suave"], "Ocorrência encerrada")
     )
-    cenas.append(encerrar)
 
-    # ---- 6 historico ----------------------------------------------------------------------
+    # ---- 6 historico -----------------------------------------------------------------------------------------------
     eventos = [("Registrada", "Marta Alves · professora", "02/11, 08:12", t["azul"]), ("Em análise", "Paulo Reis · coordenação", "02/11, 09:40", t["amarelo"]), ("Resolvida", "Paulo Reis · coordenação", "03/11, 10:05", t["verde"]), ("Encerrada", "Helena Prado · direção", "03/11, 15:30", t["roxo"])]
-    tl = f'<path class="{A.traco(T(6, 0.4), 2.6)}" pathLength="1" d="M{ax + 14} 170V398" fill="none" stroke="{t["borda"]}" stroke-width="2"/>'
+    tl = f'<g class="{A.cresce(T(6, 0.4), 2.6, "y")}"><rect x="{ax + 13}" y="170" width="2" height="226" fill="{t["borda"]}"/></g>'
     for i, (acao, quem, quando, cor) in enumerate(eventos):
-        y = 152 + i * 76
+        y = 150 + i * 76
+        cy = y + 29
         tl += (
             f'<g class="{ate_fim(6, 0.4 + i * 0.7, 8)}">'
-            + f'<circle cx="{ax + 14}" cy="{y + 18}" r="8" fill="{cor}"/>'
-            + caixa(ax + 40, y, 680, 58, t["painel"], t["borda"], 8)
-            + texto(ax + 56, y + 25, acao, 14, 700, t["texto"])
-            + texto(ax + 56, y + 45, quem, 12, 400, t["mudo"])
-            + texto(ax + 704, y + 30, quando, 12, 500, t["mudo"], "end")
+            + f'<circle cx="{ax + 14}" cy="{cy}" r="8" fill="{cor}"/>'
+            + caixa(ax + 40, y, CW - 40, 58, t["painel"], t["borda"], 8)
+            + tc(ax + 56, cy - 9, acao, 14, 700, t["texto"]) + tc(ax + 56, cy + 11, quem, 12, 400, t["mudo"])
+            + tc(ax + CW - 16, cy, quando, 12, 500, t["mudo"], "end")
             + "</g>"
         )
-    hist = (
+    cenas.append(
         texto(ax, 100, "Histórico", 22, 800, t["texto"])
         + texto(ax, 122, "Cada passo, com autor, data e hora. Ninguém edita nem apaga.", 12, 400, t["mudo"])
         + tl
     )
-    cenas.append(hist)
 
-    # ---- 7 relatorios ---------------------------------------------------------------------
+    # ---- 7 relatorios ------------------------------------------------------------------------------------------------
     barras = ""
-    for i, (nome, val, larg) in enumerate([("1ºA · Informática", "5", 300), ("2ºB · Desenvolvimento", "4", 240), ("3ºB · Desenvolvimento", "4", 240)]):
-        y = 232 + i * 42
+    for i, (nome, val, larg) in enumerate([("1ºA · Informática", "5", 292), ("2ºB · Desenvolvimento", "4", 234), ("3ºB · Desenvolvimento", "4", 234)]):
+        y = 246 + i * 46
         barras += (
-            texto(ax + 16, y + 12, nome, 12, 500, t["texto"])
-            + f'<rect x="{ax + 16}" y="{y + 20}" width="320" height="8" rx="4" fill="{t["painel2"]}"/>'
-            + f'<rect class="{A.cresce(T(7, 0.5 + i * 0.25), 0.9)}" x="{ax + 16}" y="{y + 20}" width="{larg}" height="8" rx="4" fill="{t["azul"]}"/>'
-            + texto(ax + 336, y + 12, val, 12, 800, t["texto"], "end")
+            tc(ax + 16, y, nome, 12, 500, t["texto"]) + tc(ax + 324, y, val, 12, 800, t["texto"], "end")
+            + f'<rect x="{ax + 16}" y="{y + 12}" width="308" height="8" rx="4" fill="{t["painel2"]}"/>'
+            + f'<rect class="{A.cresce(T(7, 0.5 + i * 0.25), 0.9)}" x="{ax + 16}" y="{y + 12}" width="{larg}" height="8" rx="4" fill="{t["azul"]}"/>'
         )
-    colunas = ""
+    cols = ""
     for i, (mes, alt) in enumerate([("jun", 40), ("jul", 70), ("ago", 52), ("set", 96), ("out", 120), ("nov", 64)]):
-        x = ax + 396 + i * 48
-        colunas += (
-            f'<rect class="{A.cresce(T(7, 0.6 + i * 0.15), 0.7, "y")}" x="{x}" y="{384 - alt}" width="26" height="{alt}" rx="3" fill="{t["azul"]}" opacity="{0.5 + i * 0.1:.2f}"/>'
-            + texto(x + 13, 402, mes, 10, 500, t["mudo"], "middle")
+        x = ax + 356 + 20 + i * 52
+        cols += (
+            f'<rect class="{A.cresce(T(7, 0.6 + i * 0.15), 0.7, "y")}" x="{x}" y="{380 - alt}" width="28" height="{alt}" rx="3" fill="{t["azul"]}" opacity="{0.5 + i * 0.1:.2f}"/>'
+            + rotulo_central(x + 14, 394, mes, 10, 500, t["mudo"])
         )
-    rel = (
+    filtros = ""
+    for i, rot in enumerate(["Ano: 2026", "Bimestre: todos", "Turma: todas"]):
+        filtros += caixa(ax + i * 150, 142, 138, 30, t["bg"], t["borda"], 6) + tc(ax + 14 + i * 150, 157, rot, 11, 500, t["texto"])
+    cenas.append(
         texto(ax, 100, "Relatórios", 22, 800, t["texto"])
         + texto(ax, 122, "Mostrando ocorrências do ano de 2026.", 12, 400, t["mudo"])
-        + "".join(
-            caixa(ax + i * 150, 142, 138, 30, t["bg"], t["borda"], 6) + texto(ax + 12 + i * 150, 162, rot, 11, 500, t["texto"])
-            for i, rot in enumerate(["Ano: 2026", "Bimestre: todos", "Turma: todas"])
-        )
-        + caixa(ax + 540, 142, 180, 30, t["azul"], None, 15)
-        + texto(ax + 630, 162, "Baixar planilha (Excel)", 11, 700, "#ffffff", "middle")
-        + caixa(ax, 192, 360, 210, t["painel"], t["borda"], 10)
-        + texto(ax + 16, 216, "Por turma", 13, 700, t["texto"])
+        + filtros
+        + botao(ax + CW - 188, 142, 188, 30, "Baixar planilha (Excel)", t["azul"], "#ffffff", None, 11)
+        + caixa(ax, 192, 340, 224, t["painel"], t["borda"], 10) + tc(ax + 16, 214, "Por turma", 13, 700, t["texto"])
         + barras
-        + caixa(ax + 376, 192, 344, 210, t["painel"], t["borda"], 10)
-        + texto(ax + 392, 216, "Mês a mês", 13, 700, t["texto"])
-        + colunas
-        + f'<g class="{ate_fim(7, 3.1, -8)}">{caixa(ax + 440, 78, 280, 44, t["verde_suave"], t["verde"], 8)}<path d="M{ax + 458} 100l5 5 9-10" fill="none" stroke="{t["verde"]}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>{texto(ax + 484, 105, "ocorrencias-2026.xlsx baixada", 12, 700, t["verde"])}</g>'
+        + caixa(ax + 356, 192, 348, 224, t["painel"], t["borda"], 10) + tc(ax + 372, 214, "Mês a mês", 13, 700, t["texto"])
+        + cols
+        + aviso(7, 3.1, ax + CW - 300, 78, 300, t["verde"], t["verde_suave"], "ocorrencias-2026.xlsx baixada")
     )
-    cenas.append(rel)
 
+    quem = {1: ("Marta Alves", "MA"), 2: ("Paulo Reis", "PR"), 3: ("Paulo Reis", "PR"), 4: ("Paulo Reis", "PR"), 5: ("Helena Prado", "HP"), 6: ("Helena Prado", "HP"), 7: ("Paulo Reis", "PR")}
+    primeira = ver(0, S)
     corpo = ""
     for i, c in enumerate(cenas):
-        corpo += f'<g class="{A.vis(i * S, (i + 1) * S, 0, 0.35)}">' + (menu if i > 0 else "") + c + "</g>"
-    corpo += destaques
+        corpo += f'<g class="{ver(i * S, (i + 1) * S)}">' + (menu(i, *quem[i]) if i > 0 else "") + c + "</g>"
 
-    legendas = ["1  Professor entra", "2  Coordenação abre o início", "3  Professor registra", "4  A fila chega em ordem de urgência", "5  Coordenação analisa e resolve", "6  Direção encerra", "7  Tudo fica no histórico", "8  Relatórios do ano, em planilha"]
-    leg = "".join(f'<g class="{A.vis(i * S, (i + 1) * S, 0, 0.3)}">{texto(w / 2, 560, l, 15, 700, t["texto"], "middle")}</g>' for i, l in enumerate(legendas))
+    legendas = ["1  Professor entra", "2  Professor registra", "3  Coordenação abre o início", "4  A fila chega por urgência", "5  Coordenação analisa e resolve", "6  Direção encerra", "7  Tudo fica no histórico", "8  Relatórios do ano, em planilha"]
+    leg = "".join(f'<g class="{ver(i * S, (i + 1) * S)}">{rotulo_central(w / 2, 556, l, 15, 700, t["texto"])}</g>' for i, l in enumerate(legendas))
     bol = "".join(
-        f'<circle cx="{w / 2 - 70 + i * 20}" cy="582" r="4" fill="{t["borda"]}"/><circle class="{A.vis(i * S, (i + 1) * S, 0, 0.3)}" cx="{w / 2 - 70 + i * 20}" cy="582" r="4" fill="{t["azul"]}"/>'
+        f'<circle cx="{w / 2 - 70 + i * 20}" cy="580" r="4" fill="{t["borda"]}"/><circle class="{ver(i * S, (i + 1) * S)}" cx="{w / 2 - 70 + i * 20}" cy="580" r="4" fill="{t["azul"]}"/>'
         for i in range(8)
     )
-    # cursor e cliques
-    alvos = [(480, 368, 2.9), (90, 285, 3.0), (ax + 647, 418, 3.3), (ax + 620, 107, 2.6), (ax + 632, 351, 3.1), (ax + 647, 351, 2.7), (ax + 420, 330, 1.8), (ax + 630, 157, 3.0)]
+
+    # cursor: centro de cada alvo e o segundo (dentro da cena) em que o clique acontece
+    alvos = [
+        (480, 381, 2.9),  # Entrar
+        (ax + CW - 16 - 60, 425, 3.1),  # Registrar
+        (106, wy + 154 + 34, 3.0),  # menu Pendencias
+        (ax + CW - 98, 111, 2.6),  # Marcar tudo como visto
+        (ax + CW - 16 - 75, 376, 3.2),  # Marcar resolvida
+        (ax + CW - 16 - 60, 372, 2.6),  # Encerrar
+        (ax + 380, 290, None),  # historico (so passa)
+        (ax + CW - 94, 157, 3.0),  # Baixar planilha
+    ]
     pontos = [(i * S + 1.2, x, y) for i, (x, y, _) in enumerate(alvos)]
-    ondas = "".join(A.onda(x, y, i * S + c, t["azul"]) for i, (x, y, c) in enumerate(alvos) if i != 6)
+    ondas = "".join(A.onda(x, y, i * S + c, t["azul"]) for i, (x, y, c) in enumerate(alvos) if c is not None)
+    # movimento reduzido: fica so a tela de entrada, sem aneis de clique nem cursor
+    reduzido = f".{primeira}{{visibility:visible!important}}.cursor,circle[class^=o]{{display:none}}"
     seta = A.cursor(pontos, t["texto"], t["bg"])
     css = A.css()
-    return cabeca(w, h, "Passeio animado pelo Polar: login, início, registro, fila de pendências, resolução, encerramento, histórico e relatórios.", css) + quadro + corpo + ondas + leg + bol + seta + "</svg>"
+    return cabeca(w, h, "Passeio animado pelo Polar: login, registro, início, fila de pendências, resolução, encerramento, histórico e relatórios.", css, css_depois=reduzido) + quadro + corpo + ondas + leg + bol + seta + "</svg>"
 
 
 # =============================================================================================
@@ -741,10 +770,13 @@ def arquitetura(t):
     corpo += no(24, 112, 170, 90, "Navegador", "quem usa o Polar", t["texto"], t["painel"], 0)
     corpo += no(262, 44, 336, 84, "Site", "React 18 · Vite · TypeScript", t["azul"], t["azul_suave"], 0.15)
     corpo += no(262, 150, 336, 124, "API em /api", "Node 20 · Express 5 · TypeScript", t["verde"], t["verde_suave"], 0.3, True)
-    for i, (rot, cor, suave) in enumerate([("JWT + bcrypt", t["amarelo"], t["amarelo_suave"]), ("Permissão por papel", t["roxo"], t["roxo_suave"]), ("Zod", t["azul"], t["azul_suave"])]):
-        larg = [112, 142, 56][i]
-        x = 276 + [0, 120, 270][i]
-        corpo += f'<g class="p" style="animation-delay:{0.5 + i * 0.1:.1f}s">{pilula(x, 232, rot, suave, cor, 12, 10, cor)[0]}</g>'
+    itens_api = [("JWT + bcrypt", t["amarelo"], t["amarelo_suave"]), ("Permissão por papel", t["roxo"], t["roxo_suave"]), ("Zod", t["azul"], t["azul_suave"])]
+    larguras = [pilula(0, 0, r_, "x", "x", 12, 12)[1] for r_, _, _ in itens_api]
+    folga = 10
+    x0 = 262 + (336 - (sum(larguras) + folga * (len(itens_api) - 1))) / 2  # centrado no cartao da API (x 262, largura 336)
+    for i, (rot, cor, suave) in enumerate(itens_api):
+        corpo += f'<g class="p" style="animation-delay:{0.5 + i * 0.1:.1f}s">{pilula(x0, 232, rot, suave, cor, 12, 12, cor)[0]}</g>'
+        x0 += larguras[i] + folga
     corpo += no(742, 128, 226, 96, "PostgreSQL", "Supabase, com transações", t["azul"], t["azul_suave"], 0.7)
     for x1, y1, x2, y2 in [(196, 157, 260, 86), (196, 157, 260, 212), (600, 212, 740, 176)]:
         corpo += f'<line class="fio" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{t["mudo"]}" stroke-width="2"/>'
@@ -790,43 +822,43 @@ def polaris(t):
 MONO = "'SF Mono',SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,'Liberation Mono',monospace"
 
 
-def terminal(t, titulo_janela, linhas, aria, claro):
-    """linhas: ('cmd', texto) | ('out', texto) | ('com', texto) | ('env', 'CHAVE=valor') | ('vazio', '')."""
+def barra_terminal(t, titulo_janela):
+    """So a barra da janela do Terminal do macOS: o codigo logo abaixo e um bloco de codigo de verdade (selecionavel, com botao de copiar)."""
+    w, h = 1000, 40
+    corpo = (
+        f'<path d="M0.5 {h}V10.5a10 10 0 0 1 10-10H{w - 10.5}a10 10 0 0 1 10 10V{h}z" fill="{t["painel2"]}" stroke="{t["borda"]}"/>'
+        + "".join(f'<circle cx="{22 + i * 22}" cy="{h / 2}" r="6.5" fill="{c}"/>' for i, c in enumerate(["#ff5f56", "#ffbd2e", "#27c93f"]))
+        + rotulo_central(w / 2, h / 2 + 1, titulo_janela, 14, 500, t["mudo"])
+    )
+    return cabeca(w, h, f"Janela do Terminal: {titulo_janela}", "") + corpo + "</svg>"
+
+
+def terminal(t, titulo_janela, linhas, aria):
+    """Terminal animado (so para mostrar, sem comando para copiar). Usa a mesma paleta da demonstracao."""
     w = 1000
     alt_l = 26
-    h = 56 + alt_l * len(linhas) + 20
+    h = 60 + alt_l * len(linhas)
     A = Anim(3 + 0.55 * len(linhas) + 4)
-    if claro:
-        corpo_bg, barra_bg, texto_c, mudo_c, prompt_c, borda_c = "#ffffff", "#e8e8e8", "#1f2328", "#6e7781", "#1a7f37", "#d0d7de"
-        verde_c, azul_c = "#1a7f37", "#0550ae"
-    else:
-        corpo_bg, barra_bg, texto_c, mudo_c, prompt_c, borda_c = "#1e1e1e", "#323232", "#e6e6e6", "#8b949e", "#3fb950", "#3a3a3a"
-        verde_c, azul_c = "#3fb950", "#79c0ff"
     cont = (
-        f'<rect x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="10" fill="{corpo_bg}" stroke="{borda_c}"/>'
-        f'<path d="M0.5 36V10.5a10 10 0 0 1 10-10H{w - 10.5}a10 10 0 0 1 10 10V36z" fill="{barra_bg}"/>'
-        + "".join(f'<circle cx="{20 + i * 20}" cy="18" r="6" fill="{c}"/>' for i, c in enumerate(["#ff5f56", "#ffbd2e", "#27c93f"]))
-        + f'<text x="{w / 2}" y="23" font-size="13" fill="{mudo_c}" text-anchor="middle" style="font-family:{FONTE}">{titulo_janela}</text>'
+        caixa(0.5, 0.5, w - 1, h - 1, t["painel"], t["borda"], 10)
+        + f'<path d="M0.5 40V10.5a10 10 0 0 1 10-10H{w - 10.5}a10 10 0 0 1 10 10V40z" fill="{t["painel2"]}" stroke="{t["borda"]}"/>'
+        + "".join(f'<circle cx="{22 + i * 22}" cy="20" r="6.5" fill="{c}"/>' for i, c in enumerate(["#ff5f56", "#ffbd2e", "#27c93f"]))
+        + rotulo_central(w / 2, 21, titulo_janela, 14, 500, t["mudo"])
     )
-    y = 66
-    for i, (tipo, s) in enumerate(linhas):
-        s = s.replace("&", "&amp;").replace("<", "&lt;")
+    y = 72
+    for i, (tipo, s_) in enumerate(linhas):
+        s_ = s_.replace("&", "&amp;").replace("<", "&lt;")
         quando = 0.5 + i * 0.55
         if tipo == "vazio":
             y += alt_l
             continue
         if tipo == "cmd":
-            conteudo = f'<tspan fill="{prompt_c}" font-weight="700">polar</tspan><tspan fill="{mudo_c}"> %</tspan><tspan fill="{texto_c}"> {s}</tspan>'
-        elif tipo == "com":
-            conteudo = f'<tspan fill="{mudo_c}">{s}</tspan>'
-        elif tipo == "env":
-            k, _, v = s.partition("=")
-            conteudo = f'<tspan fill="{azul_c}">{k}</tspan><tspan fill="{mudo_c}">=</tspan><tspan fill="{verde_c}">{v}</tspan>'
+            conteudo = f'<tspan fill="{t["verde"]}" font-weight="700">polar</tspan><tspan fill="{t["mudo"]}"> %</tspan><tspan fill="{t["texto"]}"> {s_}</tspan>'
         else:
-            conteudo = f'<tspan fill="{texto_c}">{s}</tspan>'
-        cont += f'<g class="{A.vis(quando, A.d, 4, 0.3)}"><text x="22" y="{y}" font-size="15" style="font-family:{MONO}" xml:space="preserve">{conteudo}</text></g>'
+            conteudo = f'<tspan fill="{t["texto"]}">{s_}</tspan>'
+        cont += f'<g class="{A.vis(quando, A.d, 4, 0.3)}"><text x="24" y="{y}" font-size="15" style="font-family:{MONO}" xml:space="preserve">{conteudo}</text></g>'
         y += alt_l
-    cont += f'<rect class="cursor-t" x="22" y="{y - 14}" width="9" height="18" fill="{texto_c}"/>'
+    cont += f'<rect class="cursor-t" x="24" y="{y - 14}" width="9" height="18" fill="{t["texto"]}"/>'
     css = A.css() + ".cursor-t{animation:pisca 1.1s steps(1) infinite}@keyframes pisca{50%{opacity:0}}"
     return cabeca(w, h, aria, css) + cont + "</svg>"
 
@@ -864,69 +896,55 @@ def doc_card(t, titulo, desc):
     return cabeca(w, h, f"{titulo}: {desc}", css) + corpo + "</svg>"
 
 
-def terminais(claro):
-    return {
-        "terminal-comece": ("polar : zsh", [
-            ("cmd", "pnpm install"),
-            ("out", "Done in 14.3s"),
-            ("vazio", ""),
-            ("com", "# apps/api/.env (a partir do .env.example)"),
-            ("env", "NODE_ENV=development"),
-            ("env", "PORT=3000"),
-            ("env", "CORS_ORIGIN=http://localhost:5173"),
-            ("env", "JWT_SECRET=um-segredo-forte-com-pelo-menos-32-caracteres"),
-            ("env", "DATABASE_PROVIDER=json"),
-            ("env", "SEED_SENHA_PADRAO=escolha-uma-senha-de-teste"),
-            ("env", "NOME_ESCOLA=Nome da sua escola"),
-            ("vazio", ""),
-            ("cmd", "pnpm seed   # dados de demonstração"),
-            ("cmd", "pnpm dev    # site em :5173 e API em :3000"),
-        ], "Terminal: pnpm install, arquivo .env, pnpm seed e pnpm dev."),
-        "terminal-postgres": ("polar : zsh", [
-            ("cmd", "docker run --name polar-pg -e POSTGRES_USER=polar -e POSTGRES_PASSWORD=polar \\"),
-            ("out", "  -e POSTGRES_DB=polar -p 5432:5432 -d postgres:16"),
-            ("cmd", "psql postgresql://polar:polar@localhost:5432/polar -f database/schema.sql"),
-            ("vazio", ""),
-            ("com", "# no .env"),
-            ("env", "DATABASE_PROVIDER=postgres"),
-            ("env", "DATABASE_URL=postgresql://polar:polar@localhost:5432/polar"),
-        ], "Terminal: subir o PostgreSQL com Docker, aplicar o schema e configurar o .env."),
-        "terminal-qualidade": ("polar : zsh", [
-            ("cmd", "pnpm lint        # ESLint"),
-            ("cmd", "pnpm typecheck   # tsc na API e no site"),
-            ("cmd", "pnpm test        # Vitest: API (HTTP real) e site"),
-            ("cmd", "pnpm build       # build de produção"),
-            ("vazio", ""),
-            ("com", "# o CI roda os quatro em todo push e pull request"),
-        ], "Terminal: pnpm lint, typecheck, test e build."),
-        "terminal-estrutura": ("polar : zsh", [
-            ("cmd", "tree -L 2 -d"),
-            ("out", "."),
-            ("out", "├── apps"),
-            ("out", "│   ├── api        Express + TypeScript: auth, usuários, turmas, alunos,"),
-            ("out", "│   │              ocorrências, notas, faltas, dashboard, relatórios, auditoria"),
-            ("out", "│   └── web        React + TypeScript: telas, componentes, estúdio de avatar"),
-            ("out", "├── database       schema.sql, contas e dados de demonstração"),
-            ("out", "├── docs           produto, arquitetura, banco, testes, segurança, deploy"),
-            ("out", "└── scripts        migração de dados, roteiro dos 6 passos e imagens do README"),
-        ], "Terminal: a estrutura de pastas do repositório."),
-    }
+def estrutura():
+    return ("polar : zsh", [
+        ("cmd", "tree -L 2 -d"),
+        ("out", "."),
+        ("out", "├── apps"),
+        ("out", "│   ├── api        Express + TypeScript: auth, usuários, turmas, alunos,"),
+        ("out", "│   │              ocorrências, notas, faltas, dashboard, relatórios, auditoria"),
+        ("out", "│   └── web        React + TypeScript: telas, componentes, estúdio de avatar"),
+        ("out", "├── database       schema.sql, contas e dados de demonstração"),
+        ("out", "├── docs           produto, arquitetura, banco, testes, segurança, deploy"),
+        ("out", "└── scripts        migração de dados, roteiro dos 6 passos e imagens do README"),
+    ], "Terminal: a estrutura de pastas do repositório.")
 
 
 def main():
     SAIDA.mkdir(parents=True, exist_ok=True)
-    pecas = dict(banner=banner, demo=demo, fluxo=fluxo, recursos=recursos, papeis=papeis, seguranca=seguranca, arquitetura=arquitetura, polaris=polaris, entrega=entrega, regras=regras)
+    pecas = dict(banner=banner, demo=demo, fluxo=fluxo, recursos=recursos, papeis=papeis, seguranca=seguranca, arquitetura=arquitetura, polaris=polaris, entrega=entrega, regras=regras, passeio=passeio)
     for nome_tema, t in TEMAS.items():
-        claro = nome_tema == "claro"
         for nome, fn in pecas.items():
             svg = fn(t)
             (SAIDA / f"{nome}-{nome_tema}.svg").write_text(svg, encoding="utf-8")
             print(f"{nome}-{nome_tema}.svg  {len(svg) / 1024:.1f} KB")
-        for nome, (janela, linhas, aria) in terminais(claro).items():
-            (SAIDA / f"{nome}-{nome_tema}.svg").write_text(terminal(t, janela, linhas, aria, claro), encoding="utf-8")
+        for nome, titulo in [("barra-comece", "polar : começar"), ("barra-postgres", "polar : postgresql"), ("barra-qualidade", "polar : qualidade")]:
+            (SAIDA / f"{nome}-{nome_tema}.svg").write_text(barra_terminal(t, titulo), encoding="utf-8")
+        janela, linhas, aria = estrutura()
+        (SAIDA / f"terminal-estrutura-{nome_tema}.svg").write_text(terminal(t, janela, linhas, aria), encoding="utf-8")
         for slug, titulo, desc in DOCS:
             (SAIDA / f"doc-{slug}-{nome_tema}.svg").write_text(doc_card(t, titulo, desc), encoding="utf-8")
     return 0
+
+
+def passeio(t):
+    return tabela(
+        t,
+        "As 8 telas do passeio: entrada, início, registro, pendências, resolução, encerramento, histórico e relatórios.",
+        ["^#", "Tela", "O que você vê"],
+        [
+            ["*1", "Entrada", "O professor entra com o e-mail da escola."],
+            ["*2", "Início", "O painel do dia: números, últimas ocorrências e o aviso de pendências."],
+            ["*3", "Registro", "Aluno, categoria, gravidade e relato numa tela só. O aviso confirma."],
+            ["*4", "Pendências", "A fila chega em ordem de urgência, e a primeira vem marcada."],
+            ["*5", "Resolução", "A coordenação analisa, escreve a observação e marca como resolvida."],
+            ["*6", "Encerramento", "A direção encerra. Dali em diante a ocorrência é só leitura."],
+            ["*7", "Histórico", "Cada passo, com autor, data e hora. Ninguém edita nem apaga."],
+            ["*8", "Relatórios", "Gráficos do ano e planilha do Excel para baixar."],
+        ],
+        [80, 200, 720],
+        linha_h=46,
+    )
 
 
 def entrega(t):
