@@ -514,6 +514,72 @@
   font-weight: 700;
 }
 
+.pendencias-bell-caixa {
+  position: relative;
+}
+
+.pendencias-bell__painel {
+  position: fixed;
+  z-index: 40;
+  width: min(320px, calc(100vw - var(--space-6)));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.pendencias-bell__titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+}
+
+.pendencias-bell__titulo button {
+  border: 0;
+  background: transparent;
+  color: var(--color-link);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pendencias-bell__painel ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pendencias-bell__painel li a {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.pendencias-bell__painel li a:hover {
+  background: var(--color-primary-soft);
+}
+
+.pendencias-bell__painel small {
+  color: var(--color-text-muted);
+}
+
+.pendencias-bell__todas {
+  display: block;
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-link);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
 /* ---------- Cabecalho de pagina ---------- */
 
 .page-header {
