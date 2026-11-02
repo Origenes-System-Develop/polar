@@ -5,6 +5,7 @@ import { canAccess } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
@@ -175,7 +176,7 @@ export function AlunosPage() {
         {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
         <Card title="Lista de alunos" action={canManage ? <Button variant="secondary" onClick={() => abrirModal()}>Novo aluno</Button> : null}>
           {loading ? (
-            <p className="muted">Carregando alunos...</p>
+            <Carregando texto="Carregando alunos..." linhas={3} />
           ) : (
             <Table
               data={data}

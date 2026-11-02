@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Card } from "../../components/ui/Card";
+import { Carregando } from "../../components/ui/Carregando";
 import { Table } from "../../components/ui/Table";
 import { Tabs } from "../../components/ui/Tabs";
 import type { AlunoDetalhado, AlunoTurmaHistorico, Falta, Nota, OcorrenciaDetalhada, Turma } from "../../services/domain";
@@ -62,7 +63,7 @@ export function PerfilAlunoPage() {
       <>
         <PageHeader title="Histórico do aluno" breadcrumb={[{ label: "Início", to: "/" }, { label: "Alunos", to: "/alunos" }, { label: "Carregando" }]} />
         <Card>
-          <p className="muted">Carregando histórico...</p>
+          <Carregando texto="Carregando histórico..." linhas={3} />
         </Card>
       </>
     );

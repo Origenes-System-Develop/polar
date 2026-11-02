@@ -5,6 +5,7 @@ import { useAuth } from "../../app/providers";
 import { canAccess } from "../../app/permissions";
 import { rotuloDePapel } from "../../components/layout/iniciais";
 import { Avatar } from "../../components/ui/Avatar";
+import { Carregando } from "../../components/ui/Carregando";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Table } from "../../components/ui/Table";
@@ -151,7 +152,7 @@ export function DashboardPage() {
         <div className="grid-2-wide">
           <Card title="Últimas ocorrências">
             {loading ? (
-              <p className="muted">Carregando ocorrências...</p>
+              <Carregando texto="Carregando ocorrências..." linhas={3} />
             ) : ocorrencias.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-state__icon" aria-hidden="true">
@@ -217,7 +218,7 @@ function MovimentacoesRecentesPanel({ movimentacoes, loading }: { movimentacoes:
   return (
     <Card title="O que mudou">
       {loading ? (
-        <p className="muted">Carregando...</p>
+        <Carregando texto="Carregando..." linhas={3} />
       ) : movimentacoes.length === 0 ? (
         <p className="muted">Nada mudou por aqui ainda.</p>
       ) : (

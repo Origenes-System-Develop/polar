@@ -5,6 +5,7 @@ import { canAccess, type Permission } from "../../app/permissions";
 import { useAuth } from "../../app/providers";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
+import { Carregando } from "../../components/ui/Carregando";
 import { Card } from "../../components/ui/Card";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
@@ -159,7 +160,7 @@ export function DetalheOcorrenciaPage() {
       <>
         <PageHeader title="Ocorrência" breadcrumb={[{ label: "Início", to: "/" }, { label: "Ocorrências", to: "/ocorrencias" }, { label: "Carregando" }]} />
         <Card>
-          <p className="muted">Carregando ocorrencia...</p>
+          <Carregando texto="Carregando ocorrência..." linhas={4} />
         </Card>
       </>
     );
