@@ -1,9 +1,9 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Polar">
   <rect width="64" height="64" rx="14" fill="#1351b4"/>
   <g transform="translate(8 8)" fill="#fff">
-    <path d="M24 1Q25 22 47 24Q25 26 24 47Q23 26 1 24Q23 22 24 1Z"/>
-    <path d="M24 11Q24.6 23.4 37 24Q24.6 24.6 24 37Q23.4 24.6 11 24Q23.4 23.4 24 11Z" fill="#9ec5ff" transform="rotate(45 24 24)"/>
-    <circle cx="24" cy="24" r="3.2" fill="#1351b4"/>
-    <circle cx="24" cy="24" r="1.6" fill="#fff"/>
+    <path d="M35.31 12.69Q26.24 24.00 35.31 35.31Q24.00 26.24 12.69 35.31Q21.76 24.00 12.69 12.69Q24.00 21.76 35.31 12.69Z" fill-opacity=".45"/>
+    <path d="M24 0.5Q25.5 21 40 24Q25.5 27 24 36Q22.5 27 8 24Q22.5 21 24 0.5Z"/>
+    <path d="M24 36Q24.7 41.5 24 47.5Q23.3 41.5 24 36Z" fill-opacity=".5"/>
+    <circle cx="24" cy="24" r="2.9" fill="#1351b4"/>
   </g>
 </svg>

@@ -405,8 +405,8 @@
   transition: stroke-dashoffset 0.6s ease;
 }
 
-:hover > .marca-polar .marca-polar__estrela,
-.marca-polar:hover .marca-polar__estrela,
+:hover > .marca-polar .marca-polar__estrela--menor,
+.marca-polar:hover .marca-polar__estrela--menor,
 :hover > .marca-polaris .marca-polaris__estrela {
   transform: rotate(60deg) scale(1.08);
 }

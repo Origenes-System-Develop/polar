@@ -3,25 +3,24 @@ import "./ui.css";
 // Desenhos oficiais (pasta de identidade do time): Polar e o sistema, Polaris e a equipe.
 // Inline para herdar a cor do texto e para os tracos poderem ser animados no CSS.
 
-// Brilho de quatro pontas com curvas para dentro. Os pontos sao calculados (raio e giro) para
-// a estrela maior e a menor, girada 45 graus, sairem do mesmo desenho.
+// Brilho de quatro pontas com curvas para dentro: raio e giro em graus. A estrela pequena de
+// tras e o mesmo desenho, girado 45 graus.
 function brilho(raio: number, giro: number): string {
   const p = (r: number, graus: number) => {
     const a = ((graus + giro) * Math.PI) / 180;
     return `${(24 + r * Math.sin(a)).toFixed(2)} ${(24 - r * Math.cos(a)).toFixed(2)}`;
   };
-  // cada lado: da ponta a ponta seguinte, puxado para perto do centro (controle a 45 graus).
-  return [0, 90, 180, 270].map((g, i) => `${i === 0 ? `M${p(raio, g)}` : ""}Q${p(raio * 0.09, g + 45)} ${p(raio, g + 90)}`).join("") + "Z";
+  return [0, 90, 180, 270].map((g, i) => `${i === 0 ? `M${p(raio, g)}` : ""}Q${p(raio * 0.14, g + 45)} ${p(raio, g + 90)}`).join("") + "Z";
 }
 
+// Estrela do norte: a ponta de cima e a mais longa, como a Polar que aponta o norte.
 export function MarcaPolar({ size = 36 }: { size?: number }) {
   return (
     <svg className="marca marca-polar" width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
-      <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="1" strokeDasharray="1.6 4.2" strokeLinecap="round" opacity="0.55" />
-      <path className="marca-polar__estrela" d={brilho(23, 0)} fill="currentColor" />
-      <path className="marca-polar__estrela marca-polar__estrela--menor" d={brilho(13, 45)} fill="currentColor" opacity="0.45" />
-      <circle cx="24" cy="24" r="3.4" fill="var(--color-surface, #fff)" />
-      <circle cx="24" cy="24" r="1.7" fill="currentColor" />
+      <path className="marca-polar__estrela marca-polar__estrela--menor" d={brilho(16, 45)} fill="currentColor" opacity="0.45" />
+      <path className="marca-polar__estrela" d="M24 0.5Q25.5 21 40 24Q25.5 27 24 36Q22.5 27 8 24Q22.5 21 24 0.5Z" fill="currentColor" />
+      <path d="M24 36Q24.7 41.5 24 47.5Q23.3 41.5 24 36Z" fill="currentColor" opacity="0.5" />
+      <circle cx="24" cy="24" r="2.9" fill="var(--color-surface, #fff)" />
     </svg>
   );
 }

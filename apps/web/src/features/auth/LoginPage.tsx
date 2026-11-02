@@ -70,7 +70,7 @@ export function LoginPage() {
       <section className="login-access">
         <div className="login-access__inner">
           <div className="login-brand">
-            <MarcaPolar size={48} />
+            <MarcaPolar size={56} />
             <div>
               <strong>Polar</strong>
             </div>

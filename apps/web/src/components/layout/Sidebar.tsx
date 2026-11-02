@@ -37,7 +37,7 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
         ) : (
           <>
             <div className="sidebar__brand">
-              <MarcaPolar size={38} />
+              <MarcaPolar size={44} />
               <div className="sidebar__brand-text">
                 <strong>Polar</strong>
               </div>
