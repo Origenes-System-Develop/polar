@@ -241,6 +241,12 @@ CREATE TABLE IF NOT EXISTS faltas (
   CONSTRAINT fk_faltas_registrada_por FOREIGN KEY (registrada_por_id) REFERENCES users (id)
 );
 
+CREATE TABLE IF NOT EXISTS configuracoes (
+  chave VARCHAR(60) NOT NULL,
+  valor TEXT NOT NULL,
+  CONSTRAINT pk_configuracoes PRIMARY KEY (chave)
+);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id CHAR(36) NOT NULL,
   usuario_id CHAR(36) NULL,
