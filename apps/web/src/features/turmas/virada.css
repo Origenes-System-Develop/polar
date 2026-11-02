@@ -1,0 +1,53 @@
+.virada__anos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.virada__resumo {
+  margin: var(--space-3) 0;
+}
+
+.virada__lista {
+  display: grid;
+  gap: var(--space-3);
+  max-height: 48vh;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.virada__turma {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.virada__cabeca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.virada__alunos summary {
+  cursor: pointer;
+  color: var(--color-link);
+  font-weight: 600;
+}
+
+.virada__aluno {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+@media (max-width: 520px) {
+  .virada__anos {
+    grid-template-columns: 1fr;
+  }
+}

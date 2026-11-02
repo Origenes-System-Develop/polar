@@ -189,14 +189,15 @@ export function NovaOcorrenciaPage() {
           {apiError}
         </Card>
       ) : null}
-      <form className="form-sections" onSubmit={handleSubmit} noValidate>
-        <Card className="form-section form-section--azul">
-          <SecaoTitulo numero={1} titulo="Quem" dica="Escolha o aluno da lista." />
+      <form onSubmit={handleSubmit} noValidate>
+        <Card className="form-unico">
+        <section className="form-bloco">
+          <h2 className="form-bloco__titulo">Aluno</h2>
           <BuscaAluno alunos={alunos} value={form.alunoId} onChange={(alunoId) => setField("alunoId", alunoId)} loading={loading} travado={editando} error={errors.alunoId} />
-        </Card>
+        </section>
 
-        <Card className="form-section form-section--laranja">
-          <SecaoTitulo numero={2} titulo="O que aconteceu" dica="Uma categoria e o relato do fato." />
+        <section className="form-bloco">
+          <h2 className="form-bloco__titulo">O que aconteceu</h2>
           <Escolha
             legend="Categoria"
             name="categoria"
@@ -237,10 +238,10 @@ export function NovaOcorrenciaPage() {
               </div>
             </div>
           ) : null}
-        </Card>
+        </section>
 
-        <Card className="form-section form-section--coral">
-          <SecaoTitulo numero={3} titulo="Gravidade e período" dica="Quão sério é e em que bimestre aconteceu." />
+        <section className="form-bloco">
+          <h2 className="form-bloco__titulo">Gravidade e período</h2>
           <div className="form-grid">
             <Escolha
               legend="Prioridade"
@@ -253,36 +254,23 @@ export function NovaOcorrenciaPage() {
             />
             <Escolha legend="Bimestre" name="bimestre" required value={form.bimestre} onChange={(valor) => setField("bimestre", valor)} error={errors.bimestre} disabled={editando} options={BIMESTRES} />
           </div>
-        </Card>
+        </section>
 
-        <Card className="form-section form-section--verde">
-          <SecaoTitulo numero={4} titulo="Onde" dica="O local e quem presenciou, se houver." />
+        <section className="form-bloco">
+          <h2 className="form-bloco__titulo">Onde</h2>
           <div className="form-grid">
             <Input label="Local" required value={form.local} onChange={(event) => setField("local", event.target.value)} error={errors.local} placeholder="Exemplo: pátio, sala 12" />
             <Input label="Testemunhas (opcional)" value={form.testemunhas} onChange={(event) => setField("testemunhas", event.target.value)} />
           </div>
-        </Card>
+        </section>
 
         <div className="actions-row">
           <Button type="submit" disabled={submitting} icon={<Save size={18} />}>
             {submitting ? "Salvando..." : editando ? "Salvar alterações" : "Registrar"}
           </Button>
         </div>
+        </Card>
       </form>
     </>
-  );
-}
-
-function SecaoTitulo({ numero, titulo, dica }: { numero: number; titulo: string; dica: string }) {
-  return (
-    <header className="form-section__titulo">
-      <span className="form-section__numero" aria-hidden="true">
-        {numero}
-      </span>
-      <div>
-        <h2>{titulo}</h2>
-        <p>{dica}</p>
-      </div>
-    </header>
   );
 }

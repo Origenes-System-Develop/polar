@@ -15,6 +15,7 @@ import { turmasRoutes } from "./modules/turmas/turmas.routes.js";
 import { alunosRoutes } from "./modules/alunos/alunos.routes.js";
 import { ocorrenciasRoutes } from "./modules/ocorrencias/ocorrencias.routes.js";
 import { notasRoutes } from "./modules/notas/notas.routes.js";
+import { escolaRoutes } from "./modules/escola/escola.routes.js";
 import { faltasRoutes } from "./modules/faltas/faltas.routes.js";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes.js";
 import { relatoriosRoutes } from "./modules/relatorios/relatorios.routes.js";
@@ -101,6 +102,7 @@ export async function createApp(options: CreateAppOptions = {}) {
   app.use("/api/dashboard", dashboardRoutes(container.services, config));
   app.use("/api/relatorios", relatoriosRoutes(container.services, config));
   app.use("/api/auditoria", auditoriaRoutes(container.services, config));
+  app.use("/api/escola", escolaRoutes(container.services, config));
 
   if (serveSpa) {
     app.use(express.static(webDist));
