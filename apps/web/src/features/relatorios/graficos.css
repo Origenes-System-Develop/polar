@@ -70,7 +70,7 @@
 }
 
 .grafico-linha__ponto {
-  fill: #fff;
+  fill: var(--color-surface);
   stroke: var(--color-primary);
   stroke-width: 3;
   transform-box: fill-box;
