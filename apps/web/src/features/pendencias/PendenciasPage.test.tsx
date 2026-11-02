@@ -41,6 +41,23 @@ describe("Pagina de pendencias", () => {
     expect(await screen.findByText("Você está em dia")).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Todas (2)" }));
     expect(screen.getAllByRole("link")).toHaveLength(2);
+
+    await user.click(screen.getByRole("button", { name: "Marcar tudo como não visto" }));
+
+    expect(await screen.findByRole("button", { name: "2 pendências novas" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Marcar tudo como não visto" })).not.toBeInTheDocument();
+  });
+
+  it("o sino abre um painel com as pendencias novas, sem sair da pagina", async () => {
+    logarComo("COORDENADOR");
+    const user = userEvent.setup();
+    tela();
+
+    await user.click(await screen.findByRole("button", { name: "2 pendências novas" }));
+
+    const painel = screen.getByRole("dialog", { name: "Pendências novas" });
+    expect(painel).toHaveTextContent("Estudante 01");
+    expect(screen.getByRole("link", { name: "Ver todas as pendências" })).toHaveAttribute("href", "/pendencias");
   });
 
   it("direcao sem ocorrencias resolvidas ve o estado vazio e nao ve sino", async () => {

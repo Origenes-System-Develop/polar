@@ -47,3 +47,9 @@ export async function salvarAvatarRequest(avatar: AvatarUsuario): Promise<AuthUs
   storeUser(user);
   return user;
 }
+
+// Troca o nome da escola (so a administracao) e atualiza o usuario guardado no navegador.
+export async function renomearEscolaRequest(nome: string): Promise<string> {
+  const { data } = await apiRequest<{ data: { nome: string } }>("/escola", { method: "PUT", body: JSON.stringify({ nome }) });
+  return data.nome;
+}
