@@ -1085,6 +1085,7 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
+}
 
 .senha-temporaria {
   margin: var(--space-4) 0;
