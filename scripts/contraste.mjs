@@ -59,7 +59,7 @@ const pares = [
   ["escuro: selo perigo", "#ff8a8a", "#3d1a1a", 4.5],
   ["escuro: selo critico: branco / #4a505a", W, "#4a505a", 4.5],
   ["escuro: aviso: branco / #2d3a4d", W, "#2d3a4d", 4.5],
-  ["escuro: botao perigo: branco / #c80000", W, "#c80000", 4.5],
+  ["escuro: botao perigo: branco / #b0433d", W, "#b0433d", 4.5],
   ["escuro: linha azul / cartao (decorativo)", "#3c9cc6", "#1b212a", 3],
   ["escuro: linha areia / cartao (decorativo)", "#c4802a", "#1b212a", 3],
   ["escuro: linha coral / cartao (decorativo)", "#d8786b", "#1b212a", 3],
