@@ -193,6 +193,8 @@ export interface DatabaseState {
   notas: Nota[];
   faltas: Falta[];
   auditLogs: AuditLog[];
+  // Ajustes da escola em chave/valor (hoje so "nome_escola").
+  configuracoes: Record<string, string>;
 }
 
 export function usuarioPublico(usuario: Usuario): UsuarioPublico {
