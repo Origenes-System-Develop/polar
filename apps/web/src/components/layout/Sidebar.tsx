@@ -31,13 +31,13 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
         {collapsed ? (
           // Recolhido: a propria marca vira o botao; ao passar o mouse troca pelo icone de expandir.
           <button type="button" className="sidebar__marca-botao" onClick={onToggle} aria-label="Expandir menu" aria-expanded={false} title="Expandir menu">
-            <MarcaPolar size={36} />
+            <MarcaPolar size={34} />
             <PanelLeftOpen size={22} aria-hidden="true" className="sidebar__marca-expandir" />
           </button>
         ) : (
           <>
             <div className="sidebar__brand">
-              <MarcaPolar size={44} />
+              <MarcaPolar size={38} />
               <div className="sidebar__brand-text">
                 <strong>Polar</strong>
               </div>
