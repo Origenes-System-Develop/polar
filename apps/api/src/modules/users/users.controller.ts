@@ -20,8 +20,8 @@ export class UsersController {
     }
 
     const body = createUserSchema.parse(req.body);
-    const user = await this.services.users.create(body, actor.id);
-    return res.status(201).json({ data: user });
+    const { usuario, senhaTemporaria } = await this.services.users.create(body, actor.id);
+    return res.status(201).json({ data: usuario, ...(senhaTemporaria ? { senhaTemporaria } : {}) });
   };
 
   update = async (req: Request, res: Response): Promise<Response> => {

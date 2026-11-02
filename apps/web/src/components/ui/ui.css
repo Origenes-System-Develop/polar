@@ -1076,3 +1076,19 @@
   border-color: var(--color-link);
   background: var(--color-primary-soft);
 }
+
+.senha-temporaria {
+  margin: var(--space-4) 0;
+  border: 1px dashed var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  text-align: center;
+}
+
+.senha-temporaria code {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
