@@ -315,7 +315,7 @@ scripts/     migração de dados legados
 - [x] Site público no ar
 - [x] Identidade visual, pendências e estúdio de avatar
 - [ ] Roteiro de 6 passos executado na URL pública
-- [ ] Nome da escola editável pela administração
+- [x] Nome da escola editável pela administração
 
 ## ✦ Quem construiu
 
