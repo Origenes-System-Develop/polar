@@ -4,6 +4,7 @@ import { PapelUsuario, usuarioPublico, type Usuario, type UsuarioPublico } from 
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
+import { gerarSenhaTemporaria } from "../../shared/senha-temporaria.js";
 
 export class UsersService {
   constructor(
@@ -16,19 +17,24 @@ export class UsersService {
     return usuarios.map(usuarioPublico);
   }
 
-  async create(input: { nome: string; email: string; papel: PapelUsuario; senha: string }, actorId: string): Promise<UsuarioPublico> {
+  async create(
+    input: { nome: string; email: string; papel: PapelUsuario; senha?: string | undefined },
+    actorId: string
+  ): Promise<{ usuario: UsuarioPublico; senhaTemporaria: string | null }> {
     const existing = await this.users.findByEmailOrNome(input.email);
     if (existing) {
       throw conflict("Usuario ja cadastrado com este e-mail.");
     }
 
+    const senhaTemporaria = input.senha ? null : gerarSenhaTemporaria(input.papel);
+    const senha = input.senha ?? senhaTemporaria!;
     const now = agoraIso();
     const usuario: Usuario = {
       id: novoId(),
       nome: input.nome,
       email: input.email,
       papel: input.papel,
-      senhaHash: await bcrypt.hash(input.senha, 10),
+      senhaHash: await bcrypt.hash(senha, 10),
       ativo: true,
       precisaTrocarSenha: true,
       tentativasLoginInvalidas: 0,
@@ -49,7 +55,7 @@ export class UsersService {
       criadoEm: now
     });
 
-    return usuarioPublico(usuario);
+    return { usuario: usuarioPublico(usuario), senhaTemporaria };
   }
 
   async update(

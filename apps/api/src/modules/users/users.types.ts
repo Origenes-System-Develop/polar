@@ -6,7 +6,8 @@ export const createUserSchema = z.object({
   nome: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(160),
   papel: z.nativeEnum(PapelUsuario),
-  senha: senhaSchema
+  // Sem senha, o sistema gera uma provisoria e devolve uma unica vez.
+  senha: senhaSchema.optional()
 });
 
 export const updateUserSchema = z.object({
