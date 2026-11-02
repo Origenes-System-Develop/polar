@@ -21,6 +21,7 @@ export interface LoginResult {
     criadoEm: string;
     atualizadoEm: string;
     ultimoLoginEm: string | null;
+    escola: string | null;
   };
 }
 

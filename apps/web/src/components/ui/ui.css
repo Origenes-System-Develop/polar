@@ -366,20 +366,6 @@
   }
 }
 
-.report-chart {
-  display: block;
-  width: 100%;
-  min-height: 220px;
-  margin-bottom: var(--space-3);
-  overflow: visible;
-}
-
-.report-chart__bar { fill: #2563eb; }
-.report-chart__axis { stroke: #98a2b3; stroke-width: 1; }
-.report-chart__line { stroke: #16a34a; stroke-width: 3; }
-.report-chart__point { fill: #16a34a; }
-.report-chart__value { fill: #344054; font-size: 12px; font-weight: 700; }
-.report-chart__label { fill: #475467; font-size: 11px; }
 
 /* ---------- Marcas (Polar e Polaris) ----------
    Ao aparecer, os arcos se desenham e a estrela acende girando. No hover a
@@ -419,8 +405,8 @@
   transition: stroke-dashoffset 0.6s ease;
 }
 
-:hover > .marca-polar .marca-polar__estrela,
-.marca-polar:hover .marca-polar__estrela,
+:hover > .marca-polar .marca-polar__estrela--menor,
+.marca-polar:hover .marca-polar__estrela--menor,
 :hover > .marca-polaris .marca-polaris__estrela {
   transform: rotate(60deg) scale(1.08);
 }
@@ -846,20 +832,15 @@
 .ui-choice__option--danger { --tom: var(--color-danger); --tom-suave: var(--color-danger-soft); }
 .ui-choice__option--critical { --tom: var(--color-critical); --tom-suave: var(--color-critical-soft); }
 
-.ui-choice__option[class*="--"] span {
-  border-color: var(--tom);
-  color: var(--tom);
-  font-weight: 700;
+/* A prioridade segue o resto do sistema: neutra ate ser escolhida, e ai ganha a cor do selo. */
+.ui-choice__option[class*="--"]:hover span {
+  background: var(--tom-suave);
 }
 
-.ui-choice__option[class*="--"]:hover span,
 .ui-choice__option[class*="--"] input:checked + span {
   background: var(--tom-suave);
   border-color: var(--tom);
   color: var(--tom);
-}
-
-.ui-choice__option[class*="--"] input:checked + span {
   box-shadow: inset 0 0 0 1px var(--tom);
 }
 
@@ -923,8 +904,9 @@
 
 .busca-aluno__lista {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--space-1);
-  max-height: 264px;
+  max-height: 212px;
   margin: 0;
   padding: var(--space-1);
   overflow-y: auto;
@@ -939,7 +921,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: 6px var(--space-3);
   border-radius: var(--radius-md);
 }
 
@@ -967,8 +949,8 @@
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #fff;
@@ -1019,16 +1001,11 @@
 }
 
 .form-section {
-  --secao: var(--accent-blue);
+  --secao: var(--color-primary);
   display: grid;
   gap: var(--space-5);
-  border-left: 5px solid var(--secao);
 }
 
-.form-section--azul { --secao: var(--accent-blue); }
-.form-section--laranja { --secao: var(--accent-orange); }
-.form-section--coral { --secao: var(--accent-red); }
-.form-section--verde { --secao: var(--accent-green); }
 
 .form-section__titulo {
   display: flex;
@@ -1051,8 +1028,8 @@
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: var(--secao);
   color: #fff;
@@ -1068,4 +1045,34 @@
   gap: var(--space-3);
   margin: 0 0 var(--space-4);
   font-weight: 600;
+}
+
+.atalhos-periodo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.atalhos-periodo > span {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.atalhos-periodo button {
+  border: 1.6px solid var(--color-border-input);
+  border-radius: var(--radius-pill);
+  padding: 4px var(--space-4);
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-padrao), border-color var(--dur-1) var(--ease-padrao);
+}
+
+.atalhos-periodo button:hover {
+  border-color: var(--color-link);
+  background: var(--color-primary-soft);
 }

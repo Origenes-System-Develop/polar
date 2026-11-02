@@ -3,16 +3,24 @@ import "./ui.css";
 // Desenhos oficiais (pasta de identidade do time): Polar e o sistema, Polaris e a equipe.
 // Inline para herdar a cor do texto e para os tracos poderem ser animados no CSS.
 
+// Brilho de quatro pontas com curvas para dentro: raio e giro em graus. A estrela pequena de
+// tras e o mesmo desenho, girado 45 graus.
+function brilho(raio: number, giro: number): string {
+  const p = (r: number, graus: number) => {
+    const a = ((graus + giro) * Math.PI) / 180;
+    return `${(24 + r * Math.sin(a)).toFixed(2)} ${(24 - r * Math.cos(a)).toFixed(2)}`;
+  };
+  return [0, 90, 180, 270].map((g, i) => `${i === 0 ? `M${p(raio, g)}` : ""}Q${p(raio * 0.14, g + 45)} ${p(raio, g + 90)}`).join("") + "Z";
+}
+
+// Estrela do norte: a ponta de cima e a mais longa, como a Polar que aponta o norte.
 export function MarcaPolar({ size = 36 }: { size?: number }) {
   return (
     <svg className="marca marca-polar" width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
-      <path
-        className="marca-polar__estrela"
-        d="M24 14 L25.94 20.65 L32.66 19 L27.87 24 L32.66 29 L25.94 27.35 L24 34 L22.07 27.35 L15.34 29 L20.13 24 L15.34 19 L22.06 20.65 Z"
-        fill="currentColor"
-      />
-      <path className="marca-polar__arco" pathLength={1} d="M38.74 37.32 A18 18 0 0 1 9.26 37.32" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
-      <path className="marca-polar__arco" pathLength={1} d="M4.34 13.23 A24 24 0 0 1 43.66 13.23" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
+      <path className="marca-polar__estrela marca-polar__estrela--menor" d={brilho(16, 45)} fill="currentColor" opacity="0.45" />
+      <path className="marca-polar__estrela" d="M24 0.5Q25.5 21 40 24Q25.5 27 24 36Q22.5 27 8 24Q22.5 21 24 0.5Z" fill="currentColor" />
+      <path d="M24 36Q24.7 41.5 24 47.5Q23.3 41.5 24 36Z" fill="currentColor" opacity="0.5" />
+      <circle cx="24" cy="24" r="2.9" fill="var(--color-surface, #fff)" />
     </svg>
   );
 }

@@ -1,4 +1,5 @@
 import type { Pool } from "pg";
+import { acharUnico, chaveDeNome } from "../../utils/texto.js";
 import type { AvatarUsuario, PapelUsuario, Usuario } from "../../domain.js";
 import type { UserRepository } from "../repositories/user.repository.js";
 import { dbDateTime, isoFromDb, isoFromDbRequired, withTransaction } from "./postgres-client.js";
@@ -61,7 +62,10 @@ export class PostgresUserRepository implements UserRepository {
       [normalized]
     );
     const row = rows[0];
-    return row ? toUsuario(row) : null;
+    if (row) return toUsuario(row);
+    // Sem acento ou com acento decomposto ("joao" acha "João"): compara em memoria, que a escola
+    // tem poucas contas, e so aceita se for um nome so.
+    return acharUnico(await this.list(), chaveDeNome(identifier), (usuario) => usuario.nome);
   }
 
   async create(usuario: Usuario): Promise<Usuario> {

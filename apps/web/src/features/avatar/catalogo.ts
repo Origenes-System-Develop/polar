@@ -1,6 +1,8 @@
 // Catalogo do estudio de avatar. Os desenhos vem do estilo Avataaars (Pablo Stanley, uso pessoal
 // e comercial livre) via DiceBear; aqui ficam so os nomes em portugues e as paletas de cor.
 
+import { BLUSH, BRINCOS, CILIOS, ENFEITES } from "./extras";
+
 export interface Opcao {
   valor: string;
   rotulo: string;
@@ -8,7 +10,7 @@ export interface Opcao {
 
 const lista = (pares: Array<[string, string]>): Opcao[] => pares.map(([valor, rotulo]) => ({ valor, rotulo }));
 
-export const CABELOS = lista([
+export const CABELOS: Opcao[] = lista([
   ["none", "Sem cabelo"],
   ["shortFlat", "Curto liso"],
   ["shortRound", "Curto redondo"],
@@ -69,7 +71,7 @@ export const OCULOS = lista([
   ["eyepatch", "Tapa-olho"]
 ]);
 
-export const ROUPAS = lista([
+export const ROUPAS: Opcao[] = lista([
   ["shirtCrewNeck", "Camiseta gola redonda"],
   ["shirtScoopNeck", "Camiseta gola larga"],
   ["shirtVNeck", "Camiseta gola V"],
@@ -187,6 +189,12 @@ export interface ConfigAvatar {
   eyebrows: string;
   mouth: string;
   backgroundColor: string;
+  lashes: string;
+  blush: string;
+  earrings: string;
+  earringsColor: string;
+  hairAccessory: string;
+  hairAccessoryColor: string;
 }
 
 export const AVATAR_PADRAO: ConfigAvatar = {
@@ -204,14 +212,20 @@ export const AVATAR_PADRAO: ConfigAvatar = {
   eyes: "default",
   eyebrows: "defaultNatural",
   mouth: "smile",
-  backgroundColor: "b1e2ff"
+  backgroundColor: "b1e2ff",
+  lashes: "none",
+  blush: "none",
+  earrings: "none",
+  earringsColor: "f5d90f",
+  hairAccessory: "none",
+  hairAccessoryColor: "ff488e"
 };
 
 // Quantas escolhas o estudio oferece (opcoes de desenho + amostras de cor), para o relatorio.
 export function totalDeOpcoes(): number {
   return (
     CABELOS.length + BARBAS.length + OCULOS.length + ROUPAS.length + ESTAMPAS.length + OLHOS.length + SOBRANCELHAS.length + BOCAS.length +
-    PELES.length + CABELOS_COR.length + ROUPAS_COR.length + OCULOS_COR.length + BARBA_COR.length + FUNDOS.length
+    PELES.length + CABELOS_COR.length + ROUPAS_COR.length + OCULOS_COR.length + BARBA_COR.length + FUNDOS.length + CILIOS.length + BLUSH.length + BRINCOS.length + ENFEITES.length
   );
 }
 
@@ -235,6 +249,12 @@ export function sortearAvatar(): ConfigAvatar {
     eyes: sortear(OLHOS.slice(0, 5)).valor,
     eyebrows: sortear(SOBRANCELHAS).valor,
     mouth: sortear(BOCAS.slice(0, 4)).valor,
-    backgroundColor: sortear(FUNDOS)
+    backgroundColor: sortear(FUNDOS),
+    lashes: Math.random() < 0.3 ? "light" : "none",
+    blush: "none",
+    earrings: Math.random() < 0.3 ? sortear(BRINCOS.slice(1)).valor : "none",
+    earringsColor: "f5d90f",
+    hairAccessory: "none",
+    hairAccessoryColor: sortear(ROUPAS_COR)
   };
 }
