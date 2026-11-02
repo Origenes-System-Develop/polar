@@ -47,7 +47,7 @@
   color: var(--color-link);
 }
 
-.estudio__iniciais span {
+.estudio__iniciais-texto {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -73,7 +73,7 @@
 
 .estudio__grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   gap: var(--space-2);
 }
 
@@ -106,9 +106,11 @@
 }
 
 .estudio__miniatura img {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-pill);
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  object-fit: cover;
 }
 
 .estudio__miniatura small {
@@ -180,6 +182,59 @@
 .estudio__credito {
   margin-top: var(--space-4);
   font-size: 0.82rem;
+}
+
+.estudio__grupo legend small {
+  margin-left: var(--space-1);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.estudio__filtro,
+.estudio__visuais {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.estudio__filtro {
+  margin-bottom: var(--space-3);
+}
+
+.estudio__filtro > span,
+.estudio__visuais > span {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.estudio__filtro button,
+.estudio__visuais button {
+  border: 1.6px solid var(--color-border-input);
+  border-radius: var(--radius-pill);
+  padding: 4px var(--space-4);
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-padrao), border-color var(--dur-1) var(--ease-padrao);
+}
+
+.estudio__filtro button:hover,
+.estudio__visuais button:hover {
+  background: var(--color-primary-soft);
+}
+
+.estudio__filtro button[aria-pressed="true"] {
+  border-color: var(--color-link);
+  background: var(--color-primary-soft);
+  color: var(--color-link);
+  font-weight: 800;
+}
+
+.estudio__visuais {
+  justify-content: center;
 }
 
 @media (max-width: 980px) {

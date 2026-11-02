@@ -5,6 +5,7 @@ import {
   BARBA_COR,
   CABELOS,
   CABELOS_COR,
+  ROUPAS,
   COM_CHAPEU,
   FUNDOS,
   OCULOS_COR,
@@ -17,7 +18,26 @@ import {
 // A Sala do Futuro oferece 52 miniaturas (7 acessorios, 36 cabelos, 9 blusas) e seletor livre de cor.
 const OPCOES_DA_SALA_DO_FUTURO = 52;
 
+// Antes das pecas desenhadas no Polar o estudio tinha 35 cabelos e 9 roupas.
 describe("catalogo do avatar", () => {
+  it("tem pelo menos o dobro de cabelos e de roupas de antes", () => {
+    expect(CABELOS.length).toBeGreaterThanOrEqual(35 * 2);
+    expect(ROUPAS.length).toBeGreaterThanOrEqual(9 * 2);
+  });
+
+  it("separa por genero com opcoes femininas, masculinas e neutras em cabelo e roupa", () => {
+    for (const lista of [CABELOS, ROUPAS]) {
+      const generos = new Set(lista.map((o) => o.genero));
+      expect(generos).toEqual(new Set(["f", "m", "n"]));
+    }
+    expect(CABELOS.filter((o) => o.genero === "f").length).toBeGreaterThanOrEqual(10);
+    expect(CABELOS.filter((o) => o.genero === "m").length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("a configuracao cabe no limite da API (24 chaves)", () => {
+    expect(Object.keys(AVATAR_PADRAO).length).toBeLessThanOrEqual(24);
+  });
+
   it("oferece pelo menos 5 vezes as opcoes da Sala do Futuro", () => {
     expect(totalDeOpcoes()).toBeGreaterThanOrEqual(OPCOES_DA_SALA_DO_FUTURO * 5);
   });

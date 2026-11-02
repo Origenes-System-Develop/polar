@@ -47,6 +47,21 @@ describe("EstudioPage", () => {
     expect(JSON.parse(localStorage.getItem("polar_user") ?? "{}").avatar.tipo).toBe("avatar");
   });
 
+  it("o filtro de genero esconde o que e do outro lado e o visual pronto troca cabelo, roupa e rosto", async () => {
+    const user = userEvent.setup();
+    renderizar();
+
+    expect(screen.getByRole("radio", { name: /Moicano$/ })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Femininos" }));
+    expect(screen.queryByRole("radio", { name: /Moicano$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Maria-chiquinha$/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Masculino" }));
+    expect(screen.getByRole("radio", { name: /Risco de lado$/ })).toBeChecked();
+    await user.click(screen.getByRole("tab", { name: "Roupa" }));
+    expect(screen.getByRole("radio", { name: /Camisa polo$/ })).toBeChecked();
+  });
+
   it("escolhe o tom de pele por amostra e oferece o seletor livre de cor", async () => {
     const user = userEvent.setup();
     renderizar();

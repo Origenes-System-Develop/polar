@@ -73,7 +73,6 @@ export function LoginPage() {
             <MarcaPolar size={48} />
             <div>
               <strong>Polar</strong>
-              <span>Ocorrências escolares</span>
             </div>
           </div>
 

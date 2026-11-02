@@ -35,7 +35,6 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
               <MarcaPolar size={38} />
               <div className="sidebar__brand-text">
                 <strong>Polar</strong>
-                <span>Ocorrências escolares</span>
               </div>
             </div>
             <button type="button" className="sidebar__recolher" onClick={onToggle} aria-label="Recolher menu" aria-expanded title="Recolher menu">

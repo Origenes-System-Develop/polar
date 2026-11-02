@@ -846,20 +846,15 @@
 .ui-choice__option--danger { --tom: var(--color-danger); --tom-suave: var(--color-danger-soft); }
 .ui-choice__option--critical { --tom: var(--color-critical); --tom-suave: var(--color-critical-soft); }
 
-.ui-choice__option[class*="--"] span {
-  border-color: var(--tom);
-  color: var(--tom);
-  font-weight: 700;
+/* A prioridade segue o resto do sistema: neutra ate ser escolhida, e ai ganha a cor do selo. */
+.ui-choice__option[class*="--"]:hover span {
+  background: var(--tom-suave);
 }
 
-.ui-choice__option[class*="--"]:hover span,
 .ui-choice__option[class*="--"] input:checked + span {
   background: var(--tom-suave);
   border-color: var(--tom);
   color: var(--tom);
-}
-
-.ui-choice__option[class*="--"] input:checked + span {
   box-shadow: inset 0 0 0 1px var(--tom);
 }
 
@@ -923,8 +918,9 @@
 
 .busca-aluno__lista {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--space-1);
-  max-height: 264px;
+  max-height: 212px;
   margin: 0;
   padding: var(--space-1);
   overflow-y: auto;
@@ -939,7 +935,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: 6px var(--space-3);
   border-radius: var(--radius-md);
 }
 
@@ -967,8 +963,8 @@
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #fff;
@@ -1019,16 +1015,11 @@
 }
 
 .form-section {
-  --secao: var(--accent-blue);
+  --secao: var(--color-primary);
   display: grid;
   gap: var(--space-5);
-  border-left: 5px solid var(--secao);
 }
 
-.form-section--azul { --secao: var(--accent-blue); }
-.form-section--laranja { --secao: var(--accent-orange); }
-.form-section--coral { --secao: var(--accent-red); }
-.form-section--verde { --secao: var(--accent-green); }
 
 .form-section__titulo {
   display: flex;
@@ -1051,8 +1042,8 @@
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   background: var(--secao);
   color: #fff;

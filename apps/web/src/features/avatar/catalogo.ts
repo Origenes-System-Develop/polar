@@ -1,14 +1,25 @@
 // Catalogo do estudio de avatar. Os desenhos vem do estilo Avataaars (Pablo Stanley, uso pessoal
 // e comercial livre) via DiceBear; aqui ficam so os nomes em portugues e as paletas de cor.
 
+import { BLUSH, BRINCOS, CABELOS_EXTRAS, CILIOS, ENFEITES, ROUPAS_EXTRAS, type Genero } from "./extras";
+
 export interface Opcao {
   valor: string;
   rotulo: string;
+  /** f = feminino, m = masculino, n = neutro (aparece em qualquer filtro). */
+  genero?: Genero;
 }
 
 const lista = (pares: Array<[string, string]>): Opcao[] => pares.map(([valor, rotulo]) => ({ valor, rotulo }));
 
-export const CABELOS = lista([
+// Genero dos desenhos que vem do Avataaars (os desenhados aqui trazem o proprio).
+const GENERO_CABELO: Record<string, Genero> = {
+  shortFlat: "m", shortRound: "m", shortWaved: "m", sides: "m", shavedSides: "m", theCaesar: "m", theCaesarAndSidePart: "m", shaggyMullet: "m",
+  curly: "f", curvy: "f", bob: "f", bun: "f", frida: "f", longButNotTooLong: "f", miaWallace: "f", straight01: "f", straight02: "f", straightAndStrand: "f", hijab: "f", bigHair: "f"
+};
+const GENERO_ROUPA: Record<string, Genero> = { shirtScoopNeck: "f", blazerAndShirt: "m", shirtVNeck: "m" };
+
+const CABELOS_BASE: Opcao[] = lista([
   ["none", "Sem cabelo"],
   ["shortFlat", "Curto liso"],
   ["shortRound", "Curto redondo"],
@@ -44,7 +55,19 @@ export const CABELOS = lista([
   ["winterHat02", "Gorro 2"],
   ["winterHat03", "Gorro 3"],
   ["winterHat04", "Gorro 4"]
+]).map((o) => ({ ...o, genero: GENERO_CABELO[o.valor] ?? "n" }));
+
+// Desenhos do Avataaars que ficam diferentes quando espelhados (repartido de um lado so).
+export const ESPELHAVEIS = new Set<string>([
+  "shortFlat", "shortRound", "shortWaved", "frizzle", "shavedSides", "shaggy", "shaggyMullet", "curvy", "frida", "bob", "longButNotTooLong", "miaWallace", "straight01", "straightAndStrand", "dreads01", "dreads02", "curly"
 ]);
+const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+export const CABELOS: Opcao[] = [
+  ...CABELOS_BASE,
+  ...CABELOS_EXTRAS.map(({ id, rotulo, genero }) => ({ valor: id, rotulo, genero })),
+  ...CABELOS_BASE.filter((o) => ESPELHAVEIS.has(o.valor)).map((o) => ({ valor: `m${upperFirst(o.valor)}`, rotulo: `${o.rotulo} (outro lado)`, genero: o.genero }))
+];
 
 // Estes usam a "cor do chapéu" em vez da cor do cabelo.
 export const COM_CHAPEU = new Set(["hijab", "turban", "hat", "winterHat1", "winterHat02", "winterHat03", "winterHat04"]);
@@ -69,7 +92,7 @@ export const OCULOS = lista([
   ["eyepatch", "Tapa-olho"]
 ]);
 
-export const ROUPAS = lista([
+const ROUPAS_BASE: Opcao[] = lista([
   ["shirtCrewNeck", "Camiseta gola redonda"],
   ["shirtScoopNeck", "Camiseta gola larga"],
   ["shirtVNeck", "Camiseta gola V"],
@@ -79,7 +102,9 @@ export const ROUPAS = lista([
   ["blazerAndShirt", "Blazer e camisa"],
   ["blazerAndSweater", "Blazer e suéter"],
   ["overall", "Macacão"]
-]);
+]).map((o) => ({ ...o, genero: GENERO_ROUPA[o.valor] ?? "n" }));
+
+export const ROUPAS: Opcao[] = [...ROUPAS_BASE, ...ROUPAS_EXTRAS.map(({ id, rotulo, genero }) => ({ valor: id, rotulo, genero }))];
 
 export const ESTAMPAS = lista([
   ["bat", "Morcego"],
@@ -187,6 +212,12 @@ export interface ConfigAvatar {
   eyebrows: string;
   mouth: string;
   backgroundColor: string;
+  lashes: string;
+  blush: string;
+  earrings: string;
+  earringsColor: string;
+  hairAccessory: string;
+  hairAccessoryColor: string;
 }
 
 export const AVATAR_PADRAO: ConfigAvatar = {
@@ -204,14 +235,26 @@ export const AVATAR_PADRAO: ConfigAvatar = {
   eyes: "default",
   eyebrows: "defaultNatural",
   mouth: "smile",
-  backgroundColor: "b1e2ff"
+  backgroundColor: "b1e2ff",
+  lashes: "none",
+  blush: "none",
+  earrings: "none",
+  earringsColor: "f5d90f",
+  hairAccessory: "none",
+  hairAccessoryColor: "ff488e"
+};
+
+// Visuais prontos para comecar: mudam cabelo, roupa e os detalhes do rosto de uma vez.
+export const VISUAIS: Record<"f" | "m", Partial<ConfigAvatar>> = {
+  f: { top: "xLongoLiso", clothing: "xVestido", lashes: "full", blush: "on", earrings: "hoop", facialHair: "none", eyebrows: "defaultNatural", mouth: "smile" },
+  m: { top: "xRisco", clothing: "xPolo", lashes: "none", blush: "none", earrings: "none", facialHair: "beardLight", eyebrows: "flatNatural", mouth: "default" }
 };
 
 // Quantas escolhas o estudio oferece (opcoes de desenho + amostras de cor), para o relatorio.
 export function totalDeOpcoes(): number {
   return (
     CABELOS.length + BARBAS.length + OCULOS.length + ROUPAS.length + ESTAMPAS.length + OLHOS.length + SOBRANCELHAS.length + BOCAS.length +
-    PELES.length + CABELOS_COR.length + ROUPAS_COR.length + OCULOS_COR.length + BARBA_COR.length + FUNDOS.length
+    PELES.length + CABELOS_COR.length + ROUPAS_COR.length + OCULOS_COR.length + BARBA_COR.length + FUNDOS.length + CILIOS.length + BLUSH.length + BRINCOS.length + ENFEITES.length
   );
 }
 
@@ -235,6 +278,12 @@ export function sortearAvatar(): ConfigAvatar {
     eyes: sortear(OLHOS.slice(0, 5)).valor,
     eyebrows: sortear(SOBRANCELHAS).valor,
     mouth: sortear(BOCAS.slice(0, 4)).valor,
-    backgroundColor: sortear(FUNDOS)
+    backgroundColor: sortear(FUNDOS),
+    lashes: Math.random() < 0.3 ? "light" : "none",
+    blush: "none",
+    earrings: Math.random() < 0.3 ? sortear(BRINCOS.slice(1)).valor : "none",
+    earringsColor: "f5d90f",
+    hairAccessory: "none",
+    hairAccessoryColor: sortear(ROUPAS_COR)
   };
 }
