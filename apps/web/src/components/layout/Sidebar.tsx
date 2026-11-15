@@ -15,7 +15,7 @@ const navItems = [
   { label: "Ocorrências", to: "/ocorrencias", icon: ClipboardList, permission: "ocorrencias:view" as const },
   { label: "Alunos", to: "/alunos", icon: GraduationCap, permission: "alunos:view" as const },
   { label: "Turmas", to: "/turmas", icon: BookOpen, permission: "turmas:view" as const },
-  { label: "Usuários", to: "/usuarios", icon: Users, permission: "usuarios:manage" as const },
+  { label: "Usuários", to: "/usuarios", icon: Users, permission: "usuarios:senha" as const },
   { label: "Relatórios", to: "/relatorios", icon: BarChart3, permission: "relatorios:view" as const }
 ];
 

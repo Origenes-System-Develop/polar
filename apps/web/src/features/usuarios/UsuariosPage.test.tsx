@@ -8,8 +8,13 @@ function json(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json" } });
 }
 
+function entrarComo(papel: string) {
+  localStorage.setItem("polar_user", JSON.stringify({ id: "u1", nome: "Quem usa", email: "u1@polar.local", papel }));
+}
+
 describe("UsuariosPage", () => {
   it("cadastra sem pedir senha e mostra a senha temporaria gerada", async () => {
+    entrarComo("ADM");
     const criado = { id: "u2", nome: "Nova Pessoa", email: "nova@polar.local", papel: "PROFESSOR", ativo: true };
     const fetchMock = vi.fn((url: string, opcoes?: RequestInit) =>
       Promise.resolve(opcoes?.method === "POST" ? json({ data: criado, senhaTemporaria: "R4o!f7e#s2sP" }, 201) : json({ data: [] }))
@@ -26,5 +31,24 @@ describe("UsuariosPage", () => {
     expect(await screen.findByText("R4o!f7e#s2sP")).toBeInTheDocument();
     const post = fetchMock.mock.calls.find(([, o]) => o?.method === "POST");
     expect(JSON.parse(String(post?.[1]?.body))).toEqual({ nome: "Nova Pessoa", email: "nova@polar.local", papel: "PROFESSOR" });
+  });
+
+  it("a direcao so redefine senha: sem cadastrar nem desativar", async () => {
+    entrarComo("DIRETOR");
+    const professor = { id: "p1", nome: "Prof Esquecida", email: "prof@polar.local", papel: "PROFESSOR", ativo: true };
+    const fetchMock = vi.fn((url: string, opcoes?: RequestInit) =>
+      Promise.resolve(opcoes?.method === "POST" ? json({ senhaTemporaria: "Pr0f!e#s9oR2" }) : json({ data: [professor] }))
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithProviders(<UsuariosPage />, ["/usuarios"]);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Redefinir senha" }));
+    expect(screen.queryByRole("button", { name: /Novo usuário/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Desativar" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Gerar senha nova" }));
+
+    expect(await screen.findByText("Pr0f!e#s9oR2")).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([, o]) => o?.method === "POST");
+    expect(String(post?.[0])).toContain("/usuarios/p1/redefinir-senha");
   });
 });

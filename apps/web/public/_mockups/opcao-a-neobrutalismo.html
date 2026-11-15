@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · A · Neobrutalismo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" />
+<style>
+  /* Referencia: neobrutalismo (borda preta grossa, sombra dura sem desfoque, cor chapada) */
+  :root {
+    --fundo: #fffbf0;
+    --preto: #111;
+    --amarelo: #ffd23f;
+    --coral: #ff6b5b;
+    --azul: #5b8cff;
+    --menta: #6fdc9b;
+    --borda: 3px solid var(--preto);
+    --sombra: 5px 5px 0 var(--preto);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--preto); font-family: "Archivo", system-ui, sans-serif; font-size: 15px; }
+  .app { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+  aside { border-right: var(--borda); padding: 20px 16px; background: var(--amarelo); }
+  .marca { font-weight: 900; font-size: 30px; letter-spacing: -0.04em; margin: 0 0 26px; display: flex; align-items: center; gap: 8px; }
+  .marca i { width: 26px; height: 26px; border: var(--borda); border-radius: 50%; background: var(--coral); box-shadow: 3px 3px 0 var(--preto); }
+  nav { display: grid; gap: 10px; }
+  nav a { display: block; padding: 10px 12px; border: var(--borda); background: #fff; color: var(--preto); font-weight: 700; text-decoration: none; box-shadow: 3px 3px 0 var(--preto); }
+  nav a.ativo { background: var(--preto); color: var(--amarelo); box-shadow: none; transform: translate(3px, 3px); }
+  main { padding: 24px 36px 48px; }
+  .topo { display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 22px; }
+  .chip { border: var(--borda); background: #fff; padding: 7px 12px; font-weight: 700; box-shadow: 3px 3px 0 var(--preto); }
+  .chip b { background: var(--coral); border: 2px solid var(--preto); padding: 0 6px; margin-left: 6px; }
+  h1 { font-size: 54px; font-weight: 900; letter-spacing: -0.04em; line-height: .95; margin: 0 0 8px; }
+  h1 mark { background: var(--azul); color: #fff; padding: 0 8px; border: var(--borda); box-shadow: var(--sombra); display: inline-block; transform: rotate(-1.5deg); }
+  .lead { font-size: 18px; font-weight: 500; margin: 18px 0 28px; }
+  .lead strong { background: var(--amarelo); padding: 0 4px; }
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 30px; }
+  .card { border: var(--borda); background: #fff; padding: 16px 18px; box-shadow: var(--sombra); }
+  .card strong { display: block; font-size: 58px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+  .card span { display: block; font-weight: 800; margin-top: 6px; text-transform: uppercase; font-size: 13px; letter-spacing: .04em; }
+  .card small { font-size: 13px; }
+  .card--amarelo { background: var(--amarelo); }
+  .card--coral { background: var(--coral); }
+  .duas { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
+  .bloco { border: var(--borda); background: #fff; box-shadow: var(--sombra); min-width: 0; overflow-x: auto; }
+  .bloco h2 { margin: 0; padding: 12px 16px; border-bottom: var(--borda); font-size: 20px; font-weight: 900; background: var(--menta); }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; padding: 10px 16px; border-bottom: 2px solid var(--preto); }
+  td { padding: 12px 16px; border-bottom: 2px solid #eee4cf; font-weight: 600; }
+  .tag { display: inline-block; border: 2px solid var(--preto); padding: 2px 8px; font-size: 12px; font-weight: 800; background: #fff; }
+  .tag--analise { background: var(--azul); color: #fff; }
+  .tag--alta { background: var(--coral); }
+  .tag--media { background: var(--amarelo); }
+  .dias { font-weight: 900; }
+  ul { margin: 0; padding: 8px 16px 14px; list-style: none; }
+  li { padding: 10px 0; border-bottom: 2px dashed var(--preto); }
+  li:last-child { border-bottom: 0; }
+  li time { display: inline-block; background: var(--preto); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; margin-bottom: 4px; }
+  .botao { display: inline-block; border: var(--borda); background: var(--coral); color: var(--preto); font-weight: 900; padding: 12px 18px; text-decoration: none; box-shadow: var(--sombra); }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    aside { border-right: 0; border-bottom: var(--borda); }
+    nav { grid-auto-flow: column; overflow-x: auto; }
+    main { padding: 18px 16px 40px; }
+    h1 { font-size: 38px; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .duas { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="marca"><i></i>polar</div>
+    <nav>
+      <a class="ativo" href="#">Início</a>
+      <a href="#">Ocorrências</a>
+      <a href="#">Alunos</a>
+      <a href="#">Turmas</a>
+      <a href="#">Relatórios</a>
+    </nav>
+  </aside>
+  <main>
+    <div class="topo"><span class="chip">Pendências <b>8</b></span><span class="chip">Coordenação POLAR</span></div>
+    <h1>Bom dia, <mark>Coordenação</mark></h1>
+    <p class="lead"><strong>8 ocorrências</strong> esperam sua análise. A mais antiga está aberta há 29 dias.</p>
+    <section class="cards">
+      <div class="card card--amarelo"><strong>8</strong><span>Pendências</span><small>esperando você</small></div>
+      <div class="card"><strong>3</strong><span>Em análise</span><small>com a coordenação</small></div>
+      <div class="card card--coral"><strong>4</strong><span>Graves ou urgentes</span><small>2 ainda sem resposta</small></div>
+      <div class="card"><strong>2</strong><span>Encerradas</span><small>neste bimestre</small></div>
+    </section>
+    <div class="duas">
+      <section class="bloco">
+        <h2>Últimas ocorrências</h2>
+        <table>
+          <thead><tr><th>Aluno</th><th>Status</th><th>Gravidade</th><th>Aberta há</th></tr></thead>
+          <tbody>
+            <tr><td>Camila Duarte</td><td><span class="tag tag--analise">Em análise</span></td><td><span class="tag tag--alta">Alta</span></td><td class="dias">29 dias</td></tr>
+            <tr><td>Henrique Barros</td><td><span class="tag">Registrada</span></td><td><span class="tag">Baixa</span></td><td class="dias">28 dias</td></tr>
+            <tr><td>Mateus Oliveira</td><td><span class="tag">Registrada</span></td><td><span class="tag tag--media">Média</span></td><td class="dias">27 dias</td></tr>
+            <tr><td>Ana Clara Ribeiro</td><td><span class="tag">Registrada</span></td><td><span class="tag">Baixa</span></td><td class="dias">26 dias</td></tr>
+            <tr><td>Felipe Cardoso</td><td><span class="tag">Registrada</span></td><td><span class="tag">Baixa</span></td><td class="dias">25 dias</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="bloco">
+        <h2>O que mudou</h2>
+        <ul>
+          <li><time>hoje 09:48</time><br />Professor POLAR editou a ocorrência da Ana Clara.</li>
+          <li><time>hoje 09:31</time><br />Professor POLAR registrou uma ocorrência do Felipe.</li>
+          <li><time>ontem 16:02</time><br />Você colocou em análise a ocorrência da Camila.</li>
+        </ul>
+        <div style="padding:0 16px 18px"><a class="botao" href="#">Registrar ocorrência</a></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

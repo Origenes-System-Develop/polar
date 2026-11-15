@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { conflict, notFound } from "../../shared/errors/app-error.js";
+import { conflict, forbidden, notFound } from "../../shared/errors/app-error.js";
 import { PapelUsuario, usuarioPublico, type Usuario, type UsuarioPublico } from "../../shared/domain.js";
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
@@ -100,5 +100,46 @@ export class UsersService {
     });
 
     return usuarioPublico(updated);
+  }
+
+  // Senha esquecida: gera uma provisoria, destrava a conta e obriga a troca no proximo login.
+  // A senha so aparece nesta resposta, para quem redefiniu repassar a pessoa.
+  async redefinirSenha(id: string, actor: { id: string; papel: PapelUsuario }): Promise<string> {
+    const alvo = await this.users.findById(id);
+    if (!alvo) {
+      throw notFound("Usuario nao encontrado.");
+    }
+    // A propria senha se troca no perfil. A direcao nao mexe na conta da administracao,
+    // senao quem redefine passaria a ter o acesso de ADM.
+    if (alvo.id === actor.id) {
+      throw forbidden("Para trocar a sua senha, use o seu perfil.");
+    }
+    if (alvo.papel === PapelUsuario.ADM && actor.papel !== PapelUsuario.ADM) {
+      throw forbidden("A senha da administracao so e redefinida por outra conta de administracao.");
+    }
+    const actorId = actor.id;
+    const senhaTemporaria = gerarSenhaTemporaria(alvo.papel);
+    const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
+    const now = agoraIso();
+    await this.users.update(id, (current) => ({
+      ...current,
+      senhaHash,
+      precisaTrocarSenha: true,
+      tentativasLoginInvalidas: 0,
+      bloqueadoAte: null,
+      atualizadoEm: now
+    }));
+
+    await this.audit.create({
+      id: novoId(),
+      usuarioId: actorId,
+      acao: "SENHA_REDEFINIDA",
+      entidade: "usuarios",
+      entidadeId: id,
+      metadata: {},
+      criadoEm: now
+    });
+
+    return senhaTemporaria;
   }
 }

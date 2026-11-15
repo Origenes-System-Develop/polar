@@ -137,6 +137,7 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   criado_por_id CHAR(36) NOT NULL,
   criado_em TIMESTAMPTZ(3) NOT NULL,
   atualizado_em TIMESTAMPTZ(3) NOT NULL,
+  ciencia_em TIMESTAMPTZ(3) NULL,
   CONSTRAINT pk_ocorrencias PRIMARY KEY (id),
   CONSTRAINT fk_ocorrencias_aluno FOREIGN KEY (aluno_id) REFERENCES alunos (id),
   CONSTRAINT fk_ocorrencias_criado_por FOREIGN KEY (criado_por_id) REFERENCES users (id)
@@ -145,6 +146,9 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
 -- Compatibilidade com bancos ja existentes: ocorrencias anteriores ao filtro por
 -- bimestre recebem o bimestre pelo mes de registro (jan-abr = 1, mai-jul = 2,
 -- ago-set = 3, out-dez = 4, em UTC como no seed). Idempotente.
+-- Ciencia do responsavel (link do aviso por e-mail/WhatsApp). Idempotente.
+ALTER TABLE ocorrencias ADD COLUMN IF NOT EXISTS ciencia_em TIMESTAMPTZ(3) NULL;
+
 ALTER TABLE ocorrencias ADD COLUMN IF NOT EXISTS bimestre INTEGER;
 UPDATE ocorrencias
 SET bimestre = CASE

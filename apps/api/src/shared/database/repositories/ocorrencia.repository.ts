@@ -31,6 +31,8 @@ export interface OcorrenciaRepository {
     updater: (ocorrencia: Ocorrencia) => Ocorrencia,
     historico?: HistoricoDaAtualizacao
   ): Promise<Ocorrencia | null>;
+  /** Grava a ciencia do responsavel so se ainda nao houver; devolve a ocorrencia (null se nao existe). */
+  registrarCiencia(id: string, em: string): Promise<Ocorrencia | null>;
 }
 
 export class JsonOcorrenciaRepository implements OcorrenciaRepository {
@@ -116,6 +118,15 @@ export class JsonOcorrenciaRepository implements OcorrenciaRepository {
         state.ocorrenciaHistorico.push(typeof historico === "function" ? historico(current) : historico);
       }
       return updated;
+    });
+  }
+
+  async registrarCiencia(id: string, em: string): Promise<Ocorrencia | null> {
+    return this.db.transaction((state) => {
+      const ocorrencia = state.ocorrencias.find((item) => item.id === id);
+      if (!ocorrencia) return null;
+      ocorrencia.cienciaEm ??= em;
+      return ocorrencia;
     });
   }
 }

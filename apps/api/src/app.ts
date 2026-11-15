@@ -20,6 +20,7 @@ import { faltasRoutes } from "./modules/faltas/faltas.routes.js";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes.js";
 import { relatoriosRoutes } from "./modules/relatorios/relatorios.routes.js";
 import { auditoriaRoutes } from "./modules/auditoria/auditoria.routes.js";
+import { cienciaRoutes } from "./modules/ciencia/ciencia.routes.js";
 
 export interface CreateAppOptions {
   config?: AppConfig;
@@ -103,6 +104,7 @@ export async function createApp(options: CreateAppOptions = {}) {
   app.use("/api/relatorios", relatoriosRoutes(container.services, config));
   app.use("/api/auditoria", auditoriaRoutes(container.services, config));
   app.use("/api/escola", escolaRoutes(container.services, config));
+  app.use("/api/ciencia", cienciaRoutes(container.services));
 
   if (serveSpa) {
     app.use(express.static(webDist));

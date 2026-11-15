@@ -31,4 +31,14 @@ export class UsersController {
     const user = await this.services.users.update(params.id, body, actor?.id ?? "sistema");
     return res.json({ data: user });
   };
+
+  redefinirSenha = async (req: Request, res: Response): Promise<Response> => {
+    const actor = req.usuario;
+    if (!actor) {
+      throw badRequest("Usuario autenticado nao encontrado.");
+    }
+    const params = idParamSchema.parse(req.params);
+    const senhaTemporaria = await this.services.users.redefinirSenha(params.id, actor);
+    return res.json({ senhaTemporaria });
+  };
 }

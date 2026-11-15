@@ -201,6 +201,12 @@ describe.runIf(Boolean(url))("repositorios PostgreSQL (contrato)", () => {
     expect(lida?.bimestre).toBe(3);
     expect((await repos.ocorrencias.listByBimestre(3)).map((o) => o.id)).toContain(ocorrencia.id);
     expect((await repos.ocorrencias.listByBimestre(1)).map((o) => o.id)).not.toContain(ocorrencia.id);
+    expect(lida?.cienciaEm).toBeNull();
+    const ciente = await repos.ocorrencias.registrarCiencia(ocorrencia.id, now);
+    expect(ciente?.cienciaEm).toBe(now);
+    // A segunda confirmacao nao sobrescreve a primeira.
+    const deNovo = await repos.ocorrencias.registrarCiencia(ocorrencia.id, new Date(Date.parse(now) + 60_000).toISOString());
+    expect(deNovo?.cienciaEm).toBe(now);
 
     const alunoLido = await repos.alunos.findById(aluno.id);
     expect(alunoLido?.nome).toBe("João Não-Silva Àcêntós");

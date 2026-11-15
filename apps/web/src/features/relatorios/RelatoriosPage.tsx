@@ -1,4 +1,4 @@
-import { ChevronRight, Download } from "lucide-react";
+import { ChevronRight, Download, FileText, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
@@ -8,6 +8,7 @@ import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { RelatorioOcorrencias, Turma } from "../../services/domain";
 import { getRelatorioOcorrencias, listTurmas } from "../../services/school.service";
+import { baixarCsv, ocorrenciasParaCsv } from "./csv";
 import { ocorrenciasParaXlsx } from "./planilha";
 import { baixarXlsx } from "./xlsx";
 import { BarrasHorizontais, LinhaMensal, PilhaDeStatus, nomeDoMes } from "./graficos";
@@ -99,14 +100,28 @@ export function RelatoriosPage() {
         breadcrumb={[{ label: "Início", to: "/" }, { label: "Relatórios" }]}
         description={`Mostrando ocorrências do ${periodoTexto}.`}
         actions={
-          <Button
-            variant="secondary"
-            icon={<Download size={18} />}
-            disabled={loading || total === 0}
-            onClick={() => relatorio && baixarXlsx(ocorrenciasParaXlsx(relatorio.ocorrencias), `ocorrencias-${ano || "todos-os-anos"}.xlsx`)}
-          >
-            Baixar planilha (Excel)
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              icon={<Download size={18} />}
+              disabled={loading || total === 0}
+              onClick={() => relatorio && baixarXlsx(ocorrenciasParaXlsx(relatorio.ocorrencias), `ocorrencias-${ano || "todos-os-anos"}.xlsx`)}
+            >
+              Baixar planilha (Excel)
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<FileText size={18} />}
+              disabled={loading || total === 0}
+              onClick={() => relatorio && baixarCsv(ocorrenciasParaCsv(relatorio.ocorrencias), `ocorrencias-${ano || "todos-os-anos"}.csv`)}
+            >
+              Baixar CSV
+            </Button>
+            {/* PDF pela impressao do navegador ("Salvar como PDF"): o CSS de impressao tira menu e botoes. */}
+            <Button variant="secondary" icon={<Printer size={18} />} disabled={loading || total === 0} onClick={() => window.print()}>
+              Imprimir ou salvar PDF
+            </Button>
+          </>
         }
       />
       <div className="page-grid">

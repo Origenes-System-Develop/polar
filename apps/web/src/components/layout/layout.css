@@ -612,6 +612,11 @@
   gap: var(--space-3);
 }
 
+/* So aparece com a gaveta do celular aberta (media query abaixo). */
+.app-shell__backdrop {
+  display: none;
+}
+
 @media (max-width: 980px) {
   .app-shell,
   .app-shell.is-collapsed {
@@ -628,6 +633,18 @@
 
   .app-shell.is-open .sidebar {
     transform: translateX(0);
+  }
+
+  /* Fundo escuro atras da gaveta: tocar fora fecha. */
+  .app-shell.is-open .app-shell__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    border: 0;
+    padding: 0;
+    background: rgb(15 23 42 / 0.45);
+    cursor: default;
   }
 
   .sidebar__recolher,

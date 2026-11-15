@@ -28,6 +28,7 @@ import { UsersService } from "../modules/users/users.service.js";
 import { TurmasService } from "../modules/turmas/turmas.service.js";
 import { AlunosService } from "../modules/alunos/alunos.service.js";
 import { OcorrenciasService } from "../modules/ocorrencias/ocorrencias.service.js";
+import { CienciaService } from "../modules/ciencia/ciencia.service.js";
 import { NotasService } from "../modules/notas/notas.service.js";
 import { FaltasService } from "../modules/faltas/faltas.service.js";
 import { DashboardService } from "../modules/dashboard/dashboard.service.js";
@@ -60,6 +61,7 @@ export interface Services {
   relatorios: RelatoriosService;
   auditoria: AuditoriaService;
   escola: EscolaService;
+  ciencia: CienciaService;
 }
 
 export interface ServiceContainer {
@@ -119,6 +121,7 @@ export async function createServiceContainer(
   const { repositories, close } = await createRepositories(config, database);
 
   const auth = new AuthService(repositories.users, repositories.audit, config, repositories.configuracoes);
+  const escola = new EscolaService(repositories.configuracoes, repositories.audit, config);
   const services: Services = {
     auth,
     users: new UsersService(repositories.users, repositories.audit),
@@ -132,14 +135,16 @@ export async function createServiceContainer(
       repositories.audit,
       repositories.users,
       enviarEmail,
-      config.appUrl
+      config.appUrl,
+      config.jwtSecret
     ),
     notas: new NotasService(repositories.notas, repositories.alunos, repositories.audit),
     faltas: new FaltasService(repositories.faltas, repositories.alunos, repositories.audit),
     dashboard: new DashboardService(repositories.ocorrencias, repositories.users),
     relatorios: new RelatoriosService(repositories.ocorrencias, repositories.alunos, repositories.turmas, repositories.alunosTurmasHistorico),
     auditoria: new AuditoriaService(repositories.audit),
-    escola: new EscolaService(repositories.configuracoes, repositories.audit, config),
+    escola,
+    ciencia: new CienciaService(repositories.ocorrencias, repositories.alunos, repositories.audit, escola, config.jwtSecret)
   };
 
   await auth.bootstrapAdminIfNeeded();

@@ -7,6 +7,9 @@ import type { OcorrenciaRepository } from "../../shared/database/repositories/oc
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 
+export const ALUNO_ANONIMIZADO = "Aluno anonimizado";
+const TEXTO_REMOVIDO = "[Texto removido: dados pessoais apagados conforme a LGPD.]";
+
 export interface AlunoInput {
   nome?: string | undefined;
   matricula?: string | undefined;
@@ -189,6 +192,68 @@ export class AlunosService {
     });
 
     return updated;
+  }
+
+  // LGPD: apaga os dados pessoais do aluno e o texto das ocorrencias dele. Ficam so os numeros
+  // (categoria, prioridade, datas, status) para os relatorios da escola continuarem certos.
+  // Irreversivel; por isso so vale para aluno ja desativado.
+  async anonimizar(id: string, actorId: string): Promise<Aluno> {
+    const aluno = await this.alunos.findById(id);
+    if (!aluno) {
+      throw notFound("Aluno nao encontrado.");
+    }
+    if (aluno.ativo) {
+      throw conflict("Desative o aluno antes de apagar os dados pessoais.");
+    }
+    if (aluno.nome === ALUNO_ANONIMIZADO) {
+      return aluno;
+    }
+
+    const now = agoraIso();
+    const updated = await this.alunos.update(id, (current) => ({
+      ...current,
+      nome: ALUNO_ANONIMIZADO,
+      // Matricula e unica no banco: o prefixo com o id mantem a unicidade sem guardar a original.
+      matricula: `ANON-${id.slice(0, 8)}`,
+      responsavelNome: "",
+      responsavelContato: "",
+      responsavelEmail: "",
+      atualizadoEm: now
+    }));
+    const ocorrencias = (await this.ocorrencias.list()).filter((ocorrencia) => ocorrencia.alunoId === id);
+    for (const ocorrencia of ocorrencias) {
+      await this.ocorrencias.updateWithHistorico(ocorrencia.id, (current) => ({
+        ...current,
+        descricao: TEXTO_REMOVIDO,
+        local: "",
+        testemunhas: ""
+      }));
+    }
+
+    await this.audit.create({
+      id: novoId(),
+      usuarioId: actorId,
+      acao: "ALUNO_ANONIMIZADO",
+      entidade: "alunos",
+      entidadeId: id,
+      metadata: { ocorrencias: ocorrencias.length },
+      criadoEm: now
+    });
+
+    return updated ?? aluno;
+  }
+
+  // Prazo de guarda: anonimiza quem esta desativado ha mais de `anos` (conta da ultima alteracao).
+  async anonimizarInativos(anos: number, actorId: string): Promise<number> {
+    const limite = new Date();
+    limite.setFullYear(limite.getFullYear() - anos);
+    const vencidos = (await this.alunos.list()).filter(
+      (aluno) => !aluno.ativo && aluno.nome !== ALUNO_ANONIMIZADO && new Date(aluno.atualizadoEm) < limite
+    );
+    for (const aluno of vencidos) {
+      await this.anonimizar(aluno.id, actorId);
+    }
+    return vencidos.length;
   }
 
   private async resolveTurma(input: AlunoInput) {

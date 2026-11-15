@@ -1,0 +1,4 @@
+Fontes obtidas diretamente de Google Fonts (fonts.googleapis.com) e Fontshare (api.fontshare.com).
+Google Fonts: https://fonts.google.com/attribution
+Fontshare: https://www.fontshare.com/licenses
+Reproduzir: scripts/download-exploration-fonts.py

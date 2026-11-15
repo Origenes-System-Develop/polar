@@ -131,6 +131,8 @@ export interface Ocorrencia {
   criadoPorId: string;
   criadoEm: string;
   atualizadoEm: string;
+  /** Quando o responsavel confirmou que recebeu o aviso (link do e-mail/WhatsApp). */
+  cienciaEm?: string | null;
 }
 
 export interface OcorrenciaHistorico {

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · C · Risografia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500;75..150,800;75..150,900&family=Work+Sans:wght@400;500;600&display=swap" />
+<style>
+  /* Referencia: impressao em risografia, a grafica dos fanzines de escola. Duas tintas
+     (rosa fluorescente e azul medio) que se misturam onde se sobrepoem, retícula de pontos
+     e o registro levemente fora do lugar. */
+  :root {
+    --papel: #f5f1e6;
+    --rosa: #ff48b0;
+    --azul: #0078bf;
+    --tinta: #1a2a5e; /* azul sobre rosa vira esse tom escuro */
+    --titulo: "Anybody", "Arial Black", sans-serif;
+    --texto: "Work Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--papel); color: var(--tinta); font-family: var(--texto); font-size: 15px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+  }
+  .pagina { max-width: 1240px; margin: 0 auto; padding: 22px 32px 50px; }
+  .cab { display: flex; align-items: center; gap: 28px; border-bottom: 2px solid var(--azul); padding-bottom: 14px; }
+  .marca { font-family: var(--titulo); font-weight: 900; font-stretch: 150%; font-size: 34px; color: var(--azul); letter-spacing: -0.02em; text-shadow: 3px 2px 0 rgba(255, 72, 176, .75); }
+  nav { display: flex; gap: 18px; flex-wrap: wrap; font-weight: 600; }
+  nav a { color: var(--azul); text-decoration: none; }
+  nav a.ativo { background: var(--rosa); color: var(--papel); padding: 2px 8px; mix-blend-mode: multiply; }
+  .cab .quem { margin-left: auto; font-weight: 600; color: var(--azul); }
+  .cab .quem b { background: var(--rosa); color: var(--papel); padding: 1px 7px; margin-left: 4px; }
+
+  .capa { position: relative; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 32px; padding: 36px 0 28px; align-items: center; }
+  h1 { font-family: var(--titulo); font-weight: 900; font-stretch: 115%; font-size: 64px; line-height: .9; margin: 0; color: var(--azul); letter-spacing: -0.03em; position: relative; }
+  h1 span { color: var(--rosa); mix-blend-mode: multiply; display: block; transform: translate(4px, -2px); }
+  .capa p { font-size: 19px; line-height: 1.45; max-width: 40ch; margin: 18px 0 0; }
+  /* duas manchas de tinta sobrepostas, com retícula */
+  .manchas { position: relative; height: 230px; }
+  .mancha { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
+  .mancha--rosa { width: 210px; height: 210px; left: 10px; top: 10px; background: radial-gradient(var(--rosa) 1.6px, transparent 1.9px) 0 0 / 7px 7px; }
+  .mancha--azul { width: 190px; height: 190px; left: 120px; top: 30px; background: var(--azul); opacity: .85; }
+  .mancha__num { position: absolute; left: 150px; top: 60px; font-family: var(--titulo); font-weight: 900; font-stretch: 150%; font-size: 110px; line-height: 1; color: var(--papel); }
+
+  .numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--azul); border-bottom: 2px solid var(--azul); }
+  .numero { padding: 16px 18px; border-right: 2px dotted var(--azul); }
+  .numero:last-child { border-right: 0; }
+  .numero strong { display: block; font-family: var(--titulo); font-weight: 900; font-stretch: 150%; font-size: 56px; line-height: 1; color: var(--azul); }
+  .numero--rosa strong { color: var(--rosa); text-shadow: 3px 2px 0 rgba(0, 120, 191, .55); }
+  .numero span { font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: .08em; }
+
+  .duas { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; margin-top: 30px; }
+  h2 { font-family: var(--titulo); font-weight: 800; font-stretch: 130%; font-size: 26px; color: var(--azul); margin: 0 0 10px; }
+  h2::after { content: ""; display: block; height: 8px; margin-top: 6px; background: radial-gradient(var(--rosa) 1.4px, transparent 1.7px) 0 0 / 6px 6px; }
+  .lista { min-width: 0; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 520px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--azul); padding: 8px 6px; }
+  td { padding: 11px 6px; border-top: 1px solid rgba(0, 120, 191, .35); }
+  td:first-child { font-weight: 600; }
+  .st { font-weight: 600; color: var(--azul); }
+  .st--analise { background: var(--rosa); color: var(--papel); padding: 1px 6px; mix-blend-mode: multiply; }
+  .grav { font-weight: 600; }
+  .grav--alta { color: var(--rosa); text-shadow: 1px 1px 0 rgba(0, 120, 191, .5); }
+  .dias { font-family: var(--titulo); font-weight: 800; color: var(--azul); }
+  .mov p { margin: 0 0 14px; padding-left: 14px; border-left: 4px solid var(--rosa); line-height: 1.45; }
+  .mov time { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--azul); font-weight: 600; }
+  .botao { display: inline-block; margin-top: 8px; background: var(--azul); color: var(--papel); font-weight: 600; padding: 11px 16px; text-decoration: none; box-shadow: 4px 3px 0 var(--rosa); }
+  @media (max-width: 860px) {
+    .pagina { padding: 16px 16px 40px; }
+    .cab { flex-wrap: wrap; gap: 12px; }
+    .cab .quem { margin-left: 0; }
+    .capa, .duas { grid-template-columns: minmax(0, 1fr); }
+    h1 { font-size: 40px; font-stretch: 100%; }
+    .manchas { display: none; }
+    .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .numero:nth-child(2) { border-right: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="cab">
+    <div class="marca">polar</div>
+    <nav>
+      <a class="ativo" href="#">Início</a>
+      <a href="#">Ocorrências</a>
+      <a href="#">Alunos</a>
+      <a href="#">Turmas</a>
+      <a href="#">Relatórios</a>
+    </nav>
+    <div class="quem">Coordenação POLAR <b>8</b></div>
+  </header>
+
+  <section class="capa">
+    <div>
+      <h1>Bom dia,<span>Coordenação.</span></h1>
+      <p>Há 8 ocorrências esperando você. A mais antiga, da Camila Duarte, está aberta há 29 dias.</p>
+      <a class="botao" href="#">Abrir a fila</a>
+    </div>
+    <div class="manchas" aria-hidden="true">
+      <div class="mancha mancha--rosa"></div>
+      <div class="mancha mancha--azul"></div>
+      <div class="mancha__num">8</div>
+    </div>
+  </section>
+
+  <section class="numeros" aria-label="Resumo">
+    <div class="numero numero--rosa"><strong>8</strong><span>Pendências</span></div>
+    <div class="numero"><strong>3</strong><span>Em análise</span></div>
+    <div class="numero numero--rosa"><strong>4</strong><span>Graves ou urgentes</span></div>
+    <div class="numero"><strong>2</strong><span>Encerradas</span></div>
+  </section>
+
+  <div class="duas">
+    <section class="lista">
+      <h2>Últimas ocorrências</h2>
+      <table>
+        <thead><tr><th>Aluno</th><th>Status</th><th>Gravidade</th><th>Aberta há</th></tr></thead>
+        <tbody>
+          <tr><td>Camila Duarte</td><td><span class="st st--analise">Em análise</span></td><td class="grav grav--alta">Alta</td><td class="dias">29 dias</td></tr>
+          <tr><td>Henrique Barros</td><td class="st">Registrada</td><td class="grav">Baixa</td><td class="dias">28 dias</td></tr>
+          <tr><td>Mateus Oliveira</td><td class="st">Registrada</td><td class="grav">Média</td><td class="dias">27 dias</td></tr>
+          <tr><td>Ana Clara Ribeiro</td><td class="st">Registrada</td><td class="grav">Baixa</td><td class="dias">26 dias</td></tr>
+          <tr><td>Felipe Cardoso</td><td class="st">Registrada</td><td class="grav">Baixa</td><td class="dias">25 dias</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="mov">
+      <h2>O que mudou</h2>
+      <p><time>hoje · 09:48</time>Professor POLAR editou a ocorrência da Ana Clara.</p>
+      <p><time>hoje · 09:31</time>Professor POLAR registrou uma ocorrência do Felipe.</p>
+      <p><time>ontem · 16:02</time>Você colocou em análise a ocorrência da Camila.</p>
+    </section>
+  </div>
+</div>
+</body>
+</html>

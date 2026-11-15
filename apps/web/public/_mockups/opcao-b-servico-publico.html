@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · B · Serviço público</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&display=swap" />
+<style>
+  /* Referencia: GOV.UK Design System (lista de tarefas, summary card, foco amarelo,
+     texto grande, nada decorativo). Public Sans e a fonte do sistema de design do governo dos EUA. */
+  :root {
+    --texto: #0b0c0c;
+    --cinza: #505a5f;
+    --borda: #b1b4b6;
+    --fundo: #ffffff;
+    --faixa: #f3f2f1;
+    --link: #1d70b8;
+    --foco: #ffdd00;
+    --verde: #00703c;
+    --vermelho: #d4351c;
+    --marca: #e8a317;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font-family: "Public Sans", Arial, sans-serif; font-size: 19px; line-height: 1.4; }
+  a { color: var(--link); text-underline-offset: 3px; }
+  a:focus { outline: 3px solid transparent; background: var(--foco); box-shadow: 0 -2px var(--foco), 0 4px var(--texto); color: var(--texto); text-decoration: none; }
+  header { background: var(--texto); color: #fff; border-bottom: 10px solid var(--marca); }
+  .cab { max-width: 1020px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 24px; }
+  .marca { font-weight: 800; font-size: 26px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .marca svg { flex-shrink: 0; }
+  .cab nav { display: flex; gap: 20px; font-size: 16px; font-weight: 600; flex-wrap: wrap; }
+  .cab nav a { color: #fff; }
+  .cab nav a.ativo { text-decoration: none; box-shadow: inset 0 -3px 0 var(--marca); }
+  .cab .quem { margin-left: auto; font-size: 16px; }
+  .cab .quem a { color: #fff; }
+  .pagina { max-width: 1020px; margin: 0 auto; padding: 32px 20px 60px; }
+  .legenda { color: var(--cinza); font-size: 19px; margin: 0 0 4px; }
+  h1 { font-size: 48px; font-weight: 800; line-height: 1.05; margin: 0 0 20px; letter-spacing: -0.01em; }
+  .aviso { border-left: 10px solid var(--marca); background: var(--faixa); padding: 16px 20px; margin: 0 0 36px; font-size: 21px; font-weight: 600; }
+  .aviso a { font-weight: 700; }
+  .grade { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 40px; }
+  h2 { font-size: 27px; font-weight: 800; margin: 0 0 14px; }
+  .tarefas { list-style: none; margin: 0 0 40px; padding: 0; border-top: 1px solid var(--borda); }
+  .tarefas li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--borda); }
+  .tarefas small { display: block; color: var(--cinza); font-size: 16px; }
+  .tag { flex-shrink: 0; display: inline-block; padding: 2px 8px 3px; font-size: 15px; font-weight: 700; background: #e1e0dd; color: #383f43; }
+  .tag--atrasada { background: #f4cdc6; color: #2a0b06; }
+  .tag--analise { background: #bbd4ea; color: #0c2d4a; }
+  .resumo { border: 1px solid var(--borda); margin-bottom: 30px; }
+  .resumo h3 { margin: 0; padding: 12px 16px; background: var(--faixa); border-bottom: 1px solid var(--borda); font-size: 19px; }
+  dl { margin: 0; padding: 4px 16px; }
+  dl div { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--borda); }
+  dl div:last-child { border-bottom: 0; }
+  dt { font-weight: 600; }
+  dd { margin: 0; font-weight: 800; font-size: 24px; line-height: 1; }
+  dd.alerta { color: var(--vermelho); }
+  .recentes { font-size: 16px; }
+  .recentes p { margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--borda); }
+  .recentes time { display: block; color: var(--cinza); }
+  .botao { display: inline-block; background: var(--verde); color: #fff; font-weight: 600; padding: 9px 14px 10px; box-shadow: 0 2px 0 #002d18; text-decoration: none; font-size: 19px; }
+  @media (max-width: 860px) {
+    body { font-size: 17px; }
+    .cab { flex-wrap: wrap; gap: 12px; }
+    .cab .quem { margin-left: 0; width: 100%; }
+    h1 { font-size: 34px; }
+    .grade { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="cab">
+    <div class="marca">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="11" stroke="#fff" stroke-width="2.5"/><circle cx="14" cy="14" r="5" fill="#e8a317"/></svg>
+      polar
+    </div>
+    <nav>
+      <a class="ativo" href="#">Início</a>
+      <a href="#">Ocorrências</a>
+      <a href="#">Alunos</a>
+      <a href="#">Turmas</a>
+      <a href="#">Relatórios</a>
+    </nav>
+    <div class="quem">Coordenação POLAR · <a href="#">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="legenda">Escola Estadual de exemplo · 4º bimestre</p>
+  <h1>Bom dia, Coordenação</h1>
+  <p class="aviso">8 ocorrências esperam sua análise. A mais antiga está aberta há 29 dias. <a href="#">Ver a fila</a></p>
+
+  <div class="grade">
+    <div>
+      <h2>O que precisa de você</h2>
+      <ol class="tarefas">
+        <li><span><a href="#">Camila Duarte, 1º A</a><small>Agressão verbal · gravidade alta</small></span><span class="tag tag--atrasada">Aberta há 29 dias</span></li>
+        <li><span><a href="#">Henrique Barros, 2º B</a><small>Atraso · gravidade baixa</small></span><span class="tag tag--atrasada">Aberta há 28 dias</span></li>
+        <li><span><a href="#">Mateus Oliveira, 1º A</a><small>Uso indevido de celular · gravidade média</small></span><span class="tag tag--atrasada">Aberta há 27 dias</span></li>
+        <li><span><a href="#">Ana Clara Ribeiro, 1º A</a><small>Atraso · gravidade baixa</small></span><span class="tag">Registrada</span></li>
+        <li><span><a href="#">Felipe Cardoso, 3º C</a><small>Falta de material · gravidade baixa</small></span><span class="tag">Registrada</span></li>
+      </ol>
+      <a class="botao" href="#">Registrar ocorrência</a>
+    </div>
+
+    <div>
+      <section class="resumo">
+        <h3>Resumo da escola</h3>
+        <dl>
+          <div><dt>Pendências</dt><dd>8</dd></div>
+          <div><dt>Em análise</dt><dd>3</dd></div>
+          <div><dt>Graves ou urgentes</dt><dd class="alerta">4</dd></div>
+          <div><dt>Encerradas no bimestre</dt><dd>2</dd></div>
+        </dl>
+      </section>
+      <h2>O que mudou</h2>
+      <div class="recentes">
+        <p><time>Hoje, 09:48</time>Professor POLAR editou a ocorrência de Ana Clara Ribeiro.</p>
+        <p><time>Hoje, 09:31</time>Professor POLAR registrou uma ocorrência de Felipe Cardoso.</p>
+        <p><time>Ontem, 16:02</time>Você colocou em análise a ocorrência de Camila Duarte.</p>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

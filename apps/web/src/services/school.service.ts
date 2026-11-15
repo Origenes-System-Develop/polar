@@ -122,6 +122,21 @@ export async function createAluno(payload: CreateAlunoPayload): Promise<Aluno> {
   return response.data;
 }
 
+// Mesmo texto que a API grava no lugar do nome (alunos.service.ts).
+export const ALUNO_ANONIMIZADO = "Aluno anonimizado";
+
+export async function anonimizarAluno(id: string): Promise<Aluno> {
+  return (await apiRequest<ApiData<Aluno>>(`/alunos/${id}/anonimizar`, { method: "POST" })).data;
+}
+
+export async function anonimizarAlunosInativos(anos: number): Promise<number> {
+  const response = await apiRequest<ApiData<{ anonimizados: number }>>("/alunos/anonimizar-inativos", {
+    method: "POST",
+    body: JSON.stringify({ anos })
+  });
+  return response.data.anonimizados;
+}
+
 export async function updateAluno(id: string, payload: UpdateAlunoPayload): Promise<Aluno> {
   const response = await apiRequest<ApiData<Aluno>>(`/alunos/${id}`, {
     method: "PATCH",
@@ -168,6 +183,37 @@ export async function getOcorrenciaDetalhada(id: string): Promise<OcorrenciaDeta
 export async function listHistoricoOcorrencia(id: string): Promise<OcorrenciaHistorico[]> {
   const response = await apiRequest<ApiData<OcorrenciaHistorico[]>>(`/ocorrencias/${id}/historico`);
   return response.data;
+}
+
+export interface CienciaOcorrencia {
+  caminho: string | null;
+  cienciaEm: string | null;
+  responsavelNome: string;
+  responsavelContato: string;
+  responsavelEmail: string;
+}
+
+export async function getCienciaOcorrencia(id: string): Promise<CienciaOcorrencia> {
+  return (await apiRequest<ApiData<CienciaOcorrencia>>(`/ocorrencias/${id}/ciencia`)).data;
+}
+
+// Pagina publica do responsavel (sem login): o caminho ja traz id e assinatura.
+export interface ResumoCiencia {
+  escola: string | null;
+  aluno: string;
+  data: string;
+  categoria: string;
+  cienciaEm: string | null;
+}
+
+export async function getResumoCiencia(id: string, assinatura: string): Promise<ResumoCiencia> {
+  return (await apiRequest<ApiData<ResumoCiencia>>(`/ciencia/${encodeURIComponent(id)}/${encodeURIComponent(assinatura)}`)).data;
+}
+
+export async function confirmarCiencia(id: string, assinatura: string): Promise<ResumoCiencia> {
+  return (
+    await apiRequest<ApiData<ResumoCiencia>>(`/ciencia/${encodeURIComponent(id)}/${encodeURIComponent(assinatura)}`, { method: "POST" })
+  ).data;
 }
 
 export async function listNotificacoesOcorrencia(id: string): Promise<NotificacaoOcorrencia[]> {
@@ -246,6 +292,12 @@ export async function createUsuario(payload: CreateUsuarioPayload): Promise<{ us
     body: JSON.stringify(payload)
   });
   return { usuario: response.data, senhaTemporaria: response.senhaTemporaria };
+}
+
+// Senha esquecida: a direcao gera uma provisoria; ela volta so nesta resposta.
+export async function redefinirSenhaUsuario(id: string): Promise<string> {
+  const response = await apiRequest<{ senhaTemporaria: string }>(`/usuarios/${id}/redefinir-senha`, { method: "POST" });
+  return response.senhaTemporaria;
 }
 
 export async function updateUsuario(id: string, payload: UpdateUsuarioPayload): Promise<Usuario> {

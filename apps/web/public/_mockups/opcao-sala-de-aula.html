@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · opção Sala de aula</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=Caveat:wght@500;700&display=swap" />
+<style>
+  :root {
+    --creme: #fff8ec;
+    --papel: #fffdf8;
+    --lousa: #1f4d3a;
+    --lousa-escura: #173b2c;
+    --giz: #f4f1e8;
+    --lapis: #f2b705;
+    --terracota: #c4552e;
+    --tinta: #23302a;
+    --suave: #5b675f;
+    --linha: #eadfca;
+    --pauta: #c9dcef;
+    --margem: #e8a39a;
+    --titulo: "Bricolage Grotesque", system-ui, sans-serif;
+    --texto: "Nunito Sans", system-ui, sans-serif;
+    --mao: "Caveat", "Comic Sans MS", cursive;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--creme); color: var(--tinta); font-family: var(--texto); font-size: 15px; line-height: 1.5; }
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+  /* A lousa: lateral verde com texto de giz */
+  .lousa {
+    background: var(--lousa);
+    color: var(--giz);
+    padding: 22px 16px;
+    border-right: 10px solid #8a6a43; /* moldura de madeira */
+    position: relative;
+  }
+  .lousa::after { /* poeira de giz */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .09;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .marca { display: flex; align-items: center; gap: 10px; font-family: var(--titulo); font-weight: 800; font-size: 26px; letter-spacing: -0.02em; margin: 0 6px 30px; }
+  .marca svg { flex-shrink: 0; }
+  .lousa nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(244, 241, 232, .82); text-decoration: none; font-weight: 600; }
+  .lousa nav a.ativo { color: var(--giz); background: rgba(244, 241, 232, .1); }
+  .lousa nav a.ativo::after { content: ""; flex: 1; height: 2px; margin-left: 6px; background: var(--lapis); border-radius: 2px; transform: rotate(-2deg); }
+  .lousa__giz { position: absolute; bottom: 22px; left: 22px; right: 22px; font-family: var(--mao); font-size: 21px; line-height: 1.15; color: rgba(244, 241, 232, .75); }
+
+  main { padding: 26px 40px 48px; max-width: 1100px; }
+  .topo { display: flex; align-items: center; gap: 14px; justify-content: flex-end; margin-bottom: 18px; font-weight: 600; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--lapis); display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .sino { position: relative; padding: 8px 12px; background: var(--papel); border: 1px solid var(--linha); border-radius: 999px; font-size: 13px; }
+  .sino b { background: var(--terracota); color: #fff; border-radius: 999px; padding: 1px 7px; margin-left: 4px; }
+
+  .saudacao { display: grid; grid-template-columns: 1fr 430px; gap: 32px; align-items: start; margin-bottom: 28px; }
+  h1 { font-family: var(--titulo); font-weight: 800; font-size: 50px; line-height: 1; letter-spacing: -0.03em; margin: 8px 0 10px; }
+  h1 .sublinhado { position: relative; white-space: nowrap; }
+  h1 .sublinhado svg { position: absolute; left: -4px; right: -4px; bottom: -10px; width: calc(100% + 8px); height: 14px; }
+  .saudacao p { font-size: 17px; color: var(--suave); margin: 18px 0 0; max-width: 46ch; }
+  .anotacao { font-family: var(--mao); font-size: 24px; color: var(--terracota); transform: rotate(-3deg); display: inline-block; margin-top: 12px; }
+
+  /* Folha de caderno: pauta azul e margem vermelha */
+  .folha {
+    position: relative;
+    background-color: var(--papel);
+    background-image: linear-gradient(to right, transparent 42px, var(--margem) 42px, var(--margem) 43px, transparent 43px);
+    padding: 16px 20px 18px 58px;
+    border-radius: 4px;
+    box-shadow: 0 1px 0 var(--linha), 3px 4px 0 rgba(35, 48, 42, .07);
+    transform: rotate(.6deg);
+  }
+  .folha h2 { font-family: var(--mao); font-weight: 700; font-size: 30px; margin: 0 0 4px; line-height: 1.1; }
+  /* a pauta fica na lista, para cada item cair em cima de uma linha */
+  .folha ol { margin: 0; padding: 0; list-style: none; background: repeating-linear-gradient(to bottom, transparent 0, transparent 35px, var(--pauta) 35px, var(--pauta) 36px); }
+  .folha li { display: flex; gap: 10px; align-items: center; height: 36px; font-size: 15px; }
+  .folha li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .caixa { flex-shrink: 0; width: 17px; height: 17px; border: 2px solid var(--tinta); border-radius: 3px; }
+  .folha small { flex-shrink: 0; color: var(--terracota); font-weight: 700; }
+
+  /* Etiquetas com canto recortado */
+  .etiquetas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+  .etiqueta {
+    background: var(--papel);
+    padding: 18px 20px;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+    border-bottom: 4px solid var(--linha);
+  }
+  .etiqueta strong { display: block; font-family: var(--titulo); font-weight: 800; font-size: 48px; line-height: 1; letter-spacing: -0.03em; }
+  .etiqueta span { display: block; margin-top: 6px; font-weight: 700; }
+  .etiqueta small { color: var(--suave); }
+  .etiqueta--lapis { background: var(--lapis); border-bottom-color: #c99600; }
+  .etiqueta--terracota { background: var(--terracota); color: #fff; border-bottom-color: #9c3f1f; }
+  .etiqueta--terracota small { color: rgba(255, 255, 255, .85); }
+
+  .duas { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+  .bloco { min-width: 0; overflow-x: auto; background: var(--papel); border-radius: 14px; padding: 18px 22px; border: 1px solid var(--linha); }
+  .bloco h2 { font-family: var(--titulo); font-weight: 700; font-size: 22px; margin: 0 0 10px; letter-spacing: -0.01em; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; color: var(--suave); font-weight: 700; padding: 6px 8px; }
+  td { padding: 11px 8px; border-top: 1px dashed var(--linha); }
+  td:first-child { font-weight: 700; }
+  .status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #e9efe9; color: var(--lousa); }
+  .status--analise { background: #fdf0c4; color: #7a5b00; }
+  .grav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .grav i { width: 10px; height: 10px; border-radius: 50%; background: #9db8a6; }
+  .grav--media i { background: var(--lapis); }
+  .grav--alta i { background: var(--terracota); }
+  .dias { font-weight: 700; color: var(--terracota); }
+  .mov { margin: 0; padding: 0; list-style: none; }
+  .mov li { padding: 10px 0 10px 18px; border-left: 2px dotted var(--linha); position: relative; }
+  .mov li::before { content: ""; position: absolute; left: -6px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--lapis); border: 2px solid var(--papel); }
+  .mov time { display: block; font-size: 12px; color: var(--suave); }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .lousa { border-right: 0; border-bottom: 8px solid #8a6a43; }
+    .lousa nav { display: flex; overflow-x: auto; }
+    .lousa__giz { display: none; }
+    main { padding: 20px 16px 40px; }
+    .saudacao, .duas { grid-template-columns: minmax(0, 1fr); }
+    .etiquetas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="lousa">
+    <div class="marca">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <circle cx="15" cy="15" r="11" stroke="#f4f1e8" stroke-width="2" stroke-dasharray="3 3" />
+        <circle cx="15" cy="15" r="5" fill="#f2b705" />
+      </svg>
+      polar
+    </div>
+    <nav>
+      <a class="ativo" href="#">Início</a>
+      <a href="#">Ocorrências</a>
+      <a href="#">Alunos</a>
+      <a href="#">Turmas</a>
+      <a href="#">Relatórios</a>
+    </nav>
+    <div class="lousa__giz">Conselho de classe<br />sexta, 23/10</div>
+  </aside>
+
+  <main>
+    <div class="topo">
+      <span class="sino">Pendências <b>8</b></span>
+      <span class="avatar">CP</span>
+      <span>Coordenação POLAR</span>
+    </div>
+
+    <section class="saudacao">
+      <div>
+        <h1>Bom dia,<br /><span class="sublinhado">Coordenação.<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 40 3, 90 13, 130 6 S 185 4, 198 8" stroke="#f2b705" stroke-width="5" fill="none" stroke-linecap="round"/></svg></span></h1>
+        <p>Há 8 ocorrências esperando você. A mais antiga está aberta há 29 dias.</p>
+        <span class="anotacao">comece pela Camila ↘</span>
+      </div>
+      <div class="folha">
+        <h2>Para hoje</h2>
+        <ol>
+          <li><i class="caixa"></i><span>Analisar a ocorrência da Camila Duarte</span><small>29 dias</small></li>
+          <li><i class="caixa"></i><span>Ver o atraso do Henrique Barros</span><small>28 dias</small></li>
+          <li><i class="caixa"></i><span>Ver o celular do Mateus Oliveira</span><small>27 dias</small></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="etiquetas" aria-label="Resumo">
+      <div class="etiqueta etiqueta--lapis"><strong>8</strong><span>Pendências</span><small>esperando você</small></div>
+      <div class="etiqueta"><strong>3</strong><span>Em análise</span><small>com a coordenação</small></div>
+      <div class="etiqueta etiqueta--terracota"><strong>4</strong><span>Graves ou urgentes</span><small>2 ainda sem resposta</small></div>
+      <div class="etiqueta"><strong>2</strong><span>Encerradas</span><small>neste bimestre</small></div>
+    </section>
+
+    <div class="duas">
+      <section class="bloco">
+        <h2>Últimas ocorrências</h2>
+        <table>
+          <thead><tr><th>Aluno</th><th>Status</th><th>Gravidade</th><th>Aberta há</th></tr></thead>
+          <tbody>
+            <tr><td>Camila Duarte</td><td><span class="status status--analise">Em análise</span></td><td><span class="grav grav--alta"><i></i>Alta</span></td><td class="dias">29 dias</td></tr>
+            <tr><td>Henrique Barros</td><td><span class="status">Registrada</span></td><td><span class="grav"><i></i>Baixa</span></td><td class="dias">28 dias</td></tr>
+            <tr><td>Mateus Oliveira</td><td><span class="status">Registrada</span></td><td><span class="grav grav--media"><i></i>Média</span></td><td class="dias">27 dias</td></tr>
+            <tr><td>Ana Clara Ribeiro</td><td><span class="status">Registrada</span></td><td><span class="grav"><i></i>Baixa</span></td><td class="dias">26 dias</td></tr>
+            <tr><td>Felipe Cardoso</td><td><span class="status">Registrada</span></td><td><span class="grav"><i></i>Baixa</span></td><td class="dias">25 dias</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="bloco">
+        <h2>O que mudou</h2>
+        <ul class="mov">
+          <li><time>hoje, 09:48</time>Professor POLAR editou a ocorrência da Ana Clara.</li>
+          <li><time>hoje, 09:31</time>Professor POLAR registrou uma ocorrência do Felipe.</li>
+          <li><time>ontem, 16:02</time>Você colocou em análise a ocorrência da Camila.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>
