@@ -1,6 +1,6 @@
 import { LogIn } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/providers";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -106,7 +106,10 @@ export function LoginPage() {
           </form>
 
           <p className="login-access__help">
-            Esqueceu a senha? A coordenação da sua escola pode trocar para você.
+            Esqueceu a senha? A direção da sua escola gera uma senha nova para você.
+          </p>
+          <p className="login-access__help">
+            <Link to="/privacidade">Privacidade e proteção de dados</Link> · <Link to="/sobre">Conheça o Polar</Link>
           </p>
         </div>
       </section>

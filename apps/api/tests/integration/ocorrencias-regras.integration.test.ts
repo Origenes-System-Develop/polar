@@ -162,6 +162,43 @@ describe("Ocorrencias - regras v3", () => {
     expect(observacoes).toContain("Encerrado após acompanhamento.");
   });
 
+  it("diretor devolve ocorrencia resolvida para a coordenacao com observacao obrigatoria", async () => {
+    const t = await tokens(ctx.app);
+    const id = await criarOcorrencia(t.professor);
+    const status = (token: string, body: object) =>
+      request(ctx.app).patch(`/api/ocorrencias/${id}/status`).set("Authorization", `Bearer ${token}`).send(body);
+
+    await status(t.coordenador, { status: "EM_ANALISE" }).expect(200);
+    // Ainda nao resolvida: ninguem devolve.
+    await status(t.diretor, { status: "EM_ANALISE", observacao: "Fora de hora." }).expect(409);
+    await status(t.coordenador, { status: "RESOLVIDA" }).expect(200);
+
+    // Coordenador nao devolve a propria resolucao; diretor precisa justificar.
+    await status(t.coordenador, { status: "EM_ANALISE", observacao: "Tentando voltar." }).expect(403);
+    await status(t.diretor, { status: "EM_ANALISE" }).expect(400);
+    await status(t.diretor, { status: "EM_ANALISE", observacao: "   " }).expect(400);
+
+    const devolvida = await status(t.diretor, {
+      status: "EM_ANALISE",
+      observacao: "Falta contato com a familia."
+    }).expect(200);
+    expect(devolvida.body.data.status).toBe("EM_ANALISE");
+
+    const historico = await request(ctx.app)
+      .get(`/api/ocorrencias/${id}/historico`)
+      .set("Authorization", `Bearer ${t.coordenador}`)
+      .expect(200);
+    expect(historico.body.data.map((h: { observacao: string | null }) => h.observacao)).toContain(
+      "Falta contato com a familia."
+    );
+
+    // A coordenacao refaz o ciclo ate o encerramento.
+    await status(t.coordenador, { status: "RESOLVIDA" }).expect(200);
+    await status(t.diretor, { status: "ENCERRADA" }).expect(200);
+    // Encerrada continua imutavel.
+    await status(t.diretor, { status: "EM_ANALISE", observacao: "Tarde demais." }).expect(409);
+  });
+
   it("rejeita caracteres de controle e remove HTML da descricao", async () => {
     const t = await tokens(ctx.app);
 

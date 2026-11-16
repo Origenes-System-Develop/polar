@@ -17,6 +17,8 @@ export function alunosRoutes(services: Services, config: AppConfig): Router {
   router.post("/", authorize(Permissao.GERENCIAR_ALUNOS), asyncHandler(controller.create));
   router.patch("/:id", authorize(Permissao.GERENCIAR_ALUNOS), asyncHandler(controller.update));
   router.delete("/:id", authorize(Permissao.GERENCIAR_ALUNOS), asyncHandler(controller.remove));
+  router.post("/anonimizar-inativos", authorize(Permissao.GERENCIAR_ALUNOS), asyncHandler(controller.anonimizarInativos));
+  router.post("/:id/anonimizar", authorize(Permissao.GERENCIAR_ALUNOS), asyncHandler(controller.anonimizar));
 
   return router;
 }

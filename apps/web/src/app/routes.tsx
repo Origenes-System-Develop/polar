@@ -16,14 +16,26 @@ import { PendenciasPage } from "../features/pendencias/PendenciasPage";
 import { RelatoriosPage } from "../features/relatorios/RelatoriosPage";
 import { TurmasPage } from "../features/turmas/TurmasPage";
 import { UsuariosPage } from "../features/usuarios/UsuariosPage";
+import { CienciaPage } from "../features/ciencia/CienciaPage";
+import { LandingPage } from "../features/landing/LandingPage";
+import { PrivacidadePage } from "../features/privacidade/PrivacidadePage";
 import { NotFoundPage } from "./NotFoundPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 // O estudio traz a biblioteca de desenho do avatar: so baixa quando alguem abre a tela.
+const Exploration = lazy(() => import("../features/exploracao/Exploration"));
 const EstudioPage = lazy(() => import("../features/avatar/EstudioPage").then((m) => ({ default: m.EstudioPage })));
 
 const routes: RouteObject[] = [
+  // Comparativo de identidades visuais: so no modo de desenvolvimento.
+  ...(import.meta.env.DEV
+    ? [{ path: "/exploracao-polar/*", element: <Suspense fallback={<Carregando texto="Carregando telas..." />}><Exploration /></Suspense> }]
+    : []),
   { path: "/login", element: <LoginPage /> },
+  // Publicas: o responsavel nao tem conta; privacidade e sobre valem para qualquer visitante.
+  { path: "/ciencia/:id/:assinatura", element: <CienciaPage /> },
+  { path: "/privacidade", element: <PrivacidadePage /> },
+  { path: "/sobre", element: <LandingPage /> },
   {
     element: <ProtectedRoute />,
     children: [
@@ -58,7 +70,7 @@ const routes: RouteObject[] = [
             children: [{ path: "turmas", element: <TurmasPage /> }]
           },
           {
-            element: <ProtectedRoute permission="usuarios:manage" />,
+            element: <ProtectedRoute permission="usuarios:senha" />,
             children: [{ path: "usuarios", element: <UsuariosPage /> }]
           },
           {

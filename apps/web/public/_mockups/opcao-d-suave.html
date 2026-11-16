@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · D · Suave</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,100&family=Figtree:wght@400;500;600;700&display=swap" />
+<style>
+  /* Referencia: "soft SaaS" (base off-white quente, salvia e coral desbotados, cantos
+     redondos, profundidade leve). Fraunces no eixo SOFT=100 deixa a serifa arredondada. */
+  :root {
+    --fundo: #f6f1ea;
+    --cartao: #fffdfa;
+    --tinta: #2e2a26;
+    --suave: #77706a;
+    --linha: #ebe3d8;
+    --salvia: #8fae96;
+    --salvia-clara: #e3ece4;
+    --coral: #e2856a;
+    --coral-clara: #f9e4dc;
+    --manteiga: #f2d98d;
+    --manteiga-clara: #fbf2d6;
+    --sombra: 0 1px 2px rgba(46, 42, 38, .05), 0 8px 24px -12px rgba(46, 42, 38, .18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--tinta); font-family: "Figtree", system-ui, sans-serif; font-size: 15px; }
+  .app { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; gap: 0; }
+  aside { padding: 26px 16px; }
+  .marca { font-family: "Fraunces", serif; font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 28px; margin: 0 10px 28px; display: flex; align-items: center; gap: 10px; }
+  .marca i { width: 14px; height: 14px; border-radius: 50%; background: var(--manteiga); box-shadow: 0 0 0 5px var(--manteiga-clara); }
+  nav { display: grid; gap: 4px; }
+  nav a { padding: 10px 14px; border-radius: 12px; color: var(--suave); text-decoration: none; font-weight: 600; }
+  nav a.ativo { background: var(--cartao); color: var(--tinta); box-shadow: var(--sombra); }
+  main { padding: 26px 36px 48px 12px; }
+  .topo { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--suave); font-weight: 600; }
+  .pill { background: var(--cartao); border-radius: 999px; padding: 8px 14px; box-shadow: var(--sombra); color: var(--tinta); }
+  .pill b { background: var(--coral); color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+  .ola { background: var(--cartao); border-radius: 26px; padding: 28px 32px; box-shadow: var(--sombra); display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: center; margin-bottom: 22px; }
+  h1 { font-family: "Fraunces", serif; font-variation-settings: "SOFT" 100; font-weight: 500; font-size: 46px; line-height: 1.05; margin: 0 0 10px; letter-spacing: -0.01em; }
+  .ola p { color: var(--suave); font-size: 17px; margin: 0 0 18px; }
+  .botao { display: inline-block; background: var(--tinta); color: var(--cartao); border-radius: 12px; padding: 12px 18px; font-weight: 600; text-decoration: none; }
+  .botao--leve { background: var(--fundo); color: var(--tinta); margin-left: 6px; }
+  .proxima { background: var(--coral-clara); border-radius: 18px; padding: 18px 20px; }
+  .proxima small { font-weight: 700; color: #a2492f; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
+  .proxima strong { display: block; font-size: 18px; margin: 6px 0 2px; }
+  .proxima span { color: #7d4a39; }
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+  .card { background: var(--cartao); border-radius: 20px; padding: 18px 20px; box-shadow: var(--sombra); }
+  .card strong { display: block; font-family: "Fraunces", serif; font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 44px; line-height: 1; }
+  .card span { color: var(--suave); font-weight: 600; }
+  .card i { display: block; width: 34px; height: 6px; border-radius: 6px; margin-bottom: 14px; }
+  .duas { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+  .bloco { background: var(--cartao); border-radius: 22px; padding: 20px 22px; box-shadow: var(--sombra); min-width: 0; overflow-x: auto; }
+  h2 { font-size: 17px; font-weight: 700; margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; min-width: 500px; }
+  th { text-align: left; font-size: 12px; color: var(--suave); font-weight: 600; padding: 8px 6px; }
+  td { padding: 12px 6px; border-top: 1px solid var(--linha); }
+  td:first-child { font-weight: 600; }
+  .tag { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; background: var(--fundo); color: var(--suave); }
+  .tag--analise { background: var(--manteiga-clara); color: #7a6115; }
+  .grav { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+  .grav::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--salvia); }
+  .grav--media::before { background: var(--manteiga); }
+  .grav--alta::before { background: var(--coral); }
+  .dias { color: var(--suave); }
+  .mov p { margin: 0 0 14px; line-height: 1.45; }
+  .mov time { display: block; font-size: 12px; color: var(--suave); }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    aside { padding: 16px; }
+    nav { grid-auto-flow: column; overflow-x: auto; }
+    .marca { margin-bottom: 12px; }
+    main { padding: 10px 16px 40px; }
+    .ola, .duas { grid-template-columns: minmax(0, 1fr); }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="marca"><i></i>polar</div>
+    <nav>
+      <a class="ativo" href="#">Início</a>
+      <a href="#">Ocorrências</a>
+      <a href="#">Alunos</a>
+      <a href="#">Turmas</a>
+      <a href="#">Relatórios</a>
+    </nav>
+  </aside>
+  <main>
+    <div class="topo"><span class="pill">Pendências <b>8</b></span><span>Coordenação POLAR</span></div>
+    <section class="ola">
+      <div>
+        <h1>Bom dia, Coordenação.</h1>
+        <p>Há 8 ocorrências esperando você. A mais antiga está aberta há 29 dias.</p>
+        <a class="botao" href="#">Abrir a fila</a><a class="botao botao--leve" href="#">Registrar ocorrência</a>
+      </div>
+      <div class="proxima">
+        <small>Comece por aqui</small>
+        <strong>Camila Duarte, 1º A</strong>
+        <span>Agressão verbal · gravidade alta · em análise há 29 dias</span>
+      </div>
+    </section>
+    <section class="cards">
+      <div class="card"><i style="background:var(--coral)"></i><strong>8</strong><span>Pendências</span></div>
+      <div class="card"><i style="background:var(--manteiga)"></i><strong>3</strong><span>Em análise</span></div>
+      <div class="card"><i style="background:var(--coral)"></i><strong>4</strong><span>Graves ou urgentes</span></div>
+      <div class="card"><i style="background:var(--salvia)"></i><strong>2</strong><span>Encerradas</span></div>
+    </section>
+    <div class="duas">
+      <section class="bloco">
+        <h2>Últimas ocorrências</h2>
+        <table>
+          <thead><tr><th>Aluno</th><th>Status</th><th>Gravidade</th><th>Aberta há</th></tr></thead>
+          <tbody>
+            <tr><td>Camila Duarte</td><td><span class="tag tag--analise">Em análise</span></td><td><span class="grav grav--alta">Alta</span></td><td class="dias">29 dias</td></tr>
+            <tr><td>Henrique Barros</td><td><span class="tag">Registrada</span></td><td><span class="grav">Baixa</span></td><td class="dias">28 dias</td></tr>
+            <tr><td>Mateus Oliveira</td><td><span class="tag">Registrada</span></td><td><span class="grav grav--media">Média</span></td><td class="dias">27 dias</td></tr>
+            <tr><td>Ana Clara Ribeiro</td><td><span class="tag">Registrada</span></td><td><span class="grav">Baixa</span></td><td class="dias">26 dias</td></tr>
+            <tr><td>Felipe Cardoso</td><td><span class="tag">Registrada</span></td><td><span class="grav">Baixa</span></td><td class="dias">25 dias</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="bloco mov">
+        <h2>O que mudou</h2>
+        <p><time>hoje, 09:48</time>Professor POLAR editou a ocorrência da Ana Clara.</p>
+        <p><time>hoje, 09:31</time>Professor POLAR registrou uma ocorrência do Felipe.</p>
+        <p><time>ontem, 16:02</time>Você colocou em análise a ocorrência da Camila.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

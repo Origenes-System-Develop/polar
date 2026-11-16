@@ -9,6 +9,7 @@ export enum Permissao {
   RESOLVER_OCORRENCIA = "resolver_ocorrencia",
   ENCERRAR_OCORRENCIA = "encerrar_ocorrencia",
   GERENCIAR_USUARIOS = "gerenciar_usuarios",
+  REDEFINIR_SENHA = "redefinir_senha",
   GERENCIAR_TURMAS = "gerenciar_turmas",
   GERENCIAR_ALUNOS = "gerenciar_alunos",
   GERENCIAR_CONFIGURACOES = "gerenciar_configuracoes",
@@ -42,7 +43,9 @@ const permissoesPorPapel: Record<PapelUsuario, ReadonlySet<Permissao>> = {
     Permissao.CONSULTAR_HISTORICO,
     Permissao.CONSULTAR_ALUNOS,
     Permissao.ENCERRAR_OCORRENCIA,
-    Permissao.CONSULTAR_RELATORIOS
+    Permissao.CONSULTAR_RELATORIOS,
+    // Esqueceu a senha? A direcao gera uma provisoria (nao ha recuperacao por e-mail).
+    Permissao.REDEFINIR_SENHA
   ]),
   [PapelUsuario.ADM]: new Set(Object.values(Permissao))
 };

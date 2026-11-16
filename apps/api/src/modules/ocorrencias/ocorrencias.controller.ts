@@ -58,6 +58,12 @@ export class OcorrenciasController {
     return res.json({ data: ocorrencia });
   };
 
+  ciencia = async (req: Request, res: Response): Promise<Response> => {
+    const actor = requireActor(req);
+    const params = idParamSchema.parse(req.params);
+    return res.json({ data: await this.services.ocorrencias.ciencia(params.id, actor) });
+  };
+
   historico = async (req: Request, res: Response): Promise<Response> => {
     const actor = requireActor(req);
     const params = idParamSchema.parse(req.params);

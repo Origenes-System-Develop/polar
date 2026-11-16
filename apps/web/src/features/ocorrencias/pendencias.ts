@@ -5,7 +5,8 @@ import type { DashboardResumo, PapelUsuario, StatusOcorrencia } from "../../serv
  *
  * Espelha as regras de transicao do backend (ocorrencias.service.ts), que sao
  * por papel exato e nao por permissao: coordenador move REGISTRADA -> EM_ANALISE
- * e EM_ANALISE -> RESOLVIDA; diretor move RESOLVIDA -> ENCERRADA. O ADM tem todas
+ * e EM_ANALISE -> RESOLVIDA; diretor move RESOLVIDA -> ENCERRADA ou devolve
+ * RESOLVIDA -> EM_ANALISE (que volta a ser pendencia do coordenador). O ADM tem todas
  * as permissoes mas nao transiciona -- por isso nao aparece aqui e nao recebe
  * pendencia. Professor e aluno tambem nao movem nada.
  */

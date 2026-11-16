@@ -38,6 +38,16 @@ export class AlunosController {
     return res.json({ data: aluno });
   };
 
+  anonimizar = async (req: Request, res: Response): Promise<Response> => {
+    const params = idParamSchema.parse(req.params);
+    return res.json({ data: await this.services.alunos.anonimizar(params.id, req.usuario?.id ?? "sistema") });
+  };
+
+  anonimizarInativos = async (req: Request, res: Response): Promise<Response> => {
+    const { anos } = z.object({ anos: z.coerce.number().int().min(1).max(50) }).parse(req.body);
+    return res.json({ data: { anonimizados: await this.services.alunos.anonimizarInativos(anos, req.usuario?.id ?? "sistema") } });
+  };
+
   remove = async (req: Request, res: Response): Promise<Response> => {
     const params = idParamSchema.parse(req.params);
     const aluno = await this.services.alunos.remove(params.id, req.usuario?.id ?? "sistema");

@@ -65,7 +65,7 @@ function usuario(nome: string, email: string, papel: PapelUsuario, senhaHash: st
 }
 
 // Sem enviarEmail o e-mail fica desligado, como sem SMTP configurado.
-export async function buildTestContext(options: { enviarEmail?: EnviarEmail } = {}): Promise<TestContext> {
+export async function buildTestContext(options: { enviarEmail?: EnviarEmail; appUrl?: string } = {}): Promise<TestContext> {
   const state = createInitialState();
   const [admHash, professorHash, coordenadorHash, diretorHash] = await Promise.all([
     bcrypt.hash(SENHAS_TESTE.adm, 10),
@@ -108,7 +108,8 @@ export async function buildTestContext(options: { enviarEmail?: EnviarEmail } = 
   state.alunos.push(aluno);
 
   const db = createMemoryDatabase(state);
-  const app = await createApp({ config: testConfig, database: db, enviarEmail: options.enviarEmail ?? null });
+  const config = options.appUrl ? { ...testConfig, appUrl: options.appUrl } : testConfig;
+  const app = await createApp({ config, database: db, enviarEmail: options.enviarEmail ?? null });
   return {
     app,
     db,

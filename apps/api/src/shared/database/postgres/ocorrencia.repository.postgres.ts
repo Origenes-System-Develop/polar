@@ -25,6 +25,7 @@ interface OcorrenciaRow {
   criado_por_id: string;
   criado_em: Date;
   atualizado_em: Date;
+  ciencia_em: Date | null;
 }
 
 interface HistoricoRow {
@@ -50,7 +51,8 @@ function toOcorrencia(row: OcorrenciaRow): Ocorrencia {
     status: row.status,
     criadoPorId: row.criado_por_id,
     criadoEm: isoFromDbRequired(row.criado_em),
-    atualizadoEm: isoFromDbRequired(row.atualizado_em)
+    atualizadoEm: isoFromDbRequired(row.atualizado_em),
+    cienciaEm: row.ciencia_em ? isoFromDbRequired(row.ciencia_em) : null
   };
 }
 
@@ -67,6 +69,9 @@ function toHistorico(row: HistoricoRow): OcorrenciaHistorico {
 } const COLUNAS =
   "id, aluno_id, categoria, bimestre, prioridade, descricao, local, testemunhas, status, criado_por_id, criado_em, atualizado_em";
 
+
+// ciencia_em so e lida: entra no insert como NULL padrao e muda so em registrarCiencia.
+const COLUNAS_LEITURA = `${COLUNAS}, ciencia_em`;
 
 const COLUNAS_HISTORICO =
   "id, ocorrencia_id, status, acao, observacao, usuario_id, criado_em";
@@ -91,21 +96,21 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
 
   async list(): Promise<Ocorrencia[]> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS} FROM ocorrencias ORDER BY criado_em DESC`
+      `SELECT ${COLUNAS_LEITURA} FROM ocorrencias ORDER BY criado_em DESC`
     );
     return rows.map(toOcorrencia);
   }
 
   async listByCriadoPor(criadoPorId: string): Promise<Ocorrencia[]> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS} FROM ocorrencias WHERE criado_por_id = $1 ORDER BY criado_em DESC`,
+      `SELECT ${COLUNAS_LEITURA} FROM ocorrencias WHERE criado_por_id = $1 ORDER BY criado_em DESC`,
       [criadoPorId]
     );
     return rows.map(toOcorrencia);
   }
   async listByBimestre(bimestre: number): Promise<Ocorrencia[]> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS}
+      `SELECT ${COLUNAS_LEITURA}
        FROM ocorrencias
       WHERE bimestre = $1
       ORDER BY criado_em DESC`,
@@ -118,7 +123,7 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
 
   async findById(id: string): Promise<Ocorrencia | null> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS} FROM ocorrencias WHERE id = $1 LIMIT 1`,
+      `SELECT ${COLUNAS_LEITURA} FROM ocorrencias WHERE id = $1 LIMIT 1`,
       [id]
     );
     const row = rows[0];
@@ -135,7 +140,7 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
 
   async findDuplicate(params: OcorrenciaDuplicateParams): Promise<Ocorrencia | null> {
     const { rows } = await this.pool.query<OcorrenciaRow>(
-      `SELECT ${COLUNAS}
+      `SELECT ${COLUNAS_LEITURA}
          FROM ocorrencias
         WHERE aluno_id = $1
           AND criado_por_id = $2
@@ -194,7 +199,7 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
     // Status novo e historico: gravados juntos ou nada e gravado.
     return withTransaction(this.pool, async (client) => {
       const { rows } = await client.query<OcorrenciaRow>(
-        `SELECT ${COLUNAS} FROM ocorrencias WHERE id = $1 LIMIT 1 FOR UPDATE`,
+        `SELECT ${COLUNAS_LEITURA} FROM ocorrencias WHERE id = $1 LIMIT 1 FOR UPDATE`,
         [id]
       );
       const row = rows[0];
@@ -224,5 +229,11 @@ export class PostgresOcorrenciaRepository implements OcorrenciaRepository {
       }
       return updated;
     });
+  }
+
+  async registrarCiencia(id: string, em: string): Promise<Ocorrencia | null> {
+    // So a primeira confirmacao vale: um clique repetido nao muda a data.
+    await this.pool.query("UPDATE ocorrencias SET ciencia_em = $1 WHERE id = $2 AND ciencia_em IS NULL", [dbDateTime(em), id]);
+    return this.findById(id);
   }
 }

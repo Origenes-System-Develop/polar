@@ -13,7 +13,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Select } from "../../components/ui/Select";
 import { Table } from "../../components/ui/Table";
 import type { AlunoDetalhadoComResumoOcorrencias, Turma } from "../../services/domain";
-import { createAluno, listAlunosDetalhados, listTurmas, updateAluno } from "../../services/school.service";
+import { ALUNO_ANONIMIZADO, anonimizarAluno, createAluno, listAlunosDetalhados, listTurmas, updateAluno } from "../../services/school.service";
 import { calcularIndicadorAluno } from "../../services/domain";
 
 const initialAlunoForm = {
@@ -44,6 +44,8 @@ export function AlunosPage() {
   // Estado do modal de confirmação de inativação
   const [confirmTarget, setConfirmTarget] = useState<{ id: string; nome: string } | null>(null);
   const [inativando, setInativando] = useState(false);
+  const [apagarTarget, setApagarTarget] = useState<{ id: string; nome: string } | null>(null);
+  const [apagando, setApagando] = useState(false);
 
   async function refreshData() {
     const [nextAlunos, nextTurmas] = await Promise.all([listAlunosDetalhados(), listTurmas()]);
@@ -154,6 +156,22 @@ export function AlunosPage() {
     }
   }
 
+  // LGPD: so para aluno desativado; apaga nome, responsavel e o texto das ocorrencias.
+  async function handleConfirmApagar() {
+    if (!apagarTarget) return;
+    setApagando(true);
+    setError("");
+    try {
+      await anonimizarAluno(apagarTarget.id);
+      await refreshData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível apagar os dados. Tente de novo.");
+    } finally {
+      setApagando(false);
+      setApagarTarget(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -211,9 +229,14 @@ export function AlunosPage() {
                           Editar
                         </Button>
                       ) : null}
-                      {canManage ? (
+                      {canManage && item.ativo ? (
                         <Button variant="danger" onClick={() => handleInativarClick(item.id, item.nome)}>
                           Inativar
+                        </Button>
+                      ) : null}
+                      {canManage && !item.ativo && item.nome !== ALUNO_ANONIMIZADO ? (
+                        <Button variant="danger" onClick={() => setApagarTarget({ id: item.id, nome: item.nome })}>
+                          Apagar dados pessoais
                         </Button>
                       ) : null}
                     </div>
@@ -255,6 +278,15 @@ export function AlunosPage() {
         onConfirm={handleConfirmInativar}
         onCancel={() => setConfirmTarget(null)}
         loading={inativando}
+      />
+      <ConfirmDialog
+        open={!!apagarTarget}
+        title="Apagar dados pessoais"
+        message={`Apagar os dados de "${apagarTarget?.nome}"? Somem o nome, a matrícula, os dados do responsável e o texto das ocorrências. As ocorrências continuam contando nos relatórios, sem identificação. Não dá para desfazer.`}
+        confirmLabel="Apagar dados"
+        onConfirm={handleConfirmApagar}
+        onCancel={() => setApagarTarget(null)}
+        loading={apagando}
       />
     </>
   );

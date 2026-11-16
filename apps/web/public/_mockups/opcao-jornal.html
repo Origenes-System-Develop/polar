@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polar · opção Jornal da escola</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800&f[]=cabinet-grotesk@500&f[]=satoshi@400&f[]=satoshi@500&f[]=satoshi@700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+  :root {
+    --fundo: #fafaf7;
+    --tinta: #111111;
+    --cinza: #5c5c58;
+    --regua: #111111;
+    --regua-fina: rgba(17, 17, 17, 0.14);
+    --sinal: #ff4f1a;
+    --titulo: "Cabinet Grotesk", "Arial Narrow", sans-serif;
+    --texto: "Satoshi", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fundo);
+    color: var(--tinta);
+    font-family: var(--texto);
+    font-size: 15px;
+    line-height: 1.45;
+    /* grade aparente, como papel de diagramacao */
+    background-image:
+      linear-gradient(to right, var(--regua-fina) 1px, transparent 1px);
+    background-size: calc((100% - 64px) / 12) 100%;
+    background-position: 32px 0;
+  }
+  .pagina { max-width: 1280px; margin: 0 auto; padding: 0 32px 48px; background: var(--fundo); }
+
+  /* Cabecalho de jornal */
+  .cabeca { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; padding: 22px 0 10px; }
+  .cabeca__data { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .cabeca__marca { font-family: var(--titulo); font-weight: 800; font-size: 64px; line-height: .8; letter-spacing: -0.045em; }
+  .cabeca__marca span { color: var(--sinal); }
+  .cabeca__quem { justify-self: end; text-align: right; font-size: 13px; }
+  .cabeca__quem strong { display: block; font-weight: 700; }
+  .dupla { border-top: 3px solid var(--regua); border-bottom: 1px solid var(--regua); height: 6px; }
+
+  nav { display: flex; gap: 0; border-bottom: 1px solid var(--regua); }
+  nav a { padding: 10px 18px 9px; font-weight: 500; font-size: 14px; color: var(--tinta); text-decoration: none; border-right: 1px solid var(--regua-fina); }
+  nav a:first-child { padding-left: 0; }
+  nav a.ativo { font-weight: 700; box-shadow: inset 0 -3px 0 var(--tinta); }
+  nav .sino { margin-left: auto; border-right: 0; font-family: var(--mono); font-size: 12px; align-self: center; }
+  nav .sino b { background: var(--sinal); color: #fff; padding: 2px 6px; font-weight: 500; }
+
+  /* Manchete */
+  .manchete { display: grid; grid-template-columns: 8fr 4fr; gap: 32px; padding: 34px 0 30px; border-bottom: 1px solid var(--regua); }
+  .rubrica { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 12px; }
+  .rubrica i { display: inline-block; width: 9px; height: 9px; background: var(--sinal); margin-right: 8px; vertical-align: 0; }
+  h1 { font-family: var(--titulo); font-weight: 800; font-size: 58px; line-height: .98; letter-spacing: -0.03em; margin: 0; }
+  h1 em { font-style: normal; background: linear-gradient(transparent 62%, rgba(255, 79, 26, .28) 62%); }
+  .manchete__lead { align-self: end; font-size: 17px; line-height: 1.5; border-left: 1px solid var(--regua); padding-left: 24px; }
+  .manchete__lead p { margin: 0 0 14px; }
+  .botao { display: inline-block; background: var(--tinta); color: var(--fundo); padding: 12px 18px; font-weight: 700; font-size: 14px; text-decoration: none; }
+  .botao--linha { background: transparent; color: var(--tinta); border: 1px solid var(--tinta); margin-left: 8px; }
+
+  /* Numeros */
+  .numeros { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--regua); }
+  .numero { padding: 22px 24px 20px; border-right: 1px solid var(--regua); }
+  .numero:first-child { padding-left: 0; }
+  .numero:last-child { border-right: 0; }
+  .numero strong { display: block; font-family: var(--titulo); font-weight: 800; font-size: 92px; line-height: .85; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .numero span { display: block; margin-top: 10px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; }
+  .numero small { display: block; margin-top: 4px; color: var(--cinza); font-size: 13px; }
+  .numero--sinal strong { color: var(--sinal); }
+
+  /* Corpo em duas colunas */
+  .corpo { display: grid; grid-template-columns: 8fr 4fr; gap: 32px; padding-top: 28px; }
+  h2 { font-family: var(--titulo); font-weight: 800; font-size: 26px; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .secao-cab { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px solid var(--regua); padding-bottom: 8px; }
+  .secao-cab a { font-size: 13px; font-weight: 700; color: var(--tinta); }
+
+  .nota { display: grid; grid-template-columns: 116px 1fr 120px 96px; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--regua-fina); }
+  .nota__data { font-family: var(--mono); font-size: 12px; color: var(--cinza); }
+  .nota__aluno { font-weight: 700; font-size: 16px; }
+  .nota__aluno small { display: block; font-weight: 400; color: var(--cinza); font-size: 13px; }
+  .nota__status { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .nota__status::before { content: ""; display: inline-block; width: 7px; height: 7px; border: 1px solid var(--tinta); margin-right: 6px; }
+  .nota__status--analise::before { background: var(--tinta); }
+  .nota__aberta { font-family: var(--mono); font-size: 12px; text-align: right; }
+  .gravidade { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .gravidade--alta { color: var(--sinal); }
+  .tarja { font-family: var(--mono); font-size: 11px; color: #fff; background: var(--sinal); padding: 1px 5px; margin-left: 6px; }
+
+  .plantao li { list-style: none; padding: 12px 0; border-bottom: 1px solid var(--regua-fina); }
+  .plantao ul { margin: 0; padding: 0; }
+  .plantao time { font-family: var(--mono); font-size: 12px; color: var(--cinza); }
+  .plantao p { margin: 2px 0 0; }
+  .plantao b { font-weight: 700; }
+
+  .turmas { margin-top: 28px; }
+  .barra { display: grid; grid-template-columns: 64px 1fr 24px; gap: 10px; align-items: center; padding: 7px 0; font-size: 14px; }
+  .barra div { height: 12px; background: var(--tinta); }
+  .barra--sinal div { background: var(--sinal); }
+  .barra b { font-family: var(--mono); font-weight: 500; text-align: right; }
+
+  .rodape-nota { margin-top: 40px; padding-top: 10px; border-top: 1px solid var(--regua); font-family: var(--mono); font-size: 11px; color: var(--cinza); display: flex; justify-content: space-between; }
+
+  @media (max-width: 860px) {
+    .pagina { padding: 0 16px 32px; }
+    body { background-image: none; }
+    .cabeca { grid-template-columns: 1fr; gap: 6px; }
+    .cabeca__quem { justify-self: start; text-align: left; }
+    nav { overflow-x: auto; }
+    .manchete, .corpo { grid-template-columns: 1fr; }
+    h1 { font-size: 40px; }
+    .manchete__lead { border-left: 0; padding-left: 0; }
+    .numeros { grid-template-columns: repeat(2, 1fr); }
+    .numero { padding-left: 0; border-right: 0; border-bottom: 1px solid var(--regua-fina); }
+    .numero strong { font-size: 64px; }
+    .nota { grid-template-columns: 1fr auto; }
+    .nota__data { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="cabeca">
+    <div class="cabeca__data">Segunda, 19 de outubro de 2026<br />4º bimestre · semana 3</div>
+    <div class="cabeca__marca">polar<span>.</span></div>
+    <div class="cabeca__quem"><strong>Coordenação POLAR</strong>Coordenação · Sair</div>
+  </header>
+  <div class="dupla"></div>
+  <nav aria-label="Seções">
+    <a class="ativo" href="#">Hoje</a>
+    <a href="#">Ocorrências</a>
+    <a href="#">Alunos</a>
+    <a href="#">Turmas</a>
+    <a href="#">Relatórios</a>
+    <span class="sino">Pendências <b>8</b></span>
+  </nav>
+
+  <section class="manchete">
+    <div>
+      <p class="rubrica"><i></i>Hoje na escola</p>
+      <h1>8 ocorrências esperam sua análise. A mais antiga está aberta há <em>29 dias</em>.</h1>
+    </div>
+    <div class="manchete__lead">
+      <p>Camila Duarte, do 1º A, tem uma ocorrência grave em análise desde 20 de setembro. É a primeira da fila.</p>
+      <a class="botao" href="#">Abrir a fila</a><a class="botao botao--linha" href="#">Registrar ocorrência</a>
+    </div>
+  </section>
+
+  <section class="numeros" aria-label="Resumo">
+    <div class="numero"><strong>8</strong><span>Pendências</span><small>registradas ou em análise</small></div>
+    <div class="numero"><strong>3</strong><span>Em análise</span><small>com a coordenação</small></div>
+    <div class="numero numero--sinal"><strong>4</strong><span>Graves ou urgentes</span><small>2 ainda sem resposta</small></div>
+    <div class="numero"><strong>2</strong><span>Encerradas</span><small>neste bimestre</small></div>
+  </section>
+
+  <div class="corpo">
+    <section>
+      <div class="secao-cab"><h2>Últimas ocorrências</h2><a href="#">Ver todas →</a></div>
+      <article class="nota">
+        <span class="nota__data">20.09 · 07:42</span>
+        <span class="nota__aluno">Camila Duarte <small>1º A · Agressão verbal</small></span>
+        <span><span class="nota__status nota__status--analise">Em análise</span></span>
+        <span class="nota__aberta">29 dias<span class="tarja">!</span></span>
+      </article>
+      <article class="nota">
+        <span class="nota__data">21.09 · 10:15</span>
+        <span class="nota__aluno">Henrique Barros <small>2º B · Atraso</small></span>
+        <span><span class="nota__status">Registrada</span></span>
+        <span class="nota__aberta">28 dias</span>
+      </article>
+      <article class="nota">
+        <span class="nota__data">22.09 · 13:30</span>
+        <span class="nota__aluno">Mateus Oliveira <small>1º A · Uso indevido de celular</small></span>
+        <span><span class="nota__status">Registrada</span></span>
+        <span class="nota__aberta">27 dias</span>
+      </article>
+      <article class="nota">
+        <span class="nota__data">23.09 · 08:05</span>
+        <span class="nota__aluno">Ana Clara Ribeiro <small>1º A · Atraso</small></span>
+        <span><span class="nota__status">Registrada</span></span>
+        <span class="nota__aberta">26 dias</span>
+      </article>
+      <article class="nota">
+        <span class="nota__data">24.09 · 09:50</span>
+        <span class="nota__aluno">Felipe Cardoso <small>3º C · Falta de material</small></span>
+        <span><span class="nota__status">Registrada</span></span>
+        <span class="nota__aberta">25 dias</span>
+      </article>
+      <p style="font-size:13px;color:var(--cinza);margin-top:10px">Gravidade: <span class="gravidade gravidade--alta">alta</span> aparece em laranja. Nada mais usa essa cor.</p>
+    </section>
+
+    <aside>
+      <div class="secao-cab plantao"><h2>Plantão</h2></div>
+      <div class="plantao">
+        <ul>
+          <li><time>19.10 · 09:48</time><p><b>Professor POLAR</b> editou a ocorrência de Ana Clara Ribeiro.</p></li>
+          <li><time>19.10 · 09:31</time><p><b>Professor POLAR</b> registrou uma ocorrência para Felipe Cardoso.</p></li>
+          <li><time>18.10 · 16:02</time><p><b>Coordenação POLAR</b> colocou em análise a ocorrência de Camila Duarte.</p></li>
+        </ul>
+      </div>
+      <div class="turmas">
+        <div class="secao-cab"><h2>Turmas</h2></div>
+        <div class="barra barra--sinal"><span>1º A</span><div style="width:100%"></div><b>5</b></div>
+        <div class="barra"><span>2º B</span><div style="width:60%"></div><b>3</b></div>
+        <div class="barra"><span>3º C</span><div style="width:40%"></div><b>2</b></div>
+        <div class="barra"><span>1º B</span><div style="width:20%"></div><b>1</b></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="rodape-nota"><span>Cada ação fica no histórico, com nome, data e hora.</span><span>Polar · edição da coordenação</span></footer>
+</div>
+</body>
+</html>

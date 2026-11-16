@@ -12,6 +12,7 @@ import type { CursosTecnicos } from "../../services/domain";
 import { definirCursosTecnicos, getEscola } from "../../services/school.service";
 import { renomearEscolaRequest } from "../auth/auth.service";
 import { lerTema, salvarTema, type Tema } from "../../services/tema";
+import { PrazoGuarda } from "./PrazoGuarda";
 
 const TEMAS: { valor: Tema; rotulo: string }[] = [
   { valor: "auto", rotulo: "Igual ao aparelho" },
@@ -170,6 +171,7 @@ export function ConfiguracoesPage() {
           ) : null}
         </form>
       </Card>
+      <PrazoGuarda />
       </div>
     </>
   );

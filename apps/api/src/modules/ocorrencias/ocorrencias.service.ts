@@ -18,6 +18,7 @@ import type { NotificacaoOcorrenciaRepository } from "../../shared/database/repo
 import type { AuditRepository } from "../../shared/database/repositories/audit.repository.js";
 import type { UserRepository } from "../../shared/database/repositories/user.repository.js";
 import type { EnviarEmail } from "../../shared/email.js";
+import { caminhoCiencia } from "../../shared/ciencia.js";
 import { agoraIso, novoId } from "../../shared/utils/ids.js";
 import { semEmails } from "../../shared/utils/logs.js";
 import type { AuthenticatedUser } from "../auth/auth.types.js";
@@ -39,11 +40,16 @@ function garantirEditavel(ocorrencia: Ocorrencia): void {
   }
 }
 
+// A direcao discorda da resolucao e devolve a ocorrencia para a coordenacao.
+function ehDevolucao(ocorrencia: Ocorrencia, status: StatusOcorrencia): boolean {
+  return ocorrencia.status === StatusOcorrencia.RESOLVIDA && status === StatusOcorrencia.EM_ANALISE;
+}
+
 function garantirTransicao(ocorrencia: Ocorrencia, status: StatusOcorrencia): void {
   if (ocorrencia.status === StatusOcorrencia.ENCERRADA) {
     throw conflict("Ocorrencia encerrada nao pode ser alterada.");
   }
-  if (proximoStatus[ocorrencia.status] !== status) {
+  if (proximoStatus[ocorrencia.status] !== status && !ehDevolucao(ocorrencia, status)) {
     throw conflict("Status nao pode pular etapas.");
   }
 }
@@ -115,7 +121,8 @@ export class OcorrenciasService {
     private readonly audit: AuditRepository,
     private readonly users: UserRepository,
     private readonly enviarEmail: EnviarEmail | null = null,
-    private readonly appUrl?: string
+    private readonly appUrl?: string,
+    private readonly segredoCiencia?: string
   ) { }
 
   async list(actor: AuthenticatedUser, bimestre?: number): Promise<Ocorrencia[]> {
@@ -156,6 +163,25 @@ export class OcorrenciasService {
       throw forbidden("Professor consulta apenas as ocorrencias registradas por ele.");
     }
     return ocorrencia;
+  }
+
+  // Para a equipe repassar ao responsavel (WhatsApp ou copiar): o link de ciencia e o contato.
+  async ciencia(id: string, actor: AuthenticatedUser): Promise<{
+    caminho: string | null;
+    cienciaEm: string | null;
+    responsavelNome: string;
+    responsavelContato: string;
+    responsavelEmail: string;
+  }> {
+    const ocorrencia = await this.get(id, actor);
+    const aluno = await this.alunos.findById(ocorrencia.alunoId);
+    return {
+      caminho: this.segredoCiencia ? caminhoCiencia(ocorrencia.id, this.segredoCiencia) : null,
+      cienciaEm: ocorrencia.cienciaEm ?? null,
+      responsavelNome: aluno?.responsavelNome ?? "",
+      responsavelContato: aluno?.responsavelContato ?? "",
+      responsavelEmail: aluno?.responsavelEmail ?? ""
+    };
   }
 
   async historico(id: string, actor: AuthenticatedUser): Promise<OcorrenciaHistorico[]> {
@@ -266,7 +292,12 @@ export class OcorrenciasService {
     const data = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" }).format(
       new Date(ocorrencia.criadoEm)
     );
-    const link = this.appUrl ? `\n\nAbrir no POLAR: ${this.appUrl.replace(/\/$/, "")}/ocorrencias/${ocorrencia.id}` : "";
+    const base = this.appUrl?.replace(/\/$/, "");
+    const link = base ? `\n\nAbrir no POLAR: ${base}/ocorrencias/${ocorrencia.id}` : "";
+    const linkCiencia =
+      base && this.segredoCiencia
+        ? `\n\nConfirme que recebeu este aviso: ${base}${caminhoCiencia(ocorrencia.id, this.segredoCiencia)}`
+        : "";
     const paraEquipe = {
       assunto: `Nova ocorrência: ${aluno.nome}`,
       texto:
@@ -284,7 +315,7 @@ export class OcorrenciasService {
         texto:
           `Olá${aluno.responsavelNome ? `, ${aluno.responsavelNome}` : ""}.\n\n` +
           `A escola registrou uma ocorrência envolvendo ${aluno.nome} em ${data} (categoria: ${ocorrencia.categoria}).\n` +
-          "Para mais detalhes, procure a coordenação da escola.\n\nEste é um aviso automático; não responda este e-mail."
+          `Para mais detalhes, procure a coordenação da escola.${linkCiencia}\n\nEste é um aviso automático; não responda este e-mail.`
       }
     };
 
@@ -373,7 +404,14 @@ export class OcorrenciasService {
     const current = await this.get(id, actor);
     garantirTransicao(current, status);
 
-    if (status === StatusOcorrencia.EM_ANALISE && actor.papel !== PapelUsuario.COORDENADOR) {
+    if (ehDevolucao(current, status)) {
+      if (actor.papel !== PapelUsuario.DIRETOR) {
+        throw forbidden("Apenas diretor pode devolver ocorrencia para a coordenacao.");
+      }
+      if (!observacao?.trim()) {
+        throw badRequest("Informe o motivo da devolucao na observacao.");
+      }
+    } else if (status === StatusOcorrencia.EM_ANALISE && actor.papel !== PapelUsuario.COORDENADOR) {
       throw forbidden("Apenas coordenador pode colocar ocorrencia em analise.");
     }
     if (status === StatusOcorrencia.RESOLVIDA && actor.papel !== PapelUsuario.COORDENADOR) {

@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom";
+export function LandingPage() { return <main className="polar-intro"><p>Polar · Ocorrências escolares</p><h1>O registro é o começo do acompanhamento.</h1><p>Registre o que aconteceu e acompanhe a análise da coordenação e o encerramento pela direção. Cada ação permanece no histórico, com autor e data.</p><Link to="/login">Acessar o Polar →</Link><h2>Para professores e gestão escolar</h2><p>Um histórico para consultar o que foi registrado, em que etapa está e o que já foi feito.</p></main>; }

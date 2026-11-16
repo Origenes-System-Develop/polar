@@ -7,11 +7,13 @@ export type Permission =
   | "ocorrencias:status:analise"
   | "ocorrencias:status:resolver"
   | "ocorrencias:status:encerrar"
+  | "ocorrencias:status:devolver"
   | "alunos:view"
   | "alunos:manage"
   | "turmas:view"
   | "turmas:manage"
   | "usuarios:manage"
+  | "usuarios:senha"
   | "relatorios:view"
   | "configuracoes:manage";
 
@@ -26,7 +28,14 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "turmas:view",
     "relatorios:view"
   ],
-  DIRETOR: ["dashboard:view", "ocorrencias:view", "ocorrencias:status:encerrar", "relatorios:view"],
+  DIRETOR: [
+    "dashboard:view",
+    "ocorrencias:view",
+    "ocorrencias:status:encerrar",
+    "ocorrencias:status:devolver",
+    "usuarios:senha",
+    "relatorios:view"
+  ],
   ADM: [
     "dashboard:view",
     "ocorrencias:view",
@@ -36,6 +45,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "turmas:view",
     "turmas:manage",
     "usuarios:manage",
+    "usuarios:senha",
     "relatorios:view",
     "configuracoes:manage"
   ]

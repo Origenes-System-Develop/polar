@@ -1,4 +1,4 @@
-import { UserPlus } from "lucide-react";
+import { KeyRound, UserPlus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/Button";
@@ -12,7 +12,9 @@ import { Select } from "../../components/ui/Select";
 import { rotuloDePapel } from "../../components/layout/iniciais";
 import { Table } from "../../components/ui/Table";
 import type { PapelUsuario, Usuario } from "../../services/domain";
-import { createUsuario, listUsuarios, updateUsuario } from "../../services/school.service";
+import { createUsuario, listUsuarios, redefinirSenhaUsuario, updateUsuario } from "../../services/school.service";
+import { canAccess } from "../../app/permissions";
+import { useAuth } from "../../app/providers";
 
 const initialUserForm = {
   nome: "",
@@ -21,6 +23,9 @@ const initialUserForm = {
 };
 
 export function UsuariosPage() {
+  const { user } = useAuth();
+  // ADM cadastra e desativa; a direcao so redefine senha esquecida.
+  const gerencia = canAccess(user?.papel, "usuarios:manage");
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,8 +33,10 @@ export function UsuariosPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState(initialUserForm);
-  const [novaSenha, setNovaSenha] = useState<{ nome: string; senha: string } | null>(null);
+  const [novaSenha, setNovaSenha] = useState<{ nome: string; senha: string; redefinida?: boolean } | null>(null);
   const [copiada, setCopiada] = useState(false);
+  const [senhaTarget, setSenhaTarget] = useState<Usuario | null>(null);
+  const [redefinindo, setRedefinindo] = useState(false);
 
   // Estado do modal de confirmação de inativação
   const [confirmTarget, setConfirmTarget] = useState<Usuario | null>(null);
@@ -126,12 +133,28 @@ export function UsuariosPage() {
     }
   }
 
+  async function handleConfirmRedefinir() {
+    if (!senhaTarget) return;
+    setRedefinindo(true);
+    setError("");
+    try {
+      const senha = await redefinirSenhaUsuario(senhaTarget.id);
+      setCopiada(false);
+      setNovaSenha({ nome: senhaTarget.nome, senha, redefinida: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível redefinir a senha. Tente de novo.");
+    } finally {
+      setRedefinindo(false);
+      setSenhaTarget(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
         title="Usuários"
         breadcrumb={[{ label: "Início", to: "/" }, { label: "Usuários" }]}
-        actions={<Button icon={<UserPlus size={18} />} onClick={() => setModalOpen(true)}>Novo usuário</Button>}
+        actions={gerencia ? <Button icon={<UserPlus size={18} />} onClick={() => setModalOpen(true)}>Novo usuário</Button> : undefined}
       />
       {error ? <Card className="state-message state-message--danger">{error}</Card> : null}
       <Card title="Quem acessa o Polar">
@@ -149,9 +172,19 @@ export function UsuariosPage() {
                 key: "acao",
                 header: "Ação",
                 render: (item) => (
-                  <Button variant={item.ativo ? "danger" : "ghost"} onClick={() => toggleStatus(item)}>
-                    {item.ativo ? "Desativar" : "Ativar"}
-                  </Button>
+                  <div className="actions-row">
+                    {/* Mesma regra da API: nao a propria conta; a do ADM so outro ADM. */}
+                    {item.ativo && item.id !== user?.id && (gerencia || item.papel !== "ADM") ? (
+                      <Button variant="ghost" icon={<KeyRound size={16} />} onClick={() => setSenhaTarget(item)}>
+                        Redefinir senha
+                      </Button>
+                    ) : null}
+                    {gerencia ? (
+                      <Button variant={item.ativo ? "danger" : "ghost"} onClick={() => toggleStatus(item)}>
+                        {item.ativo ? "Desativar" : "Ativar"}
+                      </Button>
+                    ) : null}
+                  </div>
                 )
               }
             ]}
@@ -180,9 +213,10 @@ export function UsuariosPage() {
           </div>
         </form>
       </Modal>
-      <Modal title="Usuário cadastrado" open={!!novaSenha} onClose={() => setNovaSenha(null)}>
+      <Modal title={novaSenha?.redefinida ? "Senha redefinida" : "Usuário cadastrado"} open={!!novaSenha} onClose={() => setNovaSenha(null)}>
         <p>
-          Passe esta senha temporária para <strong>{novaSenha?.nome}</strong>. Ela aparece só agora; no primeiro acesso a pessoa escolhe a senha dela.
+          Passe esta senha temporária para <strong>{novaSenha?.nome}</strong>. Ela aparece só agora; no{" "}
+          {novaSenha?.redefinida ? "próximo" : "primeiro"} acesso a pessoa escolhe a senha dela.
         </p>
         <p className="senha-temporaria" aria-label="Senha temporária">
           <code>{novaSenha?.senha}</code>
@@ -206,6 +240,15 @@ export function UsuariosPage() {
         onConfirm={handleConfirmInativar}
         onCancel={() => setConfirmTarget(null)}
         loading={inativando}
+      />
+      <ConfirmDialog
+        open={!!senhaTarget}
+        title="Redefinir senha"
+        message={`Gerar uma senha nova para "${senhaTarget?.nome}"? A senha atual deixa de valer agora.`}
+        confirmLabel="Gerar senha nova"
+        onConfirm={handleConfirmRedefinir}
+        onCancel={() => setSenhaTarget(null)}
+        loading={redefinindo}
       />
     </>
   );

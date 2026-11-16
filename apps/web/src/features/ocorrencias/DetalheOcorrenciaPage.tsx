@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Lock, Pencil } from "lucide-react";
+import { CheckCircle2, Clock, Copy, Lock, MessageCircle, Pencil, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { canAccess, type Permission } from "../../app/permissions";
@@ -16,29 +16,42 @@ import {
   type OcorrenciaHistorico,
   type StatusOcorrencia
 } from "../../services/domain";
-import { listNotificacoesOcorrencia, listOcorrenciasDetalhadas } from "../../services/school.service";
+import { getCienciaOcorrencia, listNotificacoesOcorrencia, listOcorrenciasDetalhadas, type CienciaOcorrencia } from "../../services/school.service";
 import { getOcorrenciaDetalhada, listHistoricoOcorrencia, updateOcorrenciaStatus } from "./ocorrencias.service";
 import { statusPendentes } from "./pendencias";
 import { PrioridadeBadge, StatusBadge } from "./status";
 
 interface StatusAction {
   label: string;
+  de: StatusOcorrencia;
   status: StatusOcorrencia;
   permission: Permission;
+  exigeObservacao?: boolean;
 }
 
 const statusActions: StatusAction[] = [
-  { label: "Colocar em análise", status: "EM_ANALISE", permission: "ocorrencias:status:analise" },
-  { label: "Marcar resolvida", status: "RESOLVIDA", permission: "ocorrencias:status:resolver" },
-  { label: "Encerrar", status: "ENCERRADA", permission: "ocorrencias:status:encerrar" }
+  { label: "Colocar em análise", de: "REGISTRADA", status: "EM_ANALISE", permission: "ocorrencias:status:analise" },
+  { label: "Marcar resolvida", de: "EM_ANALISE", status: "RESOLVIDA", permission: "ocorrencias:status:resolver" },
+  { label: "Encerrar", de: "RESOLVIDA", status: "ENCERRADA", permission: "ocorrencias:status:encerrar" },
+  // A direcao discorda da resolucao: volta para a coordenacao, com o motivo obrigatorio.
+  {
+    label: "Devolver para a coordenação",
+    de: "RESOLVIDA",
+    status: "EM_ANALISE",
+    permission: "ocorrencias:status:devolver",
+    exigeObservacao: true
+  }
 ];
 
-const expectedCurrentStatus: Record<StatusOcorrencia, StatusOcorrencia> = {
-  EM_ANALISE: "REGISTRADA",
-  RESOLVIDA: "EM_ANALISE",
-  ENCERRADA: "RESOLVIDA",
-  REGISTRADA: "REGISTRADA"
-};
+const DEVOLUCAO = { quem: "Direção", fez: "devolveu para a coordenação" };
+
+// wa.me quer so digitos com o codigo do pais; numero brasileiro sem DDI ganha o 55.
+function linkWhatsapp(contato: string, texto: string): string | null {
+  const digitos = contato.replace(/\D/g, "");
+  if (digitos.length < 10) return null;
+  const numero = digitos.length <= 11 ? `55${digitos}` : digitos;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+}
 
 const DESTINATARIO_LABEL: Record<NotificacaoOcorrencia["destinatario"], string> = {
   COORDENACAO: "Coordenação",
@@ -59,6 +72,10 @@ const PROVIDENCIA: Partial<Record<StatusOcorrencia, { quem: string; fez: string 
   RESOLVIDA: { quem: "Coordenação", fez: "marcou como resolvida" },
   ENCERRADA: { quem: "Direção", fez: "encerrou" }
 };
+
+function providenciaDe(item: OcorrenciaHistorico) {
+  return item.acao.includes("de RESOLVIDA para EM_ANALISE") ? DEVOLUCAO : PROVIDENCIA[item.status];
+}
 
 const SITUACAO: Record<StatusOcorrencia, string> = {
   REGISTRADA: "Registrada. Aguarda a análise da coordenação.",
@@ -90,6 +107,8 @@ export function DetalheOcorrenciaPage() {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [ciencia, setCiencia] = useState<CienciaOcorrencia | null>(null);
+  const [linkCopiado, setLinkCopiado] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -104,6 +123,8 @@ export function DetalheOcorrenciaPage() {
       setHistorico(nextHistorico);
       setNotificacoes(nextNotificacoes);
       setError("");
+      // Ciencia e complemento: se falhar, o resto da pagina continua.
+      setCiencia(await getCienciaOcorrencia(id).catch(() => null));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível carregar a ocorrência. Recarregue a página.");
     } finally {
@@ -116,14 +137,14 @@ export function DetalheOcorrenciaPage() {
   }, [load]);
 
   // So o que a coordenacao e a direcao fizeram: as mudancas de status depois do registro.
-  const providencias = useMemo(() => historico.filter((item) => item.status !== "REGISTRADA" && PROVIDENCIA[item.status]), [historico]);
+  const providencias = useMemo(() => historico.filter((item) => item.status !== "REGISTRADA" && providenciaDe(item)), [historico]);
 
   const actions = useMemo(() => {
     if (!ocorrencia) return [];
     return statusActions.filter(
       (action) =>
         canAccess(user?.papel, action.permission) &&
-        ocorrencia.status === expectedCurrentStatus[action.status]
+        ocorrencia.status === action.de
     );
   }, [ocorrencia, user?.papel]);
 
@@ -139,12 +160,16 @@ export function DetalheOcorrenciaPage() {
     }
   }
 
-  async function changeStatus(status: StatusOcorrencia) {
+  async function changeStatus(action: StatusAction) {
     if (!id) return;
+    if (action.exigeObservacao && !observacao.trim()) {
+      setError("Escreva na observação o motivo da devolução.");
+      return;
+    }
     setUpdating(true);
     setError("");
     try {
-      await updateOcorrenciaStatus(id, status, observacao);
+      await updateOcorrenciaStatus(id, action.status, observacao);
       setObservacao("");
       await load();
       navigate(`/ocorrencias/${id}`, { replace: true, state: { aviso: { texto: "Status atualizado.", acao: await proximaPendencia(id) } } });
@@ -216,7 +241,11 @@ export function DetalheOcorrenciaPage() {
             {actions.length > 0 ? (
               <div className="page-grid">
                 <label className="ui-field">
-                  <span>Observação ou encaminhamento (opcional)</span>
+                  <span>
+                    {actions.some((action) => action.exigeObservacao)
+                      ? "Observação ou encaminhamento (obrigatória para devolver)"
+                      : "Observação ou encaminhamento (opcional)"}
+                  </span>
                   <textarea
                     rows={3}
                     maxLength={500}
@@ -228,10 +257,21 @@ export function DetalheOcorrenciaPage() {
                 <div className="actions-row">
                   {actions.map((action) => (
                     <Button
-                      key={action.status}
+                      key={action.label}
+                      variant={action.exigeObservacao ? "secondary" : undefined}
                       disabled={updating}
-                      onClick={() => (action.status === "ENCERRADA" ? setConfirmandoEncerrar(true) : void changeStatus(action.status))}
-                      icon={action.status === "ENCERRADA" ? <Lock size={18} /> : action.status === "RESOLVIDA" ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+                      onClick={() => (action.status === "ENCERRADA" ? setConfirmandoEncerrar(true) : void changeStatus(action))}
+                      icon={
+                        action.status === "ENCERRADA" ? (
+                          <Lock size={18} />
+                        ) : action.status === "RESOLVIDA" ? (
+                          <CheckCircle2 size={18} />
+                        ) : action.exigeObservacao ? (
+                          <Undo2 size={18} />
+                        ) : (
+                          <Clock size={18} />
+                        )
+                      }
                     >
                       {action.label}
                     </Button>
@@ -256,7 +296,7 @@ export function DetalheOcorrenciaPage() {
               {providencias.map((item) => (
                 <li key={item.id}>
                   <strong>
-                    {PROVIDENCIA[item.status]?.quem} {PROVIDENCIA[item.status]?.fez}
+                    {providenciaDe(item)?.quem} {providenciaDe(item)?.fez}
                   </strong>
                   {item.usuarioNome ? <span className="muted">{item.usuarioNome}</span> : null}
                   <time className="muted" dateTime={item.criadoEm}>
@@ -298,9 +338,11 @@ export function DetalheOcorrenciaPage() {
           onCancel={() => setConfirmandoEncerrar(false)}
           onConfirm={() => {
             setConfirmandoEncerrar(false);
-            void changeStatus("ENCERRADA");
+            const encerrar = statusActions.find((action) => action.status === "ENCERRADA");
+            if (encerrar) void changeStatus(encerrar);
           }}
         />
+        {ciencia ? <CardCiencia ciencia={ciencia} aluno={ocorrencia.aluno} copiado={linkCopiado} onCopiado={() => setLinkCopiado(true)} /> : null}
         <Card title="Avisos enviados">
           {notificacoes.length === 0 ? (
             <p className="muted">Nenhum aviso foi enviado para esta ocorrência.</p>
@@ -318,5 +360,58 @@ export function DetalheOcorrenciaPage() {
         </Card>
       </div>
     </>
+  );
+}
+
+function CardCiencia({
+  ciencia,
+  aluno,
+  copiado,
+  onCopiado
+}: {
+  ciencia: CienciaOcorrencia;
+  aluno: string;
+  copiado: boolean;
+  onCopiado: () => void;
+}) {
+  const link = ciencia.caminho ? `${window.location.origin}${ciencia.caminho}` : null;
+  const texto = link
+    ? `Olá${ciencia.responsavelNome ? `, ${ciencia.responsavelNome}` : ""}. A escola registrou uma ocorrência envolvendo ${aluno}. ` +
+      `Por favor, confirme que recebeu este aviso: ${link}`
+    : "";
+  const whatsapp = link ? linkWhatsapp(ciencia.responsavelContato, texto) : null;
+
+  return (
+    <Card title="Ciência do responsável">
+      {ciencia.cienciaEm ? (
+        <p>
+          {ciencia.responsavelNome || "O responsável"} confirmou que recebeu o aviso em{" "}
+          <time dateTime={ciencia.cienciaEm}>{formatarDataHora(ciencia.cienciaEm)}</time>.
+        </p>
+      ) : (
+        <p className="muted">
+          Ainda sem confirmação. {ciencia.responsavelEmail ? "O link de ciência foi junto no e-mail do aviso; " : ""}
+          você também pode mandar o link pelo WhatsApp do responsável.
+        </p>
+      )}
+      {link && !ciencia.cienciaEm ? (
+        <div className="actions-row">
+          {whatsapp ? (
+            <a className="ui-button ui-button--secondary" href={whatsapp} target="_blank" rel="noopener noreferrer">
+              <MessageCircle size={18} aria-hidden="true" /> Enviar pelo WhatsApp
+            </a>
+          ) : (
+            <span className="muted">Sem telefone do responsável no cadastro do aluno.</span>
+          )}
+          <Button
+            variant="ghost"
+            icon={<Copy size={18} />}
+            onClick={() => void navigator.clipboard?.writeText(link).then(onCopiado, () => undefined)}
+          >
+            {copiado ? "Link copiado" : "Copiar link"}
+          </Button>
+        </div>
+      ) : null}
+    </Card>
   );
 }

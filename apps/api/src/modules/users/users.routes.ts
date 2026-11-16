@@ -11,9 +11,10 @@ export function usersRoutes(services: Services, config: AppConfig): Router {
   const controller = new UsersController(services);
 
   router.use(authenticate(config));
-  router.get("/", authorize(Permissao.GERENCIAR_USUARIOS), asyncHandler(controller.list));
+  router.get("/", authorize(Permissao.GERENCIAR_USUARIOS, Permissao.REDEFINIR_SENHA), asyncHandler(controller.list));
   router.post("/", authorize(Permissao.GERENCIAR_USUARIOS), asyncHandler(controller.create));
   router.patch("/:id", authorize(Permissao.GERENCIAR_USUARIOS), asyncHandler(controller.update));
+  router.post("/:id/redefinir-senha", authorize(Permissao.REDEFINIR_SENHA), asyncHandler(controller.redefinirSenha));
 
   return router;
 }
