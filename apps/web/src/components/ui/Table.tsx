@@ -10,30 +10,34 @@ export interface TableColumn<T> {
 export function Table<T>({ columns, data, empty = "Nenhum registro encontrado." }: { columns: TableColumn<T>[]; data: T[]; empty?: string }) {
   return (
     <div className="ui-table-wrap">
-      <table className="ui-table">
-        <thead>
-          <tr>
+      {/* Roles explicitos: no celular as linhas viram cartoes (display: block) e os
+          leitores de tela deixam de anunciar tabela, linha e celula sem eles. */}
+      <table className="ui-table" role="table">
+        <thead role="rowgroup">
+          <tr role="row">
             {columns.map((column) => (
-              <th key={column.key} scope="col">
+              <th key={column.key} scope="col" role="columnheader">
                 {column.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {data.length > 0 ? (
             data.map((item, index) => (
-              <tr key={index}>
+              <tr key={index} role="row">
                 {columns.map((column) => (
-                  <td key={column.key} data-label={column.header}>
+                  <td key={column.key} data-label={column.header} role="cell">
                     {column.render(item)}
                   </td>
                 ))}
               </tr>
             ))
           ) : (
-            <tr>
-              <td colSpan={columns.length}>{empty}</td>
+            <tr role="row">
+              <td colSpan={columns.length} role="cell">
+                {empty}
+              </td>
             </tr>
           )}
         </tbody>

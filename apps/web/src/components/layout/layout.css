@@ -1,5 +1,6 @@
 .app-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   transition: grid-template-columns 0.26s cubic-bezier(0.4, 0, 0.2, 1);
@@ -27,6 +28,8 @@
   top: 0;
   z-index: 30;
   height: 100vh;
+  /* dvh acompanha a barra de endereco do celular que aparece e some. */
+  height: 100dvh;
   background: var(--color-shell);
   border-right: 1px solid var(--color-border);
   padding: var(--space-5) var(--space-4);
@@ -279,12 +282,31 @@
   flex: 1;
 }
 
+/* 44 x 44: alvo de toque minimo recomendado (WCAG 2.5.5 e guias da Apple e do Android). */
 .topbar__menu {
   display: none;
+  width: 44px;
+  height: 44px;
+  margin-left: calc(var(--space-2) * -1);
+  place-items: center;
+  border-radius: var(--radius-md);
   background: transparent;
   border: 0;
   color: var(--color-link);
   cursor: pointer;
+}
+
+.topbar__menu:hover {
+  background: var(--color-bg);
+}
+
+.topbar__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  color: var(--color-text);
+  font-size: 1.15rem;
 }
 
 
@@ -623,16 +645,26 @@
     grid-template-columns: 1fr;
   }
 
+  /* Gaveta fechada fica invisivel de verdade (visibility), e nao so fora da tela: senao o
+     Tab e o leitor de tela passeavam pelos links escondidos. O atraso na visibility deixa a
+     animacao de saida terminar antes de sumir. */
   .sidebar {
     position: fixed;
     z-index: 30;
-    width: var(--sidebar-width);
+    width: min(var(--sidebar-width), 85vw);
+    padding-top: calc(var(--space-5) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+    padding-left: calc(var(--space-4) + env(safe-area-inset-left));
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    visibility: hidden;
+    transition: transform 0.18s ease, visibility 0s linear 0.18s;
+    overflow-y: auto;
   }
 
   .app-shell.is-open .sidebar {
     transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.18s ease, visibility 0s;
   }
 
   /* Fundo escuro atras da gaveta: tocar fora fecha. */
@@ -656,25 +688,28 @@
     display: none;
   }
 
-  .app-shell.is-collapsed .sidebar__label,
-  .app-shell.is-collapsed .sidebar__brand-text {
-    max-width: 180px;
-    opacity: 1;
-  }
-
 
   .topbar {
     display: flex;
   }
 
   .topbar__menu {
-    display: inline-flex;
+    display: inline-grid;
+  }
+
+  /* Areas seguras: no PWA em tela cheia o conteudo nao fica sob o entalhe nem a barra de gestos. */
+  .topbar {
+    padding-top: env(safe-area-inset-top);
   }
 
   .topbar,
   .app-shell__main {
-    padding-left: var(--space-5);
-    padding-right: var(--space-5);
+    padding-left: calc(var(--space-5) + env(safe-area-inset-left));
+    padding-right: calc(var(--space-5) + env(safe-area-inset-right));
+  }
+
+  .app-shell__main {
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
   }
 
   .user-menu__name {

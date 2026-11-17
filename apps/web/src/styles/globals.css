@@ -405,7 +405,6 @@ textarea:focus-visible {
   /* minmax(0, 1fr) e nao 1fr: "1fr" equivale a minmax(auto, 1fr) e deixa o
      conteudo (a tabela, que tem min-width) empurrar a coluna alem da viewport,
      criando scroll horizontal na pagina inteira. */
-  .grid-4,
   .grid-3,
   .grid-2,
   .grid-2-wide,
@@ -414,6 +413,36 @@ textarea:focus-visible {
   }
 
   .greeting {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  /* O texto divide a linha com o avatar em vez de cair para baixo dele. */
+  .greeting__text {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .greeting__text h1 {
+    font-size: clamp(1.35rem, 5.5vw, 1.9rem);
+  }
+
+  /* Indicadores em 2 colunas: os 4 numeros cabem numa tela, sem rolar um a um. */
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .stat-card__value {
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
+  }
+
+  .stat-card__label {
+    font-size: 0.92rem;
+  }
+
+  /* Varios botoes no cabecalho da pagina (ex.: relatorios) quebram linha em vez de vazar. */
+  .page-header__actions {
     flex-wrap: wrap;
   }
 

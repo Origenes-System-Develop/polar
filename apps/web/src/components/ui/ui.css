@@ -1,5 +1,5 @@
 .ui-button {
-  min-height: 43px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -350,19 +350,52 @@
   }
 
   .ui-table tr {
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-3);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    padding: var(--space-1) var(--space-4);
     background: var(--color-surface);
   }
 
-  .ui-table td::before {
+  /* Rotulo a esquerda e valor a direita, na mesma linha: o cartao fica com metade da
+     altura e o olho le "Status: Em analise" de uma vez. A altura fixa do desktop sai,
+     senao a linha divisoria cortava o texto quando o valor quebrava. */
+  .ui-table td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 38%) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    height: auto;
+    min-height: 44px;
+    padding: var(--space-2) 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Selos e links do tamanho do proprio texto, sem esticar ate a borda do cartao. */
+  .ui-table td[data-label] > * {
+    justify-self: start;
+  }
+
+  .ui-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .ui-table td[data-label]::before {
     content: attr(data-label);
-    display: block;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
     color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* Coluna de acoes (header vazio ou "Acao"): botoes ocupam a linha toda, faceis de tocar. */
+  .ui-table td[data-label=""],
+  .ui-table td[data-label="Ação"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ui-table td[data-label=""]::before,
+  .ui-table td[data-label="Ação"]::before {
+    display: none;
   }
 }
 
@@ -1216,5 +1249,27 @@
   .pendencias-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-soft);
+  }
+}
+
+/* ---------- Telas de toque ----------
+   Dedo nao e cursor: tudo que se toca tem pelo menos 44 x 44 (WCAG 2.5.5). So em
+   ponteiro grosso (celular, tablet), para nao inchar o layout do computador. */
+@media (pointer: coarse) {
+  .ui-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Prefixo do pai: vence a regra de campo-data.css qualquer que seja a ordem no bundle. */
+  .campo-data__caixa .campo-data__botao {
+    width: 44px;
+    height: 44px;
+    right: 2px;
+  }
+
+  .atalhos-periodo button {
+    min-height: 44px;
   }
 }
