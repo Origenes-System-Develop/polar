@@ -42,9 +42,14 @@ it("gaveta do celular fecha ao navegar, com Esc e no fundo escuro", async () => 
   await user.click(screen.getByRole("link", { name: "Alunos" }));
   expect(shell).not.toHaveClass("is-open");
 
+  // Abrir leva o foco para dentro do menu; Esc fecha e devolve o foco ao botao.
   await user.click(abrir);
+  expect(abrir).toHaveAttribute("aria-expanded", "true");
+  expect(document.getElementById("menu-principal")).toContainElement(document.activeElement as HTMLElement);
   await user.keyboard("{Escape}");
   expect(shell).not.toHaveClass("is-open");
+  expect(abrir).toHaveAttribute("aria-expanded", "false");
+  expect(abrir).toHaveFocus();
 
   await user.click(abrir);
   await user.click(screen.getByLabelText("Fechar menu"));

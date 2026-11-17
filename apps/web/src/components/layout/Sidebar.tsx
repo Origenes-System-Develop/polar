@@ -26,7 +26,7 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
   const temAcao = statusPendentes(user?.papel).length > 0;
 
   return (
-    <aside className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
+    <aside id="menu-principal" className={`sidebar ${collapsed ? "is-collapsed" : ""}`.trim()} aria-label="Navegação principal">
       <div className="sidebar__head">
         {collapsed ? (
           // Recolhido: a propria marca vira o botao; ao passar o mouse troca pelo icone de expandir.
