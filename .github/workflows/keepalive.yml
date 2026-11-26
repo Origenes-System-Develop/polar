@@ -6,8 +6,12 @@ name: Keepalive
 # responde 401. Nao grava nada e nao entra na auditoria. Se vier outro status
 # (500 = banco fora), o job falha e o GitHub avisa por e-mail.
 #
-# shortcut: o Supabase nao documenta se consulta pelo pooler conta como atividade;
-# se o projeto pausar mesmo assim, o unico caminho garantido e o plano Pro.
+# O SELECT pelo pooler nao bastou: o projeto pausou em 07/11 e 23/11/2026. Quem
+# mantem o banco acordado agora e o pg_cron gravando uma linha por dia dentro do
+# Supabase (docs/deploy/supabase.md, passo 7). Este job ficou como alarme.
+#
+# shortcut: a gravacao diaria e o que o suporte do Supabase sugere, mas nao esta
+# documentada como garantia; se ainda pausar, o caminho garantido e o plano Pro.
 
 on:
   schedule:

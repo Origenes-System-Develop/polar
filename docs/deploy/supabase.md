@@ -89,6 +89,32 @@ TRUNCATE audit_logs, faltas, notas, ocorrencia_historico,
 
 **Table Editor** → `users` deve ter exatamente 5 linhas, e a coluna `papel` deve mostrar um papel diferente em cada uma.
 
+## 7. Evitar a pausa do plano Free
+
+O plano Free pausa o projeto depois de 7 dias sem "atividade de usuário no banco", e aí toda a API responde 500. O login sem usuário do workflow `keepalive.yml` (um SELECT pelo pooler) **não** evitou a pausa: o projeto parou em 07/11 e de novo em 23/11/2026. Por isso o próprio banco grava uma linha por dia, com o `pg_cron` do Supabase. Fica fora do `schema.sql` porque o PostgreSQL local não tem `pg_cron`.
+
+Rode uma vez no **SQL Editor** do projeto de produção (feito em 26/11/2026):
+
+```sql
+create extension if not exists pg_cron;
+create table if not exists public.keepalive (id int primary key, em timestamptz not null);
+-- Sem policy: a tabela fica fechada para a API publica do Supabase.
+alter table public.keepalive enable row level security;
+-- Todo dia as 09:17 UTC (06:17 em Brasilia). Rodar de novo so atualiza o agendamento.
+select cron.schedule('polar-keepalive', '17 9 * * *',
+  $$insert into public.keepalive (id, em) values (1, now()) on conflict (id) do update set em = excluded.em$$);
+```
+
+Para conferir se está rodando:
+
+```sql
+select d.status, d.start_time, k.em as ultima_batida
+from cron.job_run_details d join cron.job j on j.jobid = d.jobid, public.keepalive k
+where j.jobname = 'polar-keepalive' order by d.start_time desc limit 5;
+```
+
+O workflow `keepalive.yml` continua como alarme: se o projeto pausar mesmo assim, ele falha e o GitHub avisa por e-mail. Aí é retomar em **Project → Resume project**, e a única garantia é o plano Pro.
+
 ---
 
 ## Desenvolvimento local
